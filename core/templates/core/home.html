@@ -1,14 +1,41 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Home</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-    <h1>Welcome to my website</h1>
+{% block title %}
+    Home
+{% endblock %}
 
-    <a href="{% url 'login' %}">Login</a>
-    <a href="{% url 'signup' %}">Sign Up</a>
+{% block content %}
 
-</body>
-</html>
+<div class="text-center py-20">
+
+    <h1 class="text-5xl font-bold text-gray-900">
+        Welcome to MyWebsite
+    </h1>
+
+    <p class="mt-6 text-lg text-gray-600">
+        Build something amazing with Django.
+    </p>
+
+    <div class="mt-8">
+
+        {% if user.is_authenticated %}
+
+            <a href="{% url 'dashboard' %}"
+               class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                Go to Dashboard
+            </a>
+
+        {% else %}
+
+            <a href="{% url 'signup' %}"
+               class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                Get Started
+            </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
