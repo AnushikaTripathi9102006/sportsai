@@ -4,6 +4,8 @@ from django.shortcuts import render
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 
+from accounts.models import Profile
+
 from .forms import SignupForm, LoginForm
 
 
@@ -17,7 +19,7 @@ def signup(request):
 
             role = form.cleaned_data['role']
 
-            profile = user.profile
+            profile, created = Profile.objects.get_or_create(user=user)
             profile.role = role
 
             if role == 'FARMER':
