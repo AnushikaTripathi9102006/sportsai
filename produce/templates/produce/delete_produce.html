@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Produce - KisanFlow</title>
+</head>
+
+<body>
+
+    <h1>Delete Produce</h1>
+
+    <p>
+        Are you sure you want to delete this produce?
+    </p>
+
+    <p>
+        <strong>Producer:</strong> {{ produce.farmer.username }}
+    </p>
+
+    <p>
+        <strong>Quantity:</strong>
+        {{ produce.quantity }}
+        {{ produce.get_unit_display }}
+    </p>
+
+    <p>
+        <strong>Harvest Date:</strong>
+        {{ produce.harvest_date }}
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <button type="submit">
+            Yes, Delete
+        </button>
+
+        <a href="{% url 'produce:my_produce' %}">
+            Cancel
+        </a>
+    </form>
+
+</body>
+</html>

@@ -1,0 +1,467 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% if editing %}
+            Edit Produce - KisanFlow
+        {% else %}
+            Add Produce - KisanFlow
+        {% endif %}
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7f5;
+            color: #333;
+        }
+
+
+        /* Navbar */
+
+        .navbar {
+            background: #1b5e20;
+            color: white;
+
+            padding: 18px 30px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+
+        .user-info {
+            font-size: 14px;
+        }
+
+
+        /* Main container */
+
+        .container {
+            max-width: 700px;
+
+            margin: 30px auto;
+
+            padding: 0 20px;
+        }
+
+
+        /* Page heading */
+
+        .page-header {
+            margin-bottom: 25px;
+        }
+
+
+        .page-header h1 {
+            margin-bottom: 8px;
+        }
+
+
+        .page-header p {
+            color: #666;
+        }
+
+
+        /* Form card */
+
+        .form-card {
+            background: white;
+
+            padding: 30px;
+
+            border-radius: 10px;
+
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+
+        /* Form fields */
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+
+        .form-group label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-weight: bold;
+
+            color: #333;
+        }
+
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+
+            padding: 11px 12px;
+
+            border: 1px solid #ccc;
+
+            border-radius: 6px;
+
+            font-size: 15px;
+
+            font-family: Arial, sans-serif;
+
+            background: white;
+        }
+
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+
+            border-color: #1b5e20;
+
+            box-shadow: 0 0 0 2px rgba(27, 94, 32, 0.1);
+        }
+
+
+        /* Errors */
+
+        .form-errors {
+            background: #ffebee;
+
+            color: #b71c1c;
+
+            padding: 12px 15px;
+
+            border-radius: 6px;
+
+            margin-bottom: 20px;
+        }
+
+
+        .field-error {
+            display: block;
+
+            margin-top: 6px;
+
+            color: #c62828;
+
+            font-size: 13px;
+        }
+
+
+        /* Buttons */
+
+        .form-actions {
+            display: flex;
+
+            gap: 10px;
+
+            margin-top: 25px;
+
+            padding-top: 20px;
+
+            border-top: 1px solid #eee;
+        }
+
+
+        .btn {
+            display: inline-block;
+
+            padding: 10px 18px;
+
+            border-radius: 6px;
+
+            border: none;
+
+            font-size: 14px;
+
+            text-decoration: none;
+
+            cursor: pointer;
+
+            font-family: Arial, sans-serif;
+        }
+
+
+        .btn-primary {
+            background: #1b5e20;
+
+            color: white;
+        }
+
+
+        .btn-primary:hover {
+            background: #145218;
+        }
+
+
+        .btn-secondary {
+            background: #eeeeee;
+
+            color: #333;
+        }
+
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+
+        /* Mobile */
+
+        @media (max-width: 768px) {
+
+            .navbar {
+                padding: 15px;
+            }
+
+
+            .container {
+                margin-top: 20px;
+            }
+
+
+            .form-card {
+                padding: 20px;
+            }
+
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+
+            .form-actions .btn {
+                width: 100%;
+
+                text-align: center;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- Navbar -->
+
+    <nav class="navbar">
+
+        <div class="logo">
+            KISANFLOW
+        </div>
+
+
+        <div class="user-info">
+            {{ request.user.username }}
+        </div>
+
+    </nav>
+
+
+
+    <main class="container">
+
+
+        <!-- Page Heading -->
+
+        <section class="page-header">
+
+            {% if editing %}
+
+                <h1>Edit Produce</h1>
+
+                <p>
+                    Update the details of your produce.
+                </p>
+
+            {% else %}
+
+                <h1>Register Produce</h1>
+
+                <p>
+                    Add a new produce batch to your account.
+                </p>
+
+            {% endif %}
+
+        </section>
+
+
+
+        <!-- Form -->
+
+        <section class="form-card">
+
+
+            {% if form.non_field_errors %}
+
+                <div class="form-errors">
+
+                    {{ form.non_field_errors }}
+
+                </div>
+
+            {% endif %}
+
+
+
+            <form method="POST">
+
+                {% csrf_token %}
+
+
+
+                <!-- Crop Name -->
+
+                <div class="form-group">
+
+                    {{ form.crop_name.label_tag }}
+
+                    {{ form.crop_name }}
+
+                    {% for error in form.crop_name.errors %}
+
+                        <span class="field-error">
+                            {{ error }}
+                        </span>
+
+                    {% endfor %}
+
+                </div>
+
+
+
+                <!-- Quantity -->
+
+                <div class="form-group">
+
+                    {{ form.quantity.label_tag }}
+
+                    {{ form.quantity }}
+
+                    {% for error in form.quantity.errors %}
+
+                        <span class="field-error">
+                            {{ error }}
+                        </span>
+
+                    {% endfor %}
+
+                </div>
+
+
+
+                <!-- Unit -->
+
+                <div class="form-group">
+
+                    {{ form.unit.label_tag }}
+
+                    {{ form.unit }}
+
+                    {% for error in form.unit.errors %}
+
+                        <span class="field-error">
+                            {{ error }}
+                        </span>
+
+                    {% endfor %}
+
+                </div>
+
+
+
+                <!-- Harvest Date -->
+
+                <div class="form-group">
+
+                    {{ form.harvest_date.label_tag }}
+
+                    {{ form.harvest_date }}
+
+                    {% for error in form.harvest_date.errors %}
+
+                        <span class="field-error">
+                            {{ error }}
+                        </span>
+
+                    {% endfor %}
+
+                </div>
+
+
+
+                <!-- Buttons -->
+
+                <div class="form-actions">
+
+                    {% if editing %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            Save Changes
+                        </button>
+
+                    {% else %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            Register Produce
+                        </button>
+
+                    {% endif %}
+
+
+                    <a
+                        href="{% url 'produce:my_produce' %}"
+                        class="btn btn-secondary"
+                    >
+                        Cancel
+                    </a>
+
+                </div>
+
+
+            </form>
+
+
+        </section>
+
+
+    </main>
+
+
+</body>
+
+</html>
+```

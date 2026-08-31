@@ -1,0 +1,472 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>My Produce | KisanFlow</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7f5;
+            color: #333;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: #1b5e20;
+            color: white;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .user-info {
+            font-size: 14px;
+        }
+
+        /* Main container */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* Page heading */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .page-header h1 {
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            color: #666;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 10px 16px;
+            border-radius: 6px;
+            border: none;
+            font-size: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+        }
+
+        .btn-primary {
+            background: #1b5e20;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #145218;
+        }
+
+        .btn-secondary {
+            background: #eeeeee;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-danger {
+            background: #c62828;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #a91f1f;
+        }
+
+        .btn-disabled {
+            background: #eeeeee;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        /* Produce cards */
+        .produce-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .produce-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .produce-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .produce-title {
+            color: #1b5e20;
+            font-size: 20px;
+            margin-bottom: 18px;
+        }
+
+        .produce-detail {
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .produce-detail strong {
+            color: #444;
+        }
+
+        /* Status */
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .status-available {
+            background: #e8f5e9;
+            color: #1b5e20;
+        }
+
+        .status-requested {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-procured {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        /* Actions */
+        .actions {
+            margin-top: 20px;
+            padding-top: 18px;
+            border-top: 1px solid #eee;
+
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .delete-form {
+            display: inline;
+        }
+
+        /* Messages */
+        .messages {
+            margin-bottom: 20px;
+        }
+
+        .message {
+            background: #e8f5e9;
+            color: #1b5e20;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            background: white;
+            padding: 50px 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .empty-state h2 {
+            color: #1b5e20;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+
+            .navbar {
+                padding: 15px;
+            }
+
+            .container {
+                margin-top: 20px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .produce-list {
+                grid-template-columns: 1fr;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .actions .btn,
+            .actions form {
+                width: 100%;
+            }
+
+            .actions form button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+
+        <div class="logo">
+            KISANFLOW
+        </div>
+
+        <div class="user-info">
+            {{ request.user.username }}
+        </div>
+
+    </nav>
+
+
+    <main class="container">
+
+        <!-- Page Header -->
+        <section class="page-header">
+
+            <div>
+                <h1>My Produce</h1>
+
+                <p>
+                    Manage the produce you have listed.
+                </p>
+            </div>
+
+            <a
+                href="{% url 'produce:add_produce' %}"
+                class="btn btn-primary"
+            >
+                + Add Produce
+            </a>
+
+        </section>
+
+
+        <!-- Messages -->
+        {% if messages %}
+
+            <div class="messages">
+
+                {% for message in messages %}
+
+                    <div class="message">
+                        {{ message }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+
+        <!-- Produce -->
+        {% if produce_list %}
+
+            <section class="produce-list">
+
+                {% for produce in produce_list %}
+
+                    <div class="produce-card">
+
+                        <h2 class="produce-title">
+                            {{ produce.crop_name }}
+                        </h2>
+
+
+                        <div class="produce-detail">
+                            <strong>Quantity:</strong>
+                            {{ produce.quantity }}
+                            {{ produce.get_unit_display }}
+                        </div>
+
+
+                        <div class="produce-detail">
+                            <strong>Harvest Date:</strong>
+                            {{ produce.harvest_date|date:"d M Y" }}
+                        </div>
+
+
+                        <div class="produce-detail">
+
+                            <strong>Status:</strong>
+
+                            {% if produce.status == "AVAILABLE" %}
+
+                                <span class="status status-available">
+                                    Available
+                                </span>
+
+                            {% elif produce.status == "REQUESTED" %}
+
+                                <span class="status status-requested">
+                                    Procurement Requested
+                                </span>
+
+                            {% elif produce.status == "PROCURED" %}
+
+                                <span class="status status-procured">
+                                    Procured
+                                </span>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <!-- Actions -->
+                        <div class="actions">
+
+                            {% if produce.status == "AVAILABLE" %}
+
+                                <!-- Edit -->
+                                <a
+                                    href="{% url 'produce:edit_produce' produce.pk %}"
+                                    class="btn btn-secondary"
+                                >
+                                    Edit
+                                </a>
+
+
+                                <!-- Delete -->
+                                <form
+                                    method="post"
+                                    action="{% url 'produce:delete_produce' produce.pk %}"
+                                    class="delete-form"
+                                    onsubmit="return confirm('Are you sure you want to delete this produce?');"
+                                >
+
+                                    {% csrf_token %}
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-danger"
+                                    >
+                                        Delete
+                                    </button>
+
+                                </form>
+
+
+                                <!-- Procurement -->
+                                <a
+                                    href="#"
+                                    class="btn btn-primary"
+                                >
+                                    Request Procurement
+                                </a>
+
+
+                            {% else %}
+
+                                <!-- Locked Edit -->
+                                <button
+                                    type="button"
+                                    class="btn btn-disabled"
+                                    disabled
+                                >
+                                    Edit
+                                </button>
+
+
+                                <!-- Locked Delete -->
+                                <button
+                                    type="button"
+                                    class="btn btn-disabled"
+                                    disabled
+                                >
+                                    Delete
+                                </button>
+
+
+                                <!-- View Request -->
+                                <a
+                                    href="#"
+                                    class="btn btn-secondary"
+                                >
+                                    View Request
+                                </a>
+
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </section>
+
+
+        {% else %}
+
+            <!-- No Produce -->
+            <section class="empty-state">
+
+                <h2>No Produce Listed</h2>
+
+                <p>
+                    You haven't added any produce yet.
+                </p>
+
+                <a
+                    href="{% url 'produce:add_produce' %}"
+                    class="btn btn-primary"
+                >
+                    Add Your First Produce
+                </a>
+
+            </section>
+
+        {% endif %}
+
+    </main>
+
+</body>
+</html>
+```

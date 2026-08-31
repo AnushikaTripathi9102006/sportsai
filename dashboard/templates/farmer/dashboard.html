@@ -63,10 +63,17 @@
         }
 
         .card {
+            text-decoration: none;
+            color: inherit;
+            display: block;
             background: white;
             padding: 25px;
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
         }
 
         .card h3 {
@@ -173,11 +180,11 @@
         <!-- Main Cards -->
         <section class="cards">
 
-            <div class="card">
+            <a href="{% url 'produce:my_produce' %}" class="card">
                 <h3>My Produce</h3>
-                <div class="value">0</div>
+                <div class="value">{{ produce_count }}</div>
                 <p>Produce items</p>
-            </div>
+            </a>
 
 
             <div class="card">

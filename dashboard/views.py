@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-
+from produce.models import Produce
 
 @login_required
 def dashboard(request):
@@ -23,6 +23,7 @@ def dashboard(request):
     return redirect("login")
 
 
+
 @login_required
 def farmer_dashboard(request):
 
@@ -31,11 +32,16 @@ def farmer_dashboard(request):
     if profile.role != "FARMER":
         return redirect("dashboard")
 
+    produce_count = Produce.objects.filter(
+        farmer=request.user
+    ).count()
+
     return render(
         request,
         "farmer/dashboard.html",
         {
             "farmer": request.user,
             "profile": profile,
+            "produce_count": produce_count,
         }
     )
