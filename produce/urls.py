@@ -15,6 +15,12 @@ urlpatterns = [
     ),
 
     path(
+        "detail/<int:pk>/",
+        views.produce_detail,
+        name="produce_detail",
+    ),
+
+    path(
         "edit/<int:pk>/",
         views.edit_produce,
         name="edit_produce",

@@ -1,3 +1,5 @@
+import re
+
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -56,18 +58,15 @@ class Profile(models.Model):
 
     def save(self, *args, **kwargs):
         if self.role == "FARMER" and not self.farmer_id:
-            last_farmer = Profile.objects.filter(
-                role="FARMER"
-            ).order_by("-id").first()
+            farmer_numbers = [
+                int(match.group(1))
+                for farmer_id in Profile.objects.filter(
+                    farmer_id__startswith="FAR-",
+                ).values_list("farmer_id", flat=True)
+                if (match := re.fullmatch(r"FAR-(\d+)", farmer_id))
+            ]
+            next_number = max(farmer_numbers, default=0) + 1
 
-        if last_farmer and last_farmer.farmer_id:
-            last_number = int(
-                last_farmer.farmer_id.split("-")[1]
-            )
-            next_number = last_number + 1
-        else:
-            next_number = 1
-
-        self.farmer_id = f"FAR-{next_number:04d}"
+            self.farmer_id = f"FAR-{next_number:04d}"
 
         super().save(*args, **kwargs)

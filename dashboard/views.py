@@ -32,9 +32,13 @@ def farmer_dashboard(request):
     if profile.role != "FARMER":
         return redirect("dashboard")
 
-    produce_count = Produce.objects.filter(
+    produce_list = Produce.objects.filter(
         farmer=request.user
-    ).count()
+    ).order_by("-created_at")
+
+    current_produce = produce_list.filter(
+        status="REQUESTED"
+    ).first() or produce_list.first()
 
     return render(
         request,
@@ -42,6 +46,8 @@ def farmer_dashboard(request):
         {
             "farmer": request.user,
             "profile": profile,
-            "produce_count": produce_count,
+            "produce_count": produce_list.count(),
+            "produce_list": produce_list[:3],
+            "current_produce": current_produce,
         }
     )

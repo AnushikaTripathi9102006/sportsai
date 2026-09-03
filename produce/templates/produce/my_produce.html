@@ -62,6 +62,26 @@
             color: #666;
         }
 
+        .page-eyebrow {
+            margin-bottom: 8px;
+            color: #1f6b45;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .page-header h1 {
+            color: #19352a;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 34px;
+        }
+
+        .page-description {
+            color: #6b7c72;
+            font-size: 15px;
+        }
+
         /* Buttons */
         .btn {
             display: inline-block;
@@ -79,8 +99,16 @@
             color: white;
         }
 
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #1f6b45;
+            box-shadow: 0 4px 12px rgba(31, 107, 69, 0.16);
+        }
+
         .btn-primary:hover {
-            background: #145218;
+            background: #174b35;
         }
 
         .btn-secondary {
@@ -245,35 +273,354 @@
                 width: 100%;
             }
         }
+
+        /* Farmer dashboard shell */
+        :root {
+            --dashboard-green: #1f6b45;
+            --dashboard-deep-green: #174b35;
+            --dashboard-mint: #e6f2e9;
+            --dashboard-ink: #19352a;
+            --dashboard-muted: #6b7c72;
+            --dashboard-line: #dfe9e1;
+            --dashboard-paper: #f6faf7;
+        }
+
+        body {
+            background: var(--dashboard-paper);
+            color: var(--dashboard-ink);
+            font-family: Georgia, "Times New Roman", serif;
+        }
+
+        .app-shell {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 248px;
+            background: var(--dashboard-deep-green);
+            color: #eaf4ed;
+            padding: 28px 16px 20px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            padding: 0 14px 30px;
+            color: #eaf4ed;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .brand small {
+            display: block;
+            margin-top: 5px;
+            color: #a9c9b4;
+            font: 12px Arial, sans-serif;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .nav-label {
+            padding: 0 14px 9px;
+            color: #8db59c;
+            font: 11px Arial, sans-serif;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+
+        .nav-list {
+            display: grid;
+            gap: 3px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 7px;
+            color: #d7e9dd;
+            font: 14px Arial, sans-serif;
+            text-decoration: none;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: #286c4a;
+            color: white;
+        }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            border-top: 1px solid #35664b;
+            padding-top: 14px;
+        }
+
+        .main-area {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .topbar {
+            min-height: 82px;
+            background: white;
+            border-bottom: 1px solid var(--dashboard-line);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px clamp(20px, 4vw, 50px);
+            gap: 18px;
+        }
+
+        .menu-button {
+            display: none;
+            border: 0;
+            background: var(--dashboard-mint);
+            color: var(--dashboard-deep-green);
+            border-radius: 6px;
+            font-size: 21px;
+            padding: 7px 10px;
+            cursor: pointer;
+        }
+
+        .crumb {
+            color: var(--dashboard-muted);
+            font: 13px Arial, sans-serif;
+        }
+
+        .crumb strong {
+            color: var(--dashboard-ink);
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            font: 13px Arial, sans-serif;
+        }
+
+        .profile-text {
+            text-align: right;
+            line-height: 1.5;
+        }
+
+        .profile-text strong {
+            display: block;
+            color: var(--dashboard-ink);
+        }
+
+        .profile-id {
+            color: var(--dashboard-muted);
+            font-size: 11px;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: #d9eadc;
+            color: var(--dashboard-deep-green);
+            font-weight: bold;
+        }
+
+        .content {
+            max-width: 1360px;
+            margin: 0 auto;
+            padding: 38px clamp(20px, 4vw, 50px) 60px;
+        }
+
+        .page-header {
+            margin-bottom: 28px;
+        }
+
+        .page-header h1 {
+            font-size: 34px;
+            line-height: 1.08;
+        }
+
+        .page-description {
+            color: var(--dashboard-muted);
+            font: 15px Arial, sans-serif;
+        }
+
+        .btn-primary {
+            background: var(--dashboard-green);
+            box-shadow: 0 4px 12px rgba(31, 107, 69, .16);
+        }
+
+        .btn-primary:hover {
+            background: var(--dashboard-deep-green);
+        }
+
+        .produce-list {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 13px;
+            margin-bottom: 18px;
+        }
+
+        .summary-card {
+            display: block;
+            background: white;
+            border: 1px solid var(--dashboard-line);
+            border-radius: 8px;
+            padding: 18px;
+            box-shadow: 0 4px 13px rgba(30, 75, 53, .04);
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .summary-card:hover,
+        .summary-card.active {
+            border-color: var(--dashboard-green);
+            box-shadow: 0 5px 16px rgba(31, 107, 69, .11);
+        }
+
+        .summary-card span {
+            display: block;
+            color: var(--dashboard-muted);
+            font: 12px Arial, sans-serif;
+        }
+
+        .summary-card strong {
+            display: block;
+            margin-top: 9px;
+            color: var(--dashboard-green);
+            font-size: 29px;
+            line-height: 1;
+        }
+
+        .search-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .search-toolbar input {
+            width: min(100%, 380px);
+            padding: 12px 14px;
+            border: 1px solid var(--dashboard-line);
+            border-radius: 6px;
+            background: white;
+            color: var(--dashboard-ink);
+            font: 14px Arial, sans-serif;
+        }
+
+        .search-toolbar input:focus {
+            outline: 2px solid var(--dashboard-mint);
+            border-color: var(--dashboard-green);
+        }
+
+        .search-toolbar .btn {
+            min-height: 42px;
+        }
+
+        @media (max-width: 1000px) {
+            .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+
+        .produce-card,
+        .empty-state {
+            border: 1px solid var(--dashboard-line);
+            border-radius: 8px;
+            box-shadow: 0 4px 13px rgba(30, 75, 53, .04);
+        }
+
+        .produce-title,
+        .empty-state h2 {
+            color: var(--dashboard-green);
+        }
+
+        .produce-detail,
+        .actions {
+            font-family: Arial, sans-serif;
+        }
+
+        @media (max-width: 1000px) {
+            .sidebar { width: 215px; }
+        }
+
+        @media (max-width: 700px) {
+            .sidebar {
+                position: fixed;
+                inset: 0 auto 0 0;
+                z-index: 5;
+                transform: translateX(-100%);
+                transition: transform .2s ease;
+            }
+
+            .sidebar.open { transform: translateX(0); }
+            .menu-button { display: block; }
+            .topbar { min-height: 68px; }
+            .profile-text { display: none; }
+            .content { padding-top: 27px; }
+            .summary-grid { grid-template-columns: 1fr 1fr; }
+            .produce-list { grid-template-columns: 1fr; }
+            .search-toolbar { align-items: stretch; flex-direction: column; }
+            .search-toolbar input { width: 100%; }
+        }
     </style>
 </head>
 
 <body>
 
-    <!-- Navbar -->
-    <nav class="navbar">
-
-        <div class="logo">
-            KISANFLOW
-        </div>
-
-        <div class="user-info">
-            {{ request.user.username }}
-        </div>
-
-    </nav>
-
-
-    <main class="container">
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
+            <div class="nav-label">Main menu</div>
+            <nav class="nav-list" aria-label="Farmer navigation">
+                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
+                <a class="nav-item active" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
+                <a class="nav-item" href="{% url 'produce:add_produce' %}"><span class="nav-icon">＋</span> Register Produce</a>
+                <a class="nav-item" href="#"><span class="nav-icon">⌖</span> Procurement Centers</a>
+                <a class="nav-item" href="#"><span class="nav-icon">▣</span> Appointments</a>
+                <a class="nav-item" href="#"><span class="nav-icon">▤</span> My Token</a>
+                <a class="nav-item" href="#"><span class="nav-icon">→</span> Procurement Status</a>
+                <a class="nav-item" href="#"><span class="nav-icon">₹</span> Payments</a>
+                <a class="nav-item" href="#"><span class="nav-icon">•</span> Notifications</a>
+            </nav>
+            <div class="sidebar-bottom nav-list">
+                <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Settings</a>
+                <a class="nav-item" href="#"><span class="nav-icon">?</span> Help &amp; Support</a>
+                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
+            </div>
+        </aside>
+        <div class="main-area">
+            <header class="topbar">
+                <div style="display:flex;align-items:center;gap:13px"><button class="menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" onclick="toggleSidebar()">☰</button><div class="crumb"><strong>My Produce</strong> &nbsp;/&nbsp; Manage crops</div></div>
+                <div class="profile"><span aria-label="Notifications" style="font-size:22px;color:var(--dashboard-green)">♢</span><div class="profile-text"><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><span class="profile-id">Farmer account</span></div><div class="avatar">{{ request.user.first_name|default:request.user.username|first|upper }}</div><span aria-hidden="true">⌄</span></div>
+            </header>
+            <main class="content">
 
         <!-- Page Header -->
+            <!-- Page Header -->
         <section class="page-header">
 
             <div>
+                <p class="page-eyebrow">
+                    FARMER SPACE
+                </p>
+
                 <h1>My Produce</h1>
 
-                <p>
-                    Manage the produce you have listed.
+                <p class="page-description">
+                    Manage your registered crops and track their current status.
                 </p>
             </div>
 
@@ -281,7 +628,8 @@
                 href="{% url 'produce:add_produce' %}"
                 class="btn btn-primary"
             >
-                + Add Produce
+                <span aria-hidden="true">＋</span>
+                Register New Produce
             </a>
 
         </section>
@@ -303,6 +651,56 @@
             </div>
 
         {% endif %}
+
+
+        <!-- Summary -->
+        <section class="summary-grid" aria-label="Produce summary">
+
+            <a class="summary-card{% if not selected_status %} active{% endif %}" href="{% url 'produce:my_produce' %}">
+                <span>All Produce</span>
+                <strong>{{ produce_counts.all }}</strong>
+            </a>
+
+            <a class="summary-card{% if selected_status == 'AVAILABLE' %} active{% endif %}" href="{% url 'produce:my_produce' %}?status=AVAILABLE">
+                <span>Available</span>
+                <strong>{{ produce_counts.available }}</strong>
+            </a>
+
+            <a class="summary-card{% if selected_status == 'REQUESTED' %} active{% endif %}" href="{% url 'produce:my_produce' %}?status=REQUESTED">
+                <span>Requested</span>
+                <strong>{{ produce_counts.requested }}</strong>
+            </a>
+
+            <a class="summary-card{% if selected_status == 'PROCURED' %} active{% endif %}" href="{% url 'produce:my_produce' %}?status=PROCURED">
+                <span>Procured</span>
+                <strong>{{ produce_counts.procured }}</strong>
+            </a>
+
+        </section>
+
+
+        <!-- Search -->
+        <form class="search-toolbar" method="get" role="search">
+            <input
+                type="search"
+                name="search"
+                value="{{ search_query }}"
+                placeholder="Search produce..."
+                aria-label="Search produce by crop name"
+            >
+
+            {% if selected_status %}
+                <input
+                    type="hidden"
+                    name="status"
+                    value="{{ selected_status }}"
+                >
+            {% endif %}
+
+            <button class="btn btn-primary" type="submit">
+                Search
+            </button>
+        </form>
 
 
         <!-- Produce -->
@@ -393,6 +791,15 @@
                                 </form>
 
 
+                                <!-- View details -->
+                                <a
+                                    href="{% url 'produce:produce_detail' produce.pk %}"
+                                    class="btn btn-secondary"
+                                >
+                                    View Details
+                                </a>
+
+
                                 <!-- Procurement -->
                                 <a
                                     href="#"
@@ -424,12 +831,12 @@
                                 </button>
 
 
-                                <!-- View Request -->
+                                <!-- View details -->
                                 <a
-                                    href="#"
+                                    href="{% url 'produce:produce_detail' produce.pk %}"
                                     class="btn btn-secondary"
                                 >
-                                    View Request
+                                    View Details
                                 </a>
 
                             {% endif %}
@@ -465,8 +872,10 @@
 
         {% endif %}
 
-    </main>
-
+            </main>
+        </div>
+    </div>
+    <script>function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }</script>
 </body>
 </html>
 ```
