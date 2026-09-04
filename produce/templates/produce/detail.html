@@ -62,8 +62,8 @@
                 <a class="nav-item" href="#"><span class="nav-icon">⌖</span> Procurement Centers</a>
                 <a class="nav-item" href="#"><span class="nav-icon">▣</span> Appointments</a>
                 <a class="nav-item" href="#"><span class="nav-icon">▤</span> My Token</a>
-                <a class="nav-item" href="#"><span class="nav-icon">→</span> Procurement Status</a>
-                <a class="nav-item" href="#"><span class="nav-icon">₹</span> Payments</a>
+                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
+                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
                 <a class="nav-item" href="#"><span class="nav-icon">•</span> Notifications</a>
             </nav>
             <div class="sidebar-bottom nav-list">

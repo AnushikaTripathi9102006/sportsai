@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token &amp; Queue | KisanFlow</title>
+    <style>
+        :root {
+            --green: #1f6b45;
+            --deep-green: #174b35;
+            --mint: #e6f2e9;
+            --ink: #19352a;
+            --muted: #6b7c72;
+            --line: #dfe9e1;
+            --paper: #f6faf7;
+            --white: #ffffff;
+            --amber: #d88424;
+            --red: #b71c1c;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
+        a { color: inherit; }
+        .app-shell { display: flex; min-height: 100vh; }
+        .sidebar { width: 248px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .brand { padding: 0 14px 30px; font-size: 25px; font-weight: bold; letter-spacing: .02em; }
+        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
+        .nav-list { display: grid; gap: 3px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background: #286c4a; color: var(--white); }
+        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
+        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
+
+        .main-area { min-width: 0; flex: 1; }
+        .topbar { min-height: 82px; background: var(--white); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
+        .menu-button { display: none; border: 0; background: var(--mint); color: var(--deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
+        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
+        .crumb strong { color: var(--ink); }
+        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
+        .profile-text { text-align: right; line-height: 1.5; }
+        .profile-text strong { display: block; color: var(--ink); }
+        .profile-id { color: var(--muted); font-size: 11px; }
+        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
+
+        .content { max-width: 1000px; margin: 0 auto; padding: 38px clamp(20px, 4vw, 50px) 60px; }
+        .page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 24px; }
+        .eyebrow { margin: 0 0 6px; color: var(--green); font: bold 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+        h1 { margin: 0 0 6px; font-size: clamp(28px, 4vw, 40px); line-height: 1.08; }
+        .description { margin: 0; color: var(--muted); font: 15px Arial, sans-serif; }
+
+        .state-toggle-link { font: bold 12px Arial, sans-serif; color: var(--green); text-decoration: none; padding: 6px 12px; border-radius: 6px; background: var(--mint); border: 1px solid #bce2c7; white-space: nowrap; }
+        .state-toggle-link:hover { background: #d4ebd9; }
+
+        /* 🚨 YOUR TURN STATE HERO CARD */
+        .your-turn-card { background: #fff5f5; border: 2px solid var(--red); border-radius: 14px; padding: 36px 28px; text-align: center; box-shadow: 0 8px 24px rgba(183, 28, 28, .12); margin-bottom: 24px; }
+        .your-turn-title { color: var(--red); font-size: clamp(26px, 4vw, 36px); font-weight: 900; margin: 0 0 10px; font-family: Arial, sans-serif; letter-spacing: 1px; }
+        .your-turn-token { font-family: Arial, sans-serif; font-size: clamp(52px, 8vw, 76px); font-weight: 900; color: var(--ink); line-height: 1; margin: 12px 0 16px; }
+        .your-turn-instruction { color: var(--muted); font: 15px Arial, sans-serif; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .08em; }
+        .your-turn-counter-badge { display: inline-block; background: var(--red); color: white; padding: 12px 32px; border-radius: 10px; font-family: Arial, sans-serif; font-size: clamp(24px, 4vw, 32px); font-weight: 900; letter-spacing: 2px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(183, 28, 28, .3); }
+        .your-turn-location { color: var(--ink); font: bold 16px Arial, sans-serif; margin-bottom: 22px; }
+
+        /* 1. Active Token Card */
+        .card { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 28px; box-shadow: 0 4px 14px rgba(30, 75, 53, .04); margin-bottom: 22px; transition: border-color .3s, box-shadow .3s; }
+        .active-token-card { text-align: center; }
+        .card-eyebrow { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; background: var(--mint); color: var(--green); font: bold 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 18px; }
+        .token-hero-number { font-family: Arial, sans-serif; font-size: clamp(48px, 7vw, 68px); font-weight: 900; color: var(--deep-green); letter-spacing: 2px; line-height: 1; margin: 6px 0 2px; }
+        .token-hero-label { color: var(--muted); font: bold 11px Arial, sans-serif; letter-spacing: .15em; text-transform: uppercase; margin-bottom: 20px; }
+        
+        .token-meta-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px clamp(16px, 3vw, 28px); margin: 0 auto 24px; color: var(--ink); font: 14px Arial, sans-serif; background: var(--paper); padding: 14px 20px; border-radius: 8px; border: 1px solid var(--line); max-width: 650px; }
+        .meta-item { display: flex; align-items: center; gap: 6px; }
+
+        .qr-wrapper { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 18px; scroll-margin-top: 100px; }
+        .qr-placeholder-box { width: 140px; height: 140px; border: 4px solid var(--ink); border-radius: 8px; background: #ffffff; padding: 6px; display: grid; place-items: center; transition: transform .3s; }
+        .qr-pattern { width: 100%; height: 100%; background: repeating-linear-gradient(45deg, #19352a 0 8px, #ffffff 8px 16px); display: flex; align-items: center; justify-content: center; color: white; font: bold 12px Arial, sans-serif; text-shadow: 0 1px 3px #000; }
+        .qr-highlight { transform: scale(1.08); box-shadow: 0 0 0 4px var(--mint); }
+
+        .active-pill { display: inline-block; padding: 6px 18px; border-radius: 20px; background: #e8f7ec; color: #1b6b3e; font: bold 12px Arial, sans-serif; border: 1px solid #c2ebd0; }
+
+        /* 2. Side-by-side Current Token & Position Cards */
+        .twin-cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px; }
+        .stat-hero-card { background: var(--white); border: 1px solid var(--line); border-radius: 10px; padding: 22px; text-align: center; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); }
+        .stat-hero-card.left { border-top: 4px solid var(--green); }
+        .stat-hero-card.right { border-top: 4px solid var(--amber); }
+        .stat-hero-title { font: bold 11px Arial, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+        .stat-hero-number { font-family: Arial, sans-serif; font-size: clamp(34px, 5vw, 46px); font-weight: 900; color: var(--ink); margin-bottom: 4px; line-height: 1.1; }
+        .stat-hero-card.left .stat-hero-number { color: var(--deep-green); }
+        .stat-hero-card.right .stat-hero-number { color: #9c5d13; }
+        .stat-hero-sub { color: var(--muted); font: 13px Arial, sans-serif; }
+
+        /* 3. Live Queue Panel */
+        .live-queue-card { padding: 26px; }
+        .live-queue-title { margin: 0 0 20px; font-size: 20px; display: flex; align-items: center; gap: 8px; }
+        
+        /* Queue Token Nodes Line */
+        .token-flow-wrap { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 24px 20px 16px; margin-bottom: 22px; overflow-x: auto; }
+        .token-flow { display: flex; align-items: center; justify-content: space-between; min-width: 500px; position: relative; max-width: 680px; margin: 0 auto; }
+        .flow-line { position: absolute; top: 15px; left: 10%; right: 10%; height: 2px; background: var(--line); z-index: 0; }
+        .flow-line-fill { position: absolute; top: 15px; left: 10%; width: 50%; height: 2px; background: var(--green); z-index: 0; }
+        
+        .flow-step { display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; z-index: 1; }
+        .flow-node { font: bold 14px Arial, sans-serif; color: var(--ink); padding: 4px 10px; border-radius: 12px; background: var(--white); border: 2px solid var(--line); }
+        .flow-step.current .flow-node { background: var(--green); border-color: var(--deep-green); color: white; }
+        .flow-step.you .flow-node { background: #fff2d9; border-color: var(--amber); color: #9c5d13; font-weight: 900; }
+        .flow-arrow { font-size: 16px; color: var(--green); margin-top: -2px; }
+        .flow-label { font: bold 11px Arial, sans-serif; color: var(--muted); }
+        .flow-step.current .flow-label { color: var(--green); }
+        .flow-step.you .flow-label { color: #9c5d13; }
+
+        /* Progress Bar */
+        .progress-bar-wrap { margin-bottom: 20px; }
+        .progress-bar-track { height: 16px; background: #e2ece5; border-radius: 10px; overflow: hidden; position: relative; border: 1px solid var(--line); }
+        .progress-bar-fill { height: 100%; width: 62%; background: linear-gradient(90deg, #1f6b45, #288456); border-radius: 10px; }
+        
+        .queue-meta-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; font: 14px Arial, sans-serif; border-top: 1px solid var(--line); padding-top: 16px; }
+        .wait-time { color: var(--ink); font-weight: bold; }
+        .moving-status { color: var(--green); font-weight: bold; }
+
+        /* 4. Bottom Split Grid (Procurement Center & Queue Notifications) */
+        .bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .bottom-card { background: var(--white); border: 1px solid var(--line); border-radius: 10px; padding: 22px; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); display: flex; flex-direction: column; justify-content: space-between; }
+        .bottom-card h3 { margin: 0 0 14px; font-size: 17px; display: flex; align-items: center; gap: 8px; }
+        .bottom-card p { margin: 0 0 6px; color: var(--muted); font: 14px Arial, sans-serif; }
+        .bottom-card strong { color: var(--ink); }
+
+        /* Procurement Center Card Info List */
+        .center-details-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 18px; font: 14px Arial, sans-serif; color: var(--ink); }
+        .center-detail-row { display: flex; align-items: center; gap: 8px; }
+        .center-detail-row span { color: var(--muted); font-size: 13px; }
+        
+        /* Queue Notifications List Checklist */
+        .notif-checklist { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 16px; font: 13px Arial, sans-serif; }
+        .notif-item { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+        .notif-item.done { color: var(--green); font-weight: bold; }
+        .notif-item.pending { color: var(--muted); }
+        .notif-icon-done { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--mint); color: var(--green); font-size: 11px; font-weight: bold; }
+        .notif-icon-pending { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--line); color: var(--muted); font-size: 10px; }
+
+        .notif-preview-box { background: var(--paper); border: 1px solid var(--line); border-left: 3px solid var(--green); border-radius: 6px; padding: 10px 12px; margin-bottom: 14px; font: 13px Arial, sans-serif; color: var(--ink); }
+
+        .bottom-actions { margin-top: 14px; }
+        .btn-link { display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; border-radius: 6px; background: var(--green); color: white; font: bold 12px Arial, sans-serif; text-decoration: none; border: none; cursor: pointer; font-family: Arial, sans-serif; }
+        .btn-link:hover { background: var(--deep-green); }
+        .btn-link.danger-btn { background: var(--red); color: white; }
+        .btn-link.danger-btn:hover { background: #9a0000; }
+        .btn-link.active-notif { background: #edf3ee; color: var(--green); border: 1px solid #b7d6c1; }
+
+        /* Empty State */
+        .empty-token-card { background: var(--white); border: 1px dashed #b2cac0; border-radius: 12px; padding: 42px 24px; text-align: center; color: var(--muted); font: 14px Arial, sans-serif; }
+        .empty-token-card h3 { color: var(--ink); font-size: 20px; margin: 0 0 8px; }
+
+        @media (max-width: 1000px) { .sidebar { width: 215px; } }
+        @media (max-width: 700px) { .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 5; transform: translateX(-100%); transition: transform .2s ease; } .sidebar.open { transform: translateX(0); } .menu-button { display: block; } .topbar { min-height: 68px; } .profile-text { display: none; } .content { padding-top: 27px; } .page-header { display: block; } .twin-cards-grid, .bottom-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
+            <div class="nav-label">Main menu</div>
+            <nav class="nav-list" aria-label="Farmer navigation">
+                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
+                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
+                <a class="nav-item" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
+                <a class="nav-item" href="{% url 'appointments:appointments' %}"><span class="nav-icon">▣</span> Appointments</a>
+                <a class="nav-item" href="{% url 'tokens:token_queue' %}"><span class="nav-icon">▤</span> My Token</a>
+                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
+                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
+                <a class="nav-item" href="{% url 'notifications:notifications' %}"><span class="nav-icon">🔔</span> Notifications</a>
+            </nav>
+            <div class="sidebar-bottom nav-list">
+                <a class="nav-item" href="{% url 'farmer_dashboard' %}#settings"><span class="nav-icon">⚙</span> Settings</a>
+                <a class="nav-item" href="{% url 'farmer_dashboard' %}#help"><span class="nav-icon">?</span> Help &amp; Support</a>
+                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
+            </div>
+        </aside>
+
+        <div class="main-area">
+            <header class="topbar">
+                <div style="display:flex;align-items:center;gap:13px">
+                    <button class="menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" onclick="toggleSidebar()">☰</button>
+                    <div class="crumb"><strong>Token &amp; Queue</strong> &nbsp;/&nbsp; Farmer space</div>
+                </div>
+                <div class="profile">
+                    <span aria-label="Notifications" style="font-size:22px;color:var(--green)">♢</span>
+                    <div class="profile-text">
+                        <strong>{{ farmer.get_full_name|default:farmer.username }}</strong>
+                        <span class="profile-id">Farmer ID: {{ profile.farmer_id|default:'Not assigned' }}</span>
+                    </div>
+                    <div class="avatar">{{ farmer.first_name|default:farmer.username|first|upper }}</div>
+                    <span aria-hidden="true">⌄</span>
+                </div>
+            </header>
+
+            <main class="content">
+                <!-- Page Title & State Switcher -->
+                <section class="page-header">
+                    <div>
+                        <p class="eyebrow">POST-APPOINTMENT QUEUE</p>
+                        <h1>🎟️ Token &amp; Queue</h1>
+                        <p class="description">Track your token and live procurement queue.</p>
+                    </div>
+                    {% if active_produce %}
+                    <div>
+                        {% if is_your_turn %}
+                        <a href="{% url 'tokens:token_queue' %}" class="state-toggle-link">Normal Queue View</a>
+                        {% else %}
+                        <a href="{% url 'tokens:token_queue' %}?turn=true" class="state-toggle-link">Preview "It's Your Turn" State</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </section>
+
+                {% if active_produce %}
+
+                {% if is_your_turn %}
+                <!-- 🚨 PHASE 9: IT'S YOUR TURN! STATE CARD -->
+                <section class="your-turn-card" aria-label="It's Your Turn State">
+                    <h2 class="your-turn-title">IT'S YOUR TURN!</h2>
+                    <div class="your-turn-token">{{ token_number|default:"A-104" }}</div>
+                    <div class="your-turn-instruction">Please proceed to</div>
+                    <div class="your-turn-counter-badge">COUNTER 2</div>
+                    <div class="your-turn-location">Lucknow Procurement Hub</div>
+                    <div>
+                        <button type="button" class="btn-link danger-btn" onclick="scrollToQr(event)">View QR Code</button>
+                    </div>
+                </section>
+                {% endif %}
+
+                <!-- 1. Active Token Hero Card -->
+                <section class="card active-token-card" aria-label="Your Active Token">
+                    <div class="card-eyebrow">🎟️ YOUR ACTIVE TOKEN</div>
+
+                    <div class="token-hero-number">{{ token_number|default:"A-104" }}</div>
+                    <div class="token-hero-label">YOUR TOKEN</div>
+
+                    <div class="token-meta-list">
+                        <span class="meta-item">🌾 <strong>{{ active_produce.crop_name }} • {{ active_produce.quantity }} {{ active_produce.get_unit_display }}</strong></span>
+                        <span class="meta-item">📍 <strong>Lucknow Procurement Hub</strong></span>
+                        <span class="meta-item">📅 <strong>12 September • 10:30 AM</strong></span>
+                    </div>
+
+                    <div class="qr-wrapper" id="qr-section">
+                        <div class="qr-placeholder-box" id="qrBox" role="img" aria-label="QR Code placeholder">
+                            <div class="qr-pattern">QR CODE</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="active-pill">🟢 ACTIVE</span>
+                    </div>
+                </section>
+
+                <!-- 2. Twin Stat Cards: Current Token & Your Position -->
+                <section class="twin-cards-grid" aria-label="Queue positions">
+                    <div class="stat-hero-card left">
+                        <div class="stat-hero-title">CURRENT TOKEN</div>
+                        <div class="stat-hero-number">{{ queue.current_token }}</div>
+                        <div class="stat-hero-sub">Serving now at Counter 2</div>
+                    </div>
+                    <div class="stat-hero-card right">
+                        <div class="stat-hero-title">YOUR POSITION</div>
+                        <div class="stat-hero-number">#{{ queue.your_position }}</div>
+                        <div class="stat-hero-sub"><strong>{{ queue.farmers_ahead }} farmers</strong> ahead</div>
+                    </div>
+                </section>
+
+                <!-- 3. Live Queue Panel -->
+                <section class="card live-queue-card" aria-label="Live Queue Status">
+                    <h2 class="live-queue-title">📊 LIVE QUEUE</h2>
+
+                    <!-- Flow Sequence -->
+                    <div class="token-flow-wrap">
+                        <div class="token-flow">
+                            <div class="flow-line"></div>
+                            <div class="flow-line-fill"></div>
+
+                            <div class="flow-step">
+                                <div class="flow-node">A-080</div>
+                            </div>
+                            <div class="flow-step current">
+                                <div class="flow-node">A-092</div>
+                                <div class="flow-arrow">↑</div>
+                                <div class="flow-label">Current</div>
+                            </div>
+                            <div class="flow-step you">
+                                <div class="flow-node">{{ token_number|default:"A-104" }}</div>
+                                <div class="flow-arrow">↑</div>
+                                <div class="flow-label">You</div>
+                            </div>
+                            <div class="flow-step">
+                                <div class="flow-node">A-110</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="progress-bar-wrap">
+                        <div class="progress-bar-track">
+                            <div class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+
+                    <!-- Queue Details -->
+                    <div class="queue-meta-row">
+                        <div class="wait-time">Estimated waiting time: <strong>{{ queue.estimated_wait }}</strong></div>
+                        <div class="moving-status">🟢 Queue is moving normally</div>
+                    </div>
+                </section>
+
+                <!-- 4. Bottom Grid: Procurement Center & Queue Notifications -->
+                <section class="bottom-grid" aria-label="Center and Queue Notifications">
+                    <!-- PROCUREMENT CENTER CARD -->
+                    <div class="bottom-card">
+                        <div>
+                            <h3>📍 PROCUREMENT CENTER</h3>
+                            
+                            <p style="font-size: 17px; font-weight: bold; color: var(--ink); margin-bottom: 12px; font-family: Georgia, serif;">Lucknow Procurement Hub</p>
+                            
+                            <div class="center-details-list">
+                                <div class="center-detail-row">
+                                    <span>📍</span> <strong>8.4 km away</strong>
+                                </div>
+                                <div class="center-detail-row">
+                                    <span>🏢</span> <strong>Counter 2</strong>
+                                </div>
+                                <div class="center-detail-row">
+                                    <span>🕐</span> <strong>Open until 6:00 PM</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bottom-actions">
+                            <a href="https://maps.google.com" target="_blank" rel="noopener" class="btn-link">Get Directions</a>
+                        </div>
+                    </div>
+
+                    <!-- QUEUE NOTIFICATIONS CARD -->
+                    <div class="bottom-card">
+                        <div>
+                            <h3>🔔 QUEUE NOTIFICATIONS</h3>
+                            
+                            <div class="notif-checklist">
+                                <div class="notif-item done">
+                                    <span class="notif-icon-done">✓</span>
+                                    <span>Token generated</span>
+                                </div>
+                                <div class="notif-item done">
+                                    <span class="notif-icon-done">✓</span>
+                                    <span>Queue started</span>
+                                </div>
+                                <div class="notif-item {% if is_your_turn %}done{% else %}pending{% endif %}">
+                                    <span class="{% if is_your_turn %}notif-icon-done{% else %}notif-icon-pending{% endif %}">{% if is_your_turn %}✓{% else %}○{% endif %}</span>
+                                    <span>Your turn is approaching</span>
+                                </div>
+                                <div class="notif-item {% if is_your_turn %}done{% else %}pending{% endif %}">
+                                    <span class="{% if is_your_turn %}notif-icon-done{% else %}notif-icon-pending{% endif %}">{% if is_your_turn %}✓{% else %}○{% endif %}</span>
+                                    <span>Your turn</span>
+                                </div>
+                            </div>
+
+                            <div class="notif-preview-box">
+                                💬 <em>{% if is_your_turn %}"It's your turn! Please proceed to Counter 2."{% else %}"Your token {{ token_number|default:'A-104' }} is coming up. Please proceed to Counter 2."{% endif %}</em>
+                            </div>
+                        </div>
+                        
+                        <div class="bottom-actions">
+                            <button id="notifyBtn" type="button" class="btn-link" onclick="toggleNotifications()">
+                                Notify Me
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                {% else %}
+                <!-- Empty Token State Card -->
+                <section class="empty-token-card">
+                    <h3>No Active Token Generated</h3>
+                    <p>Register your harvested crop and schedule an appointment to get your procurement token.</p>
+                    <a href="{% url 'produce:add_produce' %}" class="btn-link" style="margin-top: 14px;">＋ Register Produce</a>
+                </section>
+                {% endif %}
+            </main>
+        </div>
+    </div>
+    <script>
+        function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }
+
+        function toggleNotifications() {
+            const btn = document.getElementById('notifyBtn');
+            if (btn.classList.contains('active-notif')) {
+                btn.classList.remove('active-notif');
+                btn.innerHTML = 'Notify Me';
+            } else {
+                btn.classList.add('active-notif');
+                btn.innerHTML = 'Notifications Active';
+            }
+        }
+
+        function scrollToQr(e) {
+            if (e) e.preventDefault();
+            const qrSection = document.getElementById('qr-section');
+            const qrBox = document.getElementById('qrBox');
+            if (qrSection) {
+                qrSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            if (qrBox) {
+                qrBox.classList.add('qr-highlight');
+                setTimeout(() => qrBox.classList.remove('qr-highlight'), 1800);
+            }
+        }
+    </script>
+</body>
+</html>

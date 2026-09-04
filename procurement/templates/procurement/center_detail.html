@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Center Details | KisanFlow</title>
+    <style>
+        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --amber: #d88424; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, "Times New Roman", serif; }
+        a { color: inherit; }
+        .app-shell { display: flex; min-height: 100vh; }
+        .sidebar { width: 248px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .brand { padding: 0 14px 30px; font-size: 25px; font-weight: bold; }
+        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
+        .nav-list { display: grid; gap: 3px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background: #286c4a; color: white; }
+        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
+        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
+        .main-area { min-width: 0; flex: 1; }
+        .topbar { min-height: 82px; background: white; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
+        .menu-button { display: none; border: 0; background: var(--mint); color: var(--deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
+        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
+        .crumb strong { color: var(--ink); }
+        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
+        .profile-text { text-align: right; line-height: 1.5; }
+        .profile-text strong { display: block; color: var(--ink); }
+        .profile-id { color: var(--muted); font-size: 11px; }
+        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
+        .content { max-width: 1200px; margin: 0 auto; padding: 32px clamp(20px, 4vw, 50px) 60px; }
+        .back-link { display: inline-block; margin-bottom: 24px; color: var(--green); font: bold 13px Arial, sans-serif; text-decoration: none; }
+        .page-heading { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 23px; }
+        .page-heading h1 { margin: 0; font-size: clamp(27px, 4vw, 38px); }
+        .open-badge { padding: 8px 13px; border-radius: 18px; background: var(--mint); color: var(--green); font: bold 12px Arial, sans-serif; white-space: nowrap; }
+        .top-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+        .panel { background: white; border: 1px solid var(--line); border-radius: 8px; padding: 24px; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); }
+        .map-panel { min-height: 300px; display: grid; place-items: center; padding: 25px; background: #edf5ee; color: var(--muted); text-align: center; font: 14px Arial, sans-serif; }
+        .map-panel strong { display: block; margin-bottom: 18px; color: var(--green); font: 20px Georgia, serif; }
+        .map-points { margin: 14px auto; color: var(--green); font-size: 20px; line-height: 2.1; }
+        .panel h2 { margin: 0 0 22px; font-size: 18px; letter-spacing: .03em; text-transform: uppercase; }
+        .info-row { padding: 13px 0; border-bottom: 1px solid var(--line); font: 14px Arial, sans-serif; }
+        .info-row:last-child { border-bottom: 0; }
+        .info-label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 12px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 18px; }
+        .stat-card { min-height: 125px; }
+        .stat-card h3 { margin: 0 0 19px; color: var(--muted); font: bold 11px Arial, sans-serif; letter-spacing: .09em; text-transform: uppercase; }
+        .stat-value { color: var(--green); font-size: 23px; font-weight: bold; }
+        .reason-panel { margin-top: 18px; }
+        .reasons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 0; padding: 0; list-style: none; color: var(--muted); font: 14px Arial, sans-serif; }
+        .reasons li::before { content: "✓"; display: inline-block; margin-right: 8px; color: var(--green); font-weight: bold; }
+        .action-row { display: flex; justify-content: flex-end; margin-top: 24px; }
+        .primary-button { display: inline-block; padding: 12px 16px; border-radius: 5px; background: var(--green); color: white; font: bold 13px Arial, sans-serif; text-decoration: none; }
+        .primary-button:hover { background: var(--deep-green); }
+        @media (max-width: 900px) { .top-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 700px) { .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 5; transform: translateX(-100%); transition: transform .2s ease; } .sidebar.open { transform: translateX(0); } .menu-button { display: block; } .topbar { min-height: 68px; } .profile-text { display: none; } .content { padding-top: 27px; } .page-heading { display: block; } .open-badge { display: inline-block; margin-top: 13px; } .stats-grid, .reasons { grid-template-columns: 1fr; } .action-row { justify-content: stretch; } .primary-button { width: 100%; text-align: center; } }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
+            <div class="nav-label">Main menu</div>
+            <nav class="nav-list" aria-label="Farmer navigation">
+                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
+                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
+                <a class="nav-item active" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
+                <a class="nav-item" href="#"><span class="nav-icon">▣</span> Appointments</a>
+                <a class="nav-item" href="#"><span class="nav-icon">▤</span> My Token</a>
+                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
+                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
+                <a class="nav-item" href="#"><span class="nav-icon">•</span> Notifications</a>
+            </nav>
+            <div class="sidebar-bottom nav-list">
+                <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Settings</a>
+                <a class="nav-item" href="#"><span class="nav-icon">?</span> Help &amp; Support</a>
+                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
+            </div>
+        </aside>
+        <div class="main-area">
+            <header class="topbar">
+                <div style="display:flex;align-items:center;gap:13px"><button class="menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" onclick="toggleSidebar()">☰</button><div class="crumb"><strong>Center Details</strong> &nbsp;/&nbsp; Procurement Centers</div></div>
+                <div class="profile"><span aria-label="Notifications" style="font-size:22px;color:var(--green)">♢</span><div class="profile-text"><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><span class="profile-id">Farmer account</span></div><div class="avatar">{{ request.user.first_name|default:request.user.username|first|upper }}</div><span aria-hidden="true">⌄</span></div>
+            </header>
+            <main class="content">
+                <a class="back-link" href="{% url 'procurement:centers' %}">← Back to Procurement Centers</a>
+                <section class="page-heading"><h1>🏢 Lucknow Procurement Hub</h1><span class="open-badge">🟢 Open</span></section>
+                <div class="top-grid">
+                    <section class="panel map-panel" role="img" aria-label="Map placeholder showing center and farmer locations"><div><strong>MAP VIEW</strong><div class="map-points">● Center<br>&nbsp;&nbsp;│<br>● You</div><span>8.4 km away</span></div></section>
+                    <section class="panel"><h2>Center Information</h2><div class="info-row"><span class="info-label">📍 Location</span>Lucknow</div><div class="info-row"><span class="info-label">🕐 Working Hours</span>8:00 AM - 6:00 PM</div><div class="info-row"><span class="info-label">🌾 Accepted Crops</span>Wheat • Rice • Pulses</div></section>
+                </div>
+                <div class="stats-grid"><section class="panel stat-card"><h3>👥 Current Queue</h3><div class="stat-value">18 farmers</div></section><section class="panel stat-card"><h3>📦 Capacity</h3><div class="stat-value">78% occupied</div></section><section class="panel stat-card"><h3>📅 Availability</h3><div class="stat-value">12 slots available</div></section></div>
+                <section class="panel reason-panel"><h2>🎯 Why KisanFlow Recommended This Center</h2><ul class="reasons"><li>Near your location</li><li>Low queue</li><li>Accepts your crop</li><li>Sufficient capacity</li></ul><div class="action-row"><a class="primary-button" href="{% url 'procurement:confirm_center' %}">Select This Center →</a></div></section>
+            </main>
+        </div>
+    </div>
+    <script>function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }</script>
+</body>
+</html>

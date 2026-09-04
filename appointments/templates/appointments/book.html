@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment | KisanFlow</title>
+    <style>
+        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, "Times New Roman", serif; }
+        a { color: inherit; }
+        .app-shell { display: flex; min-height: 100vh; }
+        .sidebar { width: 248px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .brand { padding: 0 14px 30px; font-size: 25px; font-weight: bold; }
+        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
+        .nav-list { display: grid; gap: 3px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background: #286c4a; color: white; }
+        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
+        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
+        .main-area { min-width: 0; flex: 1; }
+        .topbar { min-height: 82px; background: white; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
+        .menu-button { display: none; border: 0; background: var(--mint); color: var(--deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
+        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
+        .crumb strong { color: var(--ink); }
+        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
+        .profile-text { text-align: right; line-height: 1.5; }
+        .profile-text strong { display: block; color: var(--ink); }
+        .profile-id { color: var(--muted); font-size: 11px; }
+        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
+        .content { max-width: 1050px; margin: 0 auto; padding: 35px clamp(20px, 4vw, 50px) 60px; }
+        .back-link { display: inline-block; margin-bottom: 25px; color: var(--green); font: bold 13px Arial, sans-serif; text-decoration: none; }
+        .eyebrow { margin: 0 0 8px; color: var(--green); font: bold 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+        h1 { margin: 0 0 9px; font-size: clamp(28px, 4vw, 40px); }
+        .intro { margin: 0 0 27px; color: var(--muted); font: 15px Arial, sans-serif; }
+        .booking-card { padding: 26px; background: white; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); }
+        .step { padding: 22px 0; border-bottom: 1px solid var(--line); }
+        .step:first-child { padding-top: 0; }
+        .step:last-child { border-bottom: 0; padding-bottom: 0; }
+        .step h2 { margin: 0 0 13px; font-size: 17px; }
+        .selection { display: flex; justify-content: space-between; align-items: center; gap: 15px; padding: 14px; border: 1px solid var(--green); border-radius: 6px; background: var(--mint); font: 14px Arial, sans-serif; }
+        .selection span { color: var(--green); font-weight: bold; }
+        .date-options, .time-options { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        .time-options { grid-template-columns: repeat(3, 1fr); }
+        .slot-option { border: 1px solid var(--line); border-radius: 6px; background: white; color: var(--ink); padding: 12px 8px; cursor: pointer; text-align: center; font: 13px Arial, sans-serif; }
+        .slot-option strong, .slot-option small, .slot-option span { display: block; }
+        .slot-option small, .slot-option span { margin-top: 5px; color: var(--muted); font-size: 11px; }
+        .slot-option:hover, .slot-option.selected { border-color: var(--green); background: var(--mint); color: var(--green); }
+        .slot-option.selected small, .slot-option.selected span { color: var(--green); }
+        .confirm-row { display: flex; justify-content: flex-end; margin-top: 24px; }
+        .button { display: inline-block; padding: 12px 16px; border-radius: 5px; background: var(--green); color: white; font: bold 13px Arial, sans-serif; text-decoration: none; }
+        .notice { margin-top: 18px; color: var(--muted); font: 12px Arial, sans-serif; }
+        @media (max-width: 700px) { .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 5; transform: translateX(-100%); transition: transform .2s ease; } .sidebar.open { transform: translateX(0); } .menu-button { display: block; } .topbar { min-height: 68px; } .profile-text { display: none; } .content { padding-top: 27px; } .selection { align-items: flex-start; flex-direction: column; } .date-options { grid-template-columns: repeat(3, 1fr); } .time-options { grid-template-columns: 1fr 1fr; } .confirm-row .button { width: 100%; text-align: center; } }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
+            <div class="nav-label">Main menu</div>
+            <nav class="nav-list" aria-label="Farmer navigation">
+                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
+                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
+                <a class="nav-item" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
+                <a class="nav-item active" href="{% url 'appointments:appointments' %}"><span class="nav-icon">▣</span> Appointments</a>
+                <a class="nav-item" href="#"><span class="nav-icon">▤</span> My Token</a>
+                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
+                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
+                <a class="nav-item" href="#"><span class="nav-icon">•</span> Notifications</a>
+            </nav>
+            <div class="sidebar-bottom nav-list">
+                <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Settings</a>
+                <a class="nav-item" href="#"><span class="nav-icon">?</span> Help &amp; Support</a>
+                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
+            </div>
+        </aside>
+        <div class="main-area">
+            <header class="topbar">
+                <div style="display:flex;align-items:center;gap:13px"><button class="menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" onclick="toggleSidebar()">☰</button><div class="crumb"><strong>Book Appointment</strong> &nbsp;/&nbsp; Appointments</div></div>
+                <div class="profile"><span aria-label="Notifications" style="font-size:22px;color:var(--green)">♢</span><div class="profile-text"><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><span class="profile-id">Farmer account</span></div><div class="avatar">{{ request.user.first_name|default:request.user.username|first|upper }}</div><span aria-hidden="true">⌄</span></div>
+            </header>
+            <main class="content">
+                <a class="back-link" href="{% url 'appointments:appointments' %}">← Back to Appointments</a>
+                <p class="eyebrow">PLAN YOUR VISIT</p>
+                <h1>Book an Appointment</h1>
+                <p class="intro">Choose your produce, center, date, and a convenient time.</p>
+                <section class="booking-card">
+                    <div class="step"><h2>Step 1 - Select Produce</h2><div class="selection"><strong>🌾 Wheat - 50 Quintals</strong><span>Selected ✓</span></div></div>
+                    <div class="step"><h2>Step 2 - Procurement Center</h2><div class="selection"><strong>📍 Lucknow Procurement Hub</strong><span>Selected ✓</span></div></div>
+                    <div class="step"><h2>Step 3 - Select Date</h2><div class="date-options" role="group" aria-label="Select date"><button class="slot-option" type="button"><strong>10 Sep</strong><small>Thursday</small></button><button class="slot-option" type="button"><strong>11 Sep</strong><small>Friday</small></button><button class="slot-option selected" type="button"><strong>12 Sep</strong><small>Saturday</small></button><button class="slot-option" type="button"><strong>13 Sep</strong><small>Sunday</small></button><button class="slot-option" type="button"><strong>14 Sep</strong><small>Monday</small></button></div></div>
+                    <div class="step"><h2>Step 4 - Select Time</h2><div class="time-options" role="group" aria-label="Select time"><button class="slot-option" type="button"><strong>09:00 AM</strong><span>Low queue · ~20 min</span></button><button class="slot-option" type="button"><strong>09:30 AM</strong><span>Low queue · ~20 min</span></button><button class="slot-option" type="button"><strong>10:00 AM</strong><span>Low queue · ~25 min</span></button><button class="slot-option selected" type="button"><strong>10:30 AM</strong><span>Low queue · ~20 min</span></button><button class="slot-option" type="button"><strong>11:00 AM</strong><span>Medium queue · ~45 min</span></button><button class="slot-option" type="button"><strong>12:00 PM</strong><span>High queue · ~90 min</span></button></div></div>
+                    <p class="notice">This is a UI preview. Confirming will not create an appointment until backend functionality is connected.</p>
+                    <div class="confirm-row"><a class="button" href="#">Confirm Appointment →</a></div>
+                </section>
+            </main>
+        </div>
+    </div>
+    <script>
+        function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }
+        document.querySelectorAll('.slot-option').forEach(function (option) { option.addEventListener('click', function () { option.parentElement.querySelectorAll('.slot-option').forEach(function (item) { item.classList.remove('selected'); }); option.classList.add('selected'); }); });
+    </script>
+</body>
+</html>

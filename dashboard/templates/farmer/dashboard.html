@@ -94,13 +94,12 @@
             <nav class="nav-list" aria-label="Farmer navigation">
                 <a class="nav-item active" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
                 <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
-                <a class="nav-item" href="{% url 'produce:add_produce' %}"><span class="nav-icon">＋</span> Register Produce</a>
-                <a class="nav-item" href="#centers"><span class="nav-icon">⌖</span> Procurement Centers</a>
-                <a class="nav-item" href="#appointments"><span class="nav-icon">▣</span> Appointments</a>
-                <a class="nav-item" href="#token"><span class="nav-icon">▤</span> My Token</a>
-                <a class="nav-item" href="#procurement"><span class="nav-icon">→</span> Procurement Status</a>
-                <a class="nav-item" href="#payments"><span class="nav-icon">₹</span> Payments</a>
-                <a class="nav-item" href="#notifications"><span class="nav-icon">•</span> Notifications</a>
+                <a class="nav-item" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
+                <a class="nav-item" href="{% url 'appointments:appointments' %}"><span class="nav-icon">▣</span> Appointments</a>
+                <a class="nav-item" href="{% url 'tokens:token_queue' %}"><span class="nav-icon">▤</span> My Token</a>
+                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
+                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
+                <a class="nav-item" href="{% url 'notifications:notifications' %}"><span class="nav-icon">🔔</span> Notifications</a>
             </nav>
             <div class="sidebar-bottom nav-list">
                 <a class="nav-item" href="#settings"><span class="nav-icon">⚙</span> Settings</a>
@@ -120,7 +119,7 @@
                     <a class="action" href="{% url 'produce:add_produce' %}"><span class="action-icon">＋</span><strong>Register Produce</strong><span>Register newly harvested crops.</span></a>
                     <a class="action" href="#centers"><span class="action-icon">⌖</span><strong>Find Procurement Center</strong><span>See centers near you.</span></a>
                     <a class="action" href="#appointments"><span class="action-icon">▣</span><strong>Book Appointment</strong><span>Schedule a procurement visit.</span></a>
-                    <a class="action" href="#procurement"><span class="action-icon">→</span><strong>Track Procurement</strong><span>Check your current progress.</span></a>
+                    <a class="action" href="{% url 'procurement:status' %}"><span class="action-icon">→</span><strong>Track Procurement</strong><span>Check your current progress.</span></a>
                 </section>
                 <div class="section-heading" id="procurement"><h2>Current procurement</h2></div>
                 <section class="panel journey">
@@ -129,14 +128,14 @@
                 </section>
                 <div class="split-grid" id="appointments">
                     <section class="panel"><div class="card-title"><h3>Upcoming appointment</h3><span style="font-size:22px;color:var(--green)">▣</span></div><div class="appointment-main"><div class="date-box"><small>Date</small>Not set</div><div><strong>Appointment not available</strong><span class="muted">Appointment services will appear here.</span></div></div><a class="button muted-button" href="#appointments">View appointment</a></section>
-                    <section class="panel" id="token"><div class="card-title"><h3>My token</h3><span style="font-size:22px;color:var(--green)">▤</span></div><div class="detail-list"><div class="detail-row"><span>Token number</span><strong>Not assigned</strong></div><div class="detail-row"><span>Queue position</span><strong>--</strong></div><div class="detail-row"><span>Estimated wait</span><strong>--</strong></div></div><a class="button muted-button" href="#token">View token</a></section>
+                    <section class="panel" id="token"><div class="card-title"><h3>My token</h3><span style="font-size:22px;color:var(--green)">▤</span></div><div class="detail-list"><div class="detail-row"><span>Token number</span><strong>Not assigned</strong></div><div class="detail-row"><span>Queue position</span><strong>--</strong></div><div class="detail-row"><span>Estimated wait</span><strong>--</strong></div></div><a class="button muted-button" href="{% url 'tokens:token_queue' %}">View token</a></section>
                 </div>
                 <div class="split-grid">
                     <section class="panel"><div class="card-title"><h3>My produce</h3><a class="section-link" href="{% url 'produce:my_produce' %}">View all →</a></div>{% if produce_list %}<div class="produce-list">{% for produce in produce_list %}<div class="produce-row"><div><strong>{{ produce.crop_name }}</strong><span class="muted">{{ produce.quantity }} {{ produce.get_unit_display }}</span></div><span class="produce-status">{{ produce.get_status_display }}</span></div>{% endfor %}</div>{% else %}<p class="empty">You have not registered any produce yet.</p>{% endif %}<a class="button" href="{% url 'produce:add_produce' %}">＋ Register produce</a></section>
                     <section class="panel recommendation" id="centers"><div class="card-title"><h3>Recommended center</h3><span style="font-size:22px;color:var(--green)">⌖</span></div><p class="empty">Procurement center recommendations will appear once center services are connected.</p><ul><li>Near your location</li><li>Queue information</li><li>Crop suitability</li></ul><a class="button muted-button" href="#centers">View center</a></section>
                 </div>
                 <div class="split-grid">
-                    <section class="panel" id="payments"><div class="card-title"><h3>Payment status</h3><span style="font-size:22px;color:var(--green)">₹</span></div><p class="empty">Payment details will appear after procurement is recorded.</p><div class="payment-amount">Not available</div><a class="button muted-button" href="#payments">View payment details</a></section>
+                    <section class="panel" id="payments"><div class="card-title"><h3>Payment status</h3><span style="font-size:22px;color:var(--green)">₹</span></div><p class="empty">Track your active procurement payouts and historical payment transfers.</p><div class="payment-amount" style="font-size:24px;">₹12,000 Processing</div><a class="button" href="{% url 'payments:payments' %}">View payment details →</a></section>
                     <section class="panel" id="notifications"><div class="card-title"><h3>Recent updates</h3><a class="section-link" href="#notifications">View all →</a></div><div class="notification-row"><span>♢</span><span class="empty">No new notifications.</span></div><div class="notification-row"><span>🌾</span><span class="empty">Your registered produce will be shown here.</span></div></section>
                 </div>
             </main>

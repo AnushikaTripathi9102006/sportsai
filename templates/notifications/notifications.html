@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications | KisanFlow</title>
+    <style>
+        :root {
+            --green: #1f6b45;
+            --deep-green: #174b35;
+            --mint: #e6f2e9;
+            --ink: #19352a;
+            --muted: #6b7c72;
+            --line: #dfe9e1;
+            --paper: #f6faf7;
+            --white: #ffffff;
+            --amber: #d88424;
+            --red: #b71c1c;
+            --blue: #1e88e5;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
+        a { color: inherit; }
+        .app-shell { display: flex; min-height: 100vh; }
+        
+        /* Sidebar Styling */
+        .sidebar { width: 248px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .brand { padding: 0 14px 30px; font-size: 25px; font-weight: bold; letter-spacing: .02em; }
+        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
+        .nav-list { display: grid; gap: 3px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background: #286c4a; color: var(--white); }
+        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
+        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
+
+        /* Main Shell & Topbar */
+        .main-area { min-width: 0; flex: 1; }
+        .topbar { min-height: 82px; background: var(--white); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
+        .menu-button { display: none; border: 0; background: var(--mint); color: var(--deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
+        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
+        .crumb strong { color: var(--ink); }
+        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
+        .profile-text { text-align: right; line-height: 1.5; }
+        .profile-text strong { display: block; color: var(--ink); }
+        .profile-id { color: var(--muted); font-size: 11px; }
+        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
+
+        /* Page Content Layout */
+        .content { max-width: 1050px; margin: 0 auto; padding: 38px clamp(20px, 4vw, 50px) 60px; }
+        .page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 24px; }
+        .eyebrow { margin: 0 0 6px; color: var(--green); font: bold 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+        h1 { margin: 0 0 6px; font-size: clamp(28px, 4vw, 40px); line-height: 1.08; }
+        .description { margin: 0; color: var(--muted); font: 15px Arial, sans-serif; }
+
+        /* Action Buttons */
+        .btn-action { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 6px; background: var(--mint); color: var(--deep-green); font: bold 13px Arial, sans-serif; text-decoration: none; border: 1px solid #bce2c7; cursor: pointer; transition: background .2s; }
+        .btn-action:hover { background: #d4ebd9; }
+        .btn-action.btn-primary { background: var(--green); color: white; border: none; }
+        .btn-action.btn-primary:hover { background: var(--deep-green); }
+        
+        /* Filter Tabs Navbar */
+        .tabs-nav { display: flex; gap: 8px; border-bottom: 2px solid var(--line); margin-bottom: 22px; overflow-x: auto; padding-bottom: 2px; }
+        .tab-btn { background: none; border: none; padding: 12px 18px; font: bold 14px Arial, sans-serif; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -4px; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+        .tab-btn:hover { color: var(--ink); }
+        .tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+        .tab-badge { background: #e0eee4; color: var(--deep-green); font-size: 11px; padding: 2px 7px; border-radius: 10px; font-weight: bold; }
+        .tab-badge.badge-red { background: #fde8e8; color: var(--red); }
+
+        /* Secondary Filter Row */
+        .filter-row { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-group { display: flex; align-items: center; gap: 10px; font: 13px Arial, sans-serif; }
+        .select-input { padding: 7px 12px; border: 1px solid var(--line); border-radius: 6px; font: 13px Arial, sans-serif; background: white; color: var(--ink); }
+
+        /* Notification Feed Date Headers */
+        .date-section-header { font: bold 11px Arial, sans-serif; color: var(--muted); letter-spacing: .12em; text-transform: uppercase; margin: 26px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
+
+        /* Notification Card Component */
+        .notif-card { background: var(--white); border: 1px solid var(--line); border-radius: 10px; padding: 20px 22px; margin-bottom: 14px; box-shadow: 0 3px 10px rgba(30, 75, 53, .03); position: relative; transition: transform .2s, border-color .2s; }
+        .notif-card:hover { border-color: #b2cfbb; transform: translateY(-1px); }
+        .notif-card.unread { border-left: 4px solid var(--green); background: #fafdfb; }
+        .notif-card.unread-urgent { border-left: 4px solid var(--red); background: #fffdfd; }
+        
+        .notif-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+        .notif-title-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+        .status-dot.red { background: var(--red); box-shadow: 0 0 0 3px rgba(183, 28, 28, .15); }
+        .status-dot.green { background: var(--green); }
+        .status-dot.blue { background: var(--blue); }
+        .status-dot.amber { background: var(--amber); }
+
+        .notif-title { font-size: 16px; font-weight: bold; margin: 0; color: var(--ink); font-family: Georgia, serif; }
+        .unread-tag { background: var(--red); color: white; font: bold 10px Arial, sans-serif; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; }
+        .time-ago { color: var(--muted); font: 12px Arial, sans-serif; white-space: nowrap; }
+
+        .notif-body { color: #3a4f44; font: 14px Arial, sans-serif; line-height: 1.5; margin: 0 0 14px 20px; }
+        .notif-meta-list { display: flex; gap: 16px; margin: 0 0 14px 20px; font: 12px Arial, sans-serif; color: var(--muted); background: var(--paper); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--line); }
+        
+        .notif-footer { display: flex; justify-content: space-between; align-items: center; margin-left: 20px; }
+        .cat-tag { font: bold 11px Arial, sans-serif; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+
+        /* 🚨 ACTION REQUIRED HERO CARDS */
+        .action-required-card { background: #fff8f8; border: 2px solid #f2c2c2; border-radius: 12px; padding: 22px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(183, 28, 28, .05); }
+        .action-title { color: var(--red); font-size: 18px; font-weight: bold; margin: 0 0 6px; display: flex; align-items: center; gap: 8px; font-family: Arial, sans-serif; }
+        .action-body { color: var(--ink); font: 14px Arial, sans-serif; margin-bottom: 16px; }
+
+        /* 🤖 SMART NOTIFICATION CARDS */
+        .smart-card { background: #f0f7ff; border: 1px solid #b8daff; border-left: 4px solid var(--blue); border-radius: 10px; padding: 20px; margin-bottom: 14px; }
+        .smart-badge { display: inline-flex; align-items: center; gap: 5px; font: bold 11px Arial, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: var(--blue); margin-bottom: 6px; background: #e1f0ff; padding: 3px 8px; border-radius: 4px; }
+        .smart-title { font-size: 16px; font-weight: bold; color: #0c4a6e; margin: 0 0 6px; font-family: Arial, sans-serif; }
+
+        /* ⚙️ SETTINGS PANEL */
+        .settings-panel { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 28px; box-shadow: 0 4px 14px rgba(30, 75, 53, .04); }
+        .settings-section-title { font-size: 17px; font-weight: bold; margin: 0 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px dashed var(--line); font: 14px Arial, sans-serif; }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-info strong { display: block; color: var(--ink); margin-bottom: 2px; }
+        .setting-info span { color: var(--muted); font-size: 12px; }
+        
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #ccc; transition: .3s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--green); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* Hide Tab Views */
+        .tab-view { display: none; }
+        .tab-view.active { display: block; }
+
+        @media (max-width: 1000px) { .sidebar { width: 215px; } }
+        @media (max-width: 700px) { .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 5; transform: translateX(-100%); transition: transform .2s ease; } .sidebar.open { transform: translateX(0); } .menu-button { display: block; } .topbar { min-height: 68px; } .profile-text { display: none; } .content { padding-top: 27px; } .page-header { display: block; } }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
+            <div class="nav-label">Main menu</div>
+            <nav class="nav-list" aria-label="Farmer navigation">
+                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
+                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
+                <a class="nav-item" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
+                <a class="nav-item" href="{% url 'appointments:appointments' %}"><span class="nav-icon">▣</span> Appointments</a>
+                <a class="nav-item" href="{% url 'tokens:token_queue' %}"><span class="nav-icon">▤</span> My Token</a>
+                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
+                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
+                <a class="nav-item active" href="{% url 'notifications:notifications' %}"><span class="nav-icon">🔔</span> Notifications</a>
+            </nav>
+            <div class="sidebar-bottom nav-list">
+                <a class="nav-item" href="{% url 'farmer_dashboard' %}#settings"><span class="nav-icon">⚙</span> Settings</a>
+                <a class="nav-item" href="{% url 'farmer_dashboard' %}#help"><span class="nav-icon">?</span> Help &amp; Support</a>
+                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
+            </div>
+        </aside>
+
+        <div class="main-area">
+            <header class="topbar">
+                <div style="display:flex;align-items:center;gap:13px">
+                    <button class="menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" onclick="toggleSidebar()">☰</button>
+                    <div class="crumb"><strong>Notifications</strong> &nbsp;/&nbsp; Communication Center</div>
+                </div>
+                <div class="profile">
+                    <span aria-label="Notifications" style="font-size:22px;color:var(--green)">🔔</span>
+                    <div class="profile-text">
+                        <strong>{{ farmer.get_full_name|default:farmer.username }}</strong>
+                        <span class="profile-id">Farmer ID: {{ profile.farmer_id|default:'Not assigned' }}</span>
+                    </div>
+                    <div class="avatar">{{ farmer.first_name|default:farmer.username|first|upper }}</div>
+                    <span aria-hidden="true">⌄</span>
+                </div>
+            </header>
+
+            <main class="content">
+                <!-- Page Title Header -->
+                <section class="page-header">
+                    <div>
+                        <p class="eyebrow">COMMUNICATION CENTER</p>
+                        <h1>🔔 Notifications</h1>
+                        <p class="description">Stay updated about your produce, appointments, queue &amp; payments.</p>
+                    </div>
+                    <div>
+                        <button type="button" class="btn-action" onclick="markAllAsRead()">✓ Mark all as read</button>
+                    </div>
+                </section>
+
+                <!-- Navigation Filter Tabs -->
+                <div class="tabs-nav">
+                    <button class="tab-btn active" onclick="switchTab('all-tab', this)">
+                        <span>🔔 All</span>
+                        <span class="tab-badge" id="allBadge">5</span>
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('unread-tab', this)">
+                        <span>🔴 Unread</span>
+                        <span class="tab-badge badge-red" id="unreadBadge">3</span>
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('action-tab', this)">
+                        <span>🚨 Action Required</span>
+                        <span class="tab-badge badge-red">2</span>
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('smart-tab', this)">
+                        <span>🤖 Smart Alerts</span>
+                        <span class="tab-badge">3</span>
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('settings-tab', this)">
+                        <span>⚙️ Settings</span>
+                    </button>
+                </div>
+
+                <!-- ════════════════════════════════════════════════════════════
+                     TAB 1: ALL NOTIFICATIONS FEED
+                ════════════════════════════════════════════════════════════ -->
+                <div id="all-tab" class="tab-view active">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label for="catFilter">Category:</label>
+                            <select id="catFilter" class="select-input" onchange="filterByCategory(this.value)">
+                                <option value="all">All Categories</option>
+                                <option value="token">🎟️ Token &amp; Queue</option>
+                                <option value="appointment">📅 Appointments</option>
+                                <option value="procurement">📦 Procurement</option>
+                                <option value="payment">💰 Payments</option>
+                                <option value="produce">🌾 Produce</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="dateFilter">Time Period:</label>
+                            <select id="dateFilter" class="select-input">
+                                <option value="all">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="yesterday">Yesterday</option>
+                                <option value="week">Last 7 Days</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- TODAY SECTION -->
+                    <div class="date-section-header">TODAY</div>
+
+                    <!-- 1. Token Queue Alert (Unread) -->
+                    <div class="notif-card unread-urgent" data-category="token" data-unread="true">
+                        <div class="notif-header">
+                            <div class="notif-title-wrap">
+                                <span class="status-dot red"></span>
+                                <h3 class="notif-title">🎟️ Your turn is approaching</h3>
+                                <span class="unread-tag">UNREAD</span>
+                            </div>
+                            <span class="time-ago">2 minutes ago</span>
+                        </div>
+                        <p class="notif-body">Your token <strong>A-104</strong> is now <strong>#3 in the queue</strong> at Counter 2, Lucknow Procurement Hub. Estimated waiting time: 20 minutes.</p>
+                        <div class="notif-footer">
+                            <span class="cat-tag">🎟️ Token &amp; Queue</span>
+                            <a href="{% url 'tokens:token_queue' %}" class="btn-action btn-primary">View Queue →</a>
+                        </div>
+                    </div>
+
+                    <!-- 2. Payment Alert (Read) -->
+                    <div class="notif-card" data-category="payment" data-unread="false">
+                        <div class="notif-header">
+                            <div class="notif-title-wrap">
+                                <span class="status-dot green"></span>
+                                <h3 class="notif-title">💰 Payment completed</h3>
+                            </div>
+                            <span class="time-ago">1 hour ago</span>
+                        </div>
+                        <p class="notif-body">₹110,692.50 has been successfully transferred to your registered bank account for your Wheat procurement (48.7 Quintals).</p>
+                        <div class="notif-footer">
+                            <span class="cat-tag">💰 Payments</span>
+                            <a href="{% url 'payments:payments' %}" class="btn-action">View Payment →</a>
+                        </div>
+                    </div>
+
+                    <!-- 3. Appointment Alert (Unread) -->
+                    <div class="notif-card unread" data-category="appointment" data-unread="true">
+                        <div class="notif-header">
+                            <div class="notif-title-wrap">
+                                <span class="status-dot blue"></span>
+                                <h3 class="notif-title">📅 Appointment confirmed</h3>
+                                <span class="unread-tag">UNREAD</span>
+                            </div>
+                            <span class="time-ago">3 hours ago</span>
+                        </div>
+                        <p class="notif-body">Your Wheat procurement appointment has been confirmed for <strong>12 September 2026, 10:30 AM</strong> at Lucknow Procurement Hub.</p>
+                        <div class="notif-meta-list">
+                            <span>📅 12 Sep 2026 • 10:30 AM</span>
+                            <span>📍 Lucknow Center</span>
+                        </div>
+                        <div class="notif-footer">
+                            <span class="cat-tag">📅 Appointments</span>
+                            <a href="{% url 'appointments:appointments' %}" class="btn-action">View Appointment →</a>
+                        </div>
+                    </div>
+
+                    <!-- YESTERDAY SECTION -->
+                    <div class="date-section-header">YESTERDAY</div>
+
+                    <!-- 4. Procurement Alert (Read) -->
+                    <div class="notif-card" data-category="procurement" data-unread="false">
+                        <div class="notif-header">
+                            <div class="notif-title-wrap">
+                                <span class="status-dot green"></span>
+                                <h3 class="notif-title">📦 Procurement completed</h3>
+                            </div>
+                            <span class="time-ago">Yesterday</span>
+                        </div>
+                        <p class="notif-body">Quality check (Grade A) and weighing (48.7 Q) for your Wheat crop have been finalized by Officer R. Sharma.</p>
+                        <div class="notif-footer">
+                            <span class="cat-tag">📦 Procurement</span>
+                            <a href="{% url 'procurement:status' %}" class="btn-action">View Procurement →</a>
+                        </div>
+                    </div>
+
+                    <!-- 5. Produce Alert (Unread) -->
+                    <div class="notif-card unread" data-category="produce" data-unread="true">
+                        <div class="notif-header">
+                            <div class="notif-title-wrap">
+                                <span class="status-dot amber"></span>
+                                <h3 class="notif-title">🌾 Produce Request Updated</h3>
+                                <span class="unread-tag">UNREAD</span>
+                            </div>
+                            <span class="time-ago">Yesterday</span>
+                        </div>
+                        <p class="notif-body">Your registered produce <strong>Wheat (50.0 Quintals)</strong> status has been updated to Procurement Requested.</p>
+                        <div class="notif-footer">
+                            <span class="cat-tag">🌾 Produce</span>
+                            <a href="{% url 'produce:my_produce' %}" class="btn-action">View Produce →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ════════════════════════════════════════════════════════════
+                     TAB 2: UNREAD NOTIFICATIONS
+                ════════════════════════════════════════════════════════════ -->
+                <div id="unread-tab" class="tab-view">
+                    <div class="date-section-header">UNREAD NOTIFICATIONS</div>
+                    
+                    <div class="notif-card unread-urgent">
+                        <div class="notif-header">
+                            <div class="notif-title-wrap">
+                                <span class="status-dot red"></span>
+                                <h3 class="notif-title">🎟️ Your turn is approaching</h3>
+                                <span class="unread-tag">UNREAD</span>
+                            </div>
+                            <span class="time-ago">2 minutes ago</span>
+                        </div>
+                        <p class="notif-body">Your token <strong>A-104</strong> is now <strong>#3 in the queue</strong> at Counter 2. Estimated waiting time: 20 minutes.</p>
+                        <div class="notif-footer">
+                            <span class="cat-tag">🎟️ Token &amp; Queue</span>
+                            <a href="{% url 'tokens:token_queue' %}" class="btn-action btn-primary">View Queue →</a>
+                        </div>
+                    </div>
+
+                    <div class="notif-card unread">
+                        <div class="notif-header">
+                            <div class="notif-title-wrap">
+                                <span class="status-dot blue"></span>
+                                <h3 class="notif-title">📅 Appointment confirmed</h3>
+                                <span class="unread-tag">UNREAD</span>
+                            </div>
+                            <span class="time-ago">3 hours ago</span>
+                        </div>
+                        <p class="notif-body">Your Wheat procurement appointment has been confirmed for <strong>12 September 2026, 10:30 AM</strong> at Lucknow Procurement Hub.</p>
+                        <div class="notif-footer">
+                            <span class="cat-tag">📅 Appointments</span>
+                            <a href="{% url 'appointments:appointments' %}" class="btn-action">View Appointment →</a>
+                        </div>
+                    </div>
+
+                    <div class="notif-card unread">
+                        <div class="notif-header">
+                            <div class="notif-title-wrap">
+                                <span class="status-dot amber"></span>
+                                <h3 class="notif-title">🌾 Produce Request Updated</h3>
+                                <span class="unread-tag">UNREAD</span>
+                            </div>
+                            <span class="time-ago">Yesterday</span>
+                        </div>
+                        <p class="notif-body">Your registered produce <strong>Wheat (50.0 Quintals)</strong> status has been updated to Procurement Requested.</p>
+                        <div class="notif-footer">
+                            <span class="cat-tag">🌾 Produce</span>
+                            <a href="{% url 'produce:my_produce' %}" class="btn-action">View Produce →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ════════════════════════════════════════════════════════════
+                     TAB 3: 🚨 ACTION REQUIRED
+                ════════════════════════════════════════════════════════════ -->
+                <div id="action-tab" class="tab-view">
+                    <p class="description" style="margin-bottom: 20px;">Notifications that require your attention or immediate action.</p>
+
+                    <div class="action-required-card">
+                        <h3 class="action-title">🔴 Confirm your appointment slot</h3>
+                        <p class="action-body">KisanFlow recommends scheduling your Wheat procurement slot for <strong>12 September, 10:30 AM</strong> at Lucknow Center based on expected center traffic.</p>
+                        <a href="{% url 'appointments:appointments' %}" class="btn-action btn-primary">Review Appointment →</a>
+                    </div>
+
+                    <div class="action-required-card" style="background:#fffdf5; border-color:#fce4a6;">
+                        <h3 class="action-title" style="color: var(--amber);">🟡 Appointment Reminder</h3>
+                        <p class="action-body">Your procurement appointment is scheduled for tomorrow at 10:30 AM. Remember to bring your produce and required documents.</p>
+                        <a href="{% url 'appointments:appointments' %}" class="btn-action">View Appointment Details →</a>
+                    </div>
+                </div>
+
+                <!-- ════════════════════════════════════════════════════════════
+                     TAB 4: 🤖 SMART ALERTS
+                ════════════════════════════════════════════════════════════ -->
+                <div id="smart-tab" class="tab-view">
+                    <p class="description" style="margin-bottom: 20px;">Automated intelligent updates to save you time and keep procurement smooth.</p>
+
+                    <div class="smart-card">
+                        <span class="smart-badge">🤖 SMART UPDATE</span>
+                        <h3 class="smart-title">Queue is moving faster than expected</h3>
+                        <p style="margin:0 0 14px; font:14px Arial, sans-serif; color:#19352a;">Your estimated waiting time has decreased from <strong>45 minutes → 20 minutes</strong>. Please prepare to proceed to Counter 2.</p>
+                        <a href="{% url 'tokens:token_queue' %}" class="btn-action btn-primary">View Live Queue →</a>
+                    </div>
+
+                    <div class="smart-card" style="background:#f6fbf7; border-color:#c2ebd0; border-left-color:var(--green);">
+                        <span class="smart-badge" style="background:#e3f5e8; color:var(--green);">🤖 SMART REMINDER</span>
+                        <h3 class="smart-title" style="color:var(--deep-green);">Optimal Center Arrival Window</h3>
+                        <p style="margin:0 0 14px; font:14px Arial, sans-serif; color:#19352a;">Lucknow Center current traffic is LOW (~15 minutes average processing time). Arriving between 10:00 AM - 11:00 AM will minimize your wait.</p>
+                        <a href="{% url 'procurement:centers' %}" class="btn-action">View Center Directions →</a>
+                    </div>
+
+                    <div class="smart-card" style="background:#fffcf5; border-color:#fee3a2; border-left-color:var(--amber);">
+                        <span class="smart-badge" style="background:#fff3d6; color:var(--amber);">⚠️ SMART ALERT</span>
+                        <h3 class="smart-title" style="color:#8a4d04;">Bank Transfer Verification</h3>
+                        <p style="margin:0; font:14px Arial, sans-serif; color:#19352a;">Your payment calculation of ₹110,692.50 is complete. Verification is in progress with the bank. No action is required from you at this time.</p>
+                    </div>
+                </div>
+
+                <!-- ════════════════════════════════════════════════════════════
+                     TAB 5: ⚙️ NOTIFICATION SETTINGS
+                ════════════════════════════════════════════════════════════ -->
+                <div id="settings-tab" class="tab-view">
+                    <div class="settings-panel">
+                        <h2 class="settings-section-title">🔔 Notification Preferences</h2>
+                        
+                        <!-- Appointments -->
+                        <div style="margin-bottom:24px;">
+                            <h3 style="font-size:15px; color:var(--green); margin:0 0 10px; font-family:Arial, sans-serif;">📅 Appointment Alerts</h3>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <strong>Appointment Confirmation</strong>
+                                    <span>Receive alert when appointment slot is confirmed.</span>
+                                </div>
+                                <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <strong>Appointment Reminders</strong>
+                                    <span>Get reminder notifications 24h &amp; 2h before slot.</span>
+                                </div>
+                                <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                            </div>
+                        </div>
+
+                        <!-- Token & Queue -->
+                        <div style="margin-bottom:24px;">
+                            <h3 style="font-size:15px; color:var(--green); margin:0 0 10px; font-family:Arial, sans-serif;">🎟️ Token &amp; Queue Alerts</h3>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <strong>Token Generated Alert</strong>
+                                    <span>Notify when a new token is generated for appointment.</span>
+                                </div>
+                                <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <strong>Your Turn Approaching</strong>
+                                    <span>Alert when you are within 5 tokens of your turn.</span>
+                                </div>
+                                <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <strong>Your Turn Alert</strong>
+                                    <span>High priority alert when your token is called to counter.</span>
+                                </div>
+                                <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                            </div>
+                        </div>
+
+                        <!-- Procurement & Payments -->
+                        <div>
+                            <h3 style="font-size:15px; color:var(--green); margin:0 0 10px; font-family:Arial, sans-serif;">💰 Procurement &amp; Payment Alerts</h3>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <strong>Quality &amp; Weighing Updates</strong>
+                                    <span>Get notified when officer inputs quality grade &amp; weight.</span>
+                                </div>
+                                <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                            </div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <strong>Payment Status Updates</strong>
+                                    <span>Receive instant updates when payment transfer completes.</span>
+                                </div>
+                                <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const button = document.querySelector('.menu-button');
+            const open = sidebar.classList.toggle('open');
+            button.setAttribute('aria-expanded', open);
+        }
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        function filterByCategory(cat) {
+            const cards = document.querySelectorAll('#all-tab .notif-card');
+            cards.forEach(card => {
+                if (cat === 'all' || card.getAttribute('data-category') === cat) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function markAllAsRead() {
+            document.querySelectorAll('.notif-card.unread, .notif-card.unread-urgent').forEach(card => {
+                card.classList.remove('unread', 'unread-urgent');
+                const tag = card.querySelector('.unread-tag');
+                if (tag) tag.style.display = 'none';
+            });
+
+            const unreadBadge = document.getElementById('unreadBadge');
+            const allBadge = document.getElementById('allBadge');
+            if (unreadBadge) unreadBadge.textContent = '0';
+            if (allBadge) allBadge.textContent = '5';
+
+            alert('All notifications marked as read.');
+        }
+    </script>
+</body>
+</html>

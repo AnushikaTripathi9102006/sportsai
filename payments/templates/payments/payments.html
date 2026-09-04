@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payments | KisanFlow</title>
+    <style>
+        :root {
+            --green: #1f6b45;
+            --deep-green: #174b35;
+            --mint: #e6f2e9;
+            --ink: #19352a;
+            --muted: #6b7c72;
+            --line: #dfe9e1;
+            --paper: #f6faf7;
+            --white: #ffffff;
+            --amber: #d88424;
+            --blue: #1565c0;
+            --red: #c62828;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
+        a { color: inherit; }
+        .app-shell { display: flex; min-height: 100vh; }
+        .sidebar { width: 248px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .brand { padding: 0 14px 30px; font-size: 25px; font-weight: bold; letter-spacing: .02em; }
+        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
+        .nav-list { display: grid; gap: 3px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background: #286c4a; color: var(--white); }
+        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
+        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
+
+        .main-area { min-width: 0; flex: 1; }
+        .topbar { min-height: 82px; background: var(--white); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
+        .menu-button { display: none; border: 0; background: var(--mint); color: var(--deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
+        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
+        .crumb strong { color: var(--ink); }
+        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
+        .profile-text { text-align: right; line-height: 1.5; }
+        .profile-text strong { display: block; color: var(--ink); }
+        .profile-id { color: var(--muted); font-size: 11px; }
+        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
+
+        .content { max-width: 1060px; margin: 0 auto; padding: 38px clamp(20px, 4vw, 50px) 60px; }
+        
+        /* Header */
+        .page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 24px; }
+        .eyebrow { margin: 0 0 6px; color: var(--green); font: bold 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+        h1 { margin: 0 0 6px; font-size: clamp(28px, 4vw, 40px); line-height: 1.08; }
+        .description { margin: 0; color: var(--muted); font: 15px Arial, sans-serif; }
+        .btn-link { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 6px; background: var(--green); color: white; font: bold 13px Arial, sans-serif; text-decoration: none; border: none; cursor: pointer; }
+        .btn-link:hover { background: var(--deep-green); }
+
+        /* Reusable Card */
+        .card { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 24px; box-shadow: 0 4px 14px rgba(30, 75, 53, .04); margin-bottom: 22px; }
+
+        /* Overview Cards Grid */
+        .overview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .overview-card { background: var(--white); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
+        .overview-card .label { color: var(--muted); font: 13px Arial, sans-serif; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .overview-card .val { font-family: Arial, sans-serif; font-size: 26px; font-weight: 900; color: var(--ink); }
+        .overview-card .sub { color: var(--muted); font: 11px Arial, sans-serif; margin-top: 4px; }
+
+        /* Current / Latest Payment Prominent Hero Card */
+        .hero-payment-card { border-left: 6px solid var(--amber); background: var(--white); }
+        .hero-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+        .hero-eyebrow { color: var(--amber); font: bold 11px Arial, sans-serif; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px; }
+        .hero-title { font-size: 24px; margin: 0 0 2px; }
+        .hero-amount { font-family: Arial, sans-serif; font-size: 36px; font-weight: 900; color: var(--deep-green); margin: 10px 0; }
+        
+        .hero-meta-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; background: var(--paper); padding: 16px; border-radius: 8px; border: 1px solid var(--line); margin-bottom: 20px; }
+        .meta-item .lbl { color: var(--muted); font: 12px Arial, sans-serif; margin-bottom: 3px; }
+        .meta-item .val { font: bold 14px Arial, sans-serif; color: var(--ink); }
+
+        /* Stepper Progress Bar */
+        .stepper-wrap { margin-bottom: 20px; }
+        .stepper-label { font: bold 12px Arial, sans-serif; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
+        .stepper-flow { display: flex; align-items: center; justify-content: space-between; position: relative; max-width: 750px; }
+        .stepper-flow::before { content: ''; position: absolute; left: 15px; right: 15px; top: 13px; height: 3px; background: var(--line); z-index: 0; }
+        .stepper-node { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; width: 22%; }
+        .node-bubble { width: 28px; height: 28px; border-radius: 50%; background: var(--white); border: 2px solid var(--line); display: grid; place-items: center; font: bold 11px Arial, sans-serif; color: var(--muted); }
+        .stepper-node.done .node-bubble { background: var(--green); border-color: var(--deep-green); color: white; }
+        .stepper-node.current .node-bubble { background: #fff2d9; border-color: var(--amber); color: #9c5d13; box-shadow: 0 0 0 4px #ffeec9; }
+        .node-title { font: 12px Arial, sans-serif; font-weight: bold; color: var(--muted); }
+        .stepper-node.done .node-title { color: var(--green); }
+        .stepper-node.current .node-title { color: #9c5d13; }
+
+        /* Status Badges */
+        .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 16px; font: bold 12px Arial, sans-serif; }
+        .badge-processing { background: #fff8e1; color: #b78103; border: 1px solid #ffe082; }
+        .badge-completed { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .badge-failed { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+        .badge-cancelled { background: #eceff1; color: #37474f; border: 1px solid #cfd8dc; }
+
+        /* Smart Payment Update Banner */
+        .smart-banner { background: #eef7f2; border: 1px solid #bce3c9; border-left: 5px solid var(--green); border-radius: 10px; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px; }
+        .smart-banner.delayed { background: #fff8e1; border-color: #ffe082; border-left-color: var(--amber); }
+        .smart-title { font-weight: bold; font-size: 15px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+        .smart-body { font: 13px/1.5 Arial, sans-serif; color: var(--ink); margin: 0; }
+        .btn-mini-toggle { background: var(--white); border: 1px solid var(--line); border-radius: 5px; padding: 6px 12px; font: bold 11px Arial, sans-serif; color: var(--muted); text-decoration: none; white-space: nowrap; }
+
+        /* Payment History Table Controls */
+        .history-controls { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+        .search-box { position: relative; min-width: 240px; }
+        .search-box input { width: 100%; padding: 8px 12px 8px 32px; border: 1px solid var(--line); border-radius: 6px; font: 13px Arial, sans-serif; background: var(--white); }
+        .search-box::before { content: '🔍'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--muted); }
+        
+        .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+        .filter-pill { border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 5px 12px; border-radius: 16px; font: bold 12px Arial, sans-serif; cursor: pointer; }
+        .filter-pill.active { background: var(--green); color: white; border-color: var(--deep-green); }
+
+        .history-table-wrap { overflow-x: auto; }
+        .history-table { width: 100%; border-collapse: collapse; font: 13px Arial, sans-serif; }
+        .history-table th { padding: 12px 14px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; text-align: left; }
+        .history-table td { padding: 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+        .history-table tr:hover { background: #f9fbf9; }
+
+        @media (max-width: 1000px) { .sidebar { width: 215px; } .overview-grid { grid-template-columns: repeat(2, 1fr); } .hero-meta-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 700px) { .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 5; transform: translateX(-100%); transition: transform .2s ease; } .sidebar.open { transform: translateX(0); } .menu-button { display: block; } .topbar { min-height: 68px; } .profile-text { display: none; } .content { padding-top: 27px; } .page-header { display: block; } .overview-grid, .hero-meta-grid { grid-template-columns: 1fr; } .stepper-flow { flex-direction: column; align-items: flex-start; gap: 14px; } .stepper-flow::before { display: none; } .stepper-node { width: 100%; flex-direction: row; text-align: left; } }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
+            <div class="nav-label">Main menu</div>
+            <nav class="nav-list" aria-label="Farmer navigation">
+                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
+                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
+                <a class="nav-item" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
+                <a class="nav-item" href="{% url 'appointments:appointments' %}"><span class="nav-icon">▣</span> Appointments</a>
+                <a class="nav-item" href="{% url 'tokens:token_queue' %}"><span class="nav-icon">▤</span> My Token</a>
+                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
+                <a class="nav-item active" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
+                <a class="nav-item" href="{% url 'notifications:notifications' %}"><span class="nav-icon">🔔</span> Notifications</a>
+            </nav>
+            <div class="sidebar-bottom nav-list">
+                <a class="nav-item" href="{% url 'farmer_dashboard' %}#settings"><span class="nav-icon">⚙</span> Settings</a>
+                <a class="nav-item" href="{% url 'farmer_dashboard' %}#help"><span class="nav-icon">?</span> Help &amp; Support</a>
+                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <div class="main-area">
+            <header class="topbar">
+                <div style="display:flex;align-items:center;gap:13px">
+                    <button class="menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" onclick="toggleSidebar()">☰</button>
+                    <div class="crumb"><strong>Payments</strong> &nbsp;/&nbsp; Farmer dashboard</div>
+                </div>
+                <div class="profile">
+                    <span aria-label="Notifications" style="font-size:22px;color:var(--green)">♢</span>
+                    <div class="profile-text">
+                        <strong>{{ farmer.get_full_name|default:farmer.username }}</strong>
+                        <span class="profile-id">Farmer ID: {{ profile.farmer_id|default:'Not assigned' }}</span>
+                    </div>
+                    <div class="avatar">{{ farmer.first_name|default:farmer.username|first|upper }}</div>
+                    <span aria-hidden="true">⌄</span>
+                </div>
+            </header>
+
+            <main class="content">
+                <!-- Page Header -->
+                <section class="page-header">
+                    <div>
+                        <p class="eyebrow">FINANCIAL SUMMARY</p>
+                        <h1>💰 Payments</h1>
+                        <p class="description">Track your procurement payments, pending payouts, and payment history.</p>
+                    </div>
+                    <div>
+                        <a href="#history-section" class="btn-link">View Payment History ↓</a>
+                    </div>
+                </section>
+
+                <!-- Section 1: Payment Overview Cards -->
+                <section class="overview-grid" aria-label="Payment Overview Metrics">
+                    <div class="overview-card">
+                        <div class="label">💰 Total Earned</div>
+                        <div class="val">{{ overview.total_earned }}</div>
+                        <div class="sub">Lifetime procurement earnings</div>
+                    </div>
+                    <div class="overview-card">
+                        <div class="label">⏳ Pending</div>
+                        <div class="val" style="color: var(--amber);">{{ overview.pending_amount }}</div>
+                        <div class="sub">Currently processing in pipeline</div>
+                    </div>
+                    <div class="overview-card">
+                        <div class="label">✅ Paid</div>
+                        <div class="val" style="color: var(--green);">{{ overview.paid_amount }}</div>
+                        <div class="sub">Successfully credited to account</div>
+                    </div>
+                    <div class="overview-card">
+                        <div class="label">📅 Last Payment</div>
+                        <div class="val">{{ overview.last_payment }}</div>
+                        <div class="sub">Received on {{ overview.last_payment_date }}</div>
+                    </div>
+                </section>
+
+                <!-- Section 2: Current / Latest Payment (Prominent Hero Card) -->
+                <section class="card hero-payment-card" aria-label="Current Payment Progress">
+                    <div class="hero-header">
+                        <div>
+                            <div class="hero-eyebrow">Active Transaction</div>
+                            <h2 class="hero-title">💵 {{ current_payment.crop }}</h2>
+                            <span class="description">{{ current_payment.quantity }} • Quality: <strong>{{ current_payment.quality_grade }}</strong></span>
+                        </div>
+                        <span class="status-badge badge-processing">
+                            🟡 {{ current_payment.status_label }}
+                        </span>
+                    </div>
+
+                    <div class="hero-amount">{{ current_payment.amount }}</div>
+
+                    <div class="hero-meta-grid">
+                        <div class="meta-item">
+                            <div class="lbl">Government MSP Rate</div>
+                            <div class="val">{{ current_payment.rate }}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="lbl">Procurement Date</div>
+                            <div class="val">{{ current_payment.procurement_date }}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="lbl">Expected Payment Date</div>
+                            <div class="val" style="color: var(--amber);">{{ current_payment.expected_date }}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="lbl">Token Reference</div>
+                            <div class="val">{{ current_payment.token_number }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Stepper -->
+                    <div class="stepper-wrap">
+                        <div class="stepper-label">Payment Progress</div>
+                        <div class="stepper-flow">
+                            {% for node in current_payment.stepper %}
+                            <div class="stepper-node {{ node.state }}">
+                                <div class="node-bubble">
+                                    {% if node.state == 'done' %}✓{% elif node.state == 'current' %}●{% else %}○{% endif %}
+                                </div>
+                                <div class="node-title">{{ node.label }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div>
+                        <a href="{% url 'payments:detail' current_payment.id %}" class="btn-link">View Payment Details →</a>
+                    </div>
+                </section>
+
+                <!-- Section 3: Smart Payment Update -->
+                <section class="smart-banner {% if smart_update.is_delayed %}delayed{% endif %}" aria-label="Automated Smart Payment Notice">
+                    <div>
+                        <div class="smart-title">{{ smart_update.title }}</div>
+                        <p class="smart-body">{{ smart_update.message }}</p>
+                    </div>
+                    <div>
+                        {% if smart_update.is_delayed %}
+                        <a href="?delay=0" class="btn-mini-toggle">Show Normal State</a>
+                        {% else %}
+                        <a href="?delay=1" class="btn-mini-toggle">Simulate Delay State</a>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <!-- Section 4: Payment History -->
+                <section class="card" id="history-section" aria-label="Payment History Table">
+                    <h2 style="margin: 0 0 16px; font-size: 20px;">📜 Payment History</h2>
+
+                    <div class="history-controls">
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="Search payments by crop, amount, status..." onkeyup="filterHistory()">
+                        </div>
+
+                        <div class="filter-pills" id="filterPills">
+                            <button type="button" class="filter-pill active" onclick="setFilter('ALL', this)">All</button>
+                            <button type="button" class="filter-pill" onclick="setFilter('PROCESSING', this)">Processing</button>
+                            <button type="button" class="filter-pill" onclick="setFilter('COMPLETED', this)">Completed</button>
+                            <button type="button" class="filter-pill" onclick="setFilter('FAILED', this)">Failed</button>
+                        </div>
+                    </div>
+
+                    <div class="history-table-wrap">
+                        <table class="history-table" id="historyTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Produce</th>
+                                    <th>Quantity</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in history_records %}
+                                <tr data-status="{{ item.status_code }}" data-search="{{ item.date }} {{ item.crop }} {{ item.quantity }} {{ item.amount }} {{ item.status }}">
+                                    <td>{{ item.date }}</td>
+                                    <td><strong>{{ item.crop }}</strong></td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td><strong>{{ item.amount }}</strong></td>
+                                    <td>
+                                        {% if item.badge_color == 'green' %}
+                                        <span class="status-badge badge-completed">🟢 {{ item.status }}</span>
+                                        {% elif item.badge_color == 'yellow' %}
+                                        <span class="status-badge badge-processing">🟡 {{ item.status }}</span>
+                                        {% else %}
+                                        <span class="status-badge badge-failed">🔴 {{ item.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'payments:detail' item.id %}" style="color: var(--green); font-weight: bold; text-decoration: none; margin-right: 10px;">View Details →</a>
+                                        {% if item.receipt_available %}
+                                        <button type="button" onclick="alert('Payment Receipt #REC-2026-0{{ item.id }}\nCrop: {{ item.crop }}\nAmount: {{ item.amount }}\nStatus: Completed')" style="background: none; border: none; color: var(--blue); cursor: pointer; font-size: 12px; font-weight: bold; text-decoration: underline;">View Receipt</button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const button = document.querySelector('.menu-button');
+            const open = sidebar.classList.toggle('open');
+            button.setAttribute('aria-expanded', open);
+        }
+
+        let currentStatusFilter = 'ALL';
+
+        function setFilter(status, element) {
+            currentStatusFilter = status;
+            document.querySelectorAll('#filterPills .filter-pill').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            filterHistory();
+        }
+
+        function filterHistory() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#historyTable tbody tr');
+
+            rows.forEach(row => {
+                const status = row.getAttribute('data-status');
+                const searchData = row.getAttribute('data-search').toLowerCase();
+
+                const matchesStatus = (currentStatusFilter === 'ALL' || status === currentStatusFilter);
+                const matchesSearch = searchData.includes(query);
+
+                if (matchesStatus && matchesSearch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

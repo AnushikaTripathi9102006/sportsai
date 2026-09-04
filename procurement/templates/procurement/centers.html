@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procurement Centers | KisanFlow</title>
+    <style>
+        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, "Times New Roman", serif; }
+        a { color: inherit; }
+        .app-shell { display: flex; min-height: 100vh; }
+        .sidebar { width: 248px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .brand { padding: 0 14px 30px; font-size: 25px; font-weight: bold; }
+        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
+        .nav-list { display: grid; gap: 3px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
+        .nav-item:hover, .nav-item.active { background: #286c4a; color: white; }
+        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
+        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
+        .main-area { min-width: 0; flex: 1; }
+        .topbar { min-height: 82px; background: white; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
+        .menu-button { display: none; border: 0; background: var(--mint); color: var(--deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
+        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
+        .crumb strong { color: var(--ink); }
+        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
+        .profile-text { text-align: right; line-height: 1.5; }
+        .profile-text strong { display: block; color: var(--ink); }
+        .profile-id { color: var(--muted); font-size: 11px; }
+        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
+        .content { max-width: 1360px; margin: 0 auto; padding: 38px clamp(20px, 4vw, 50px) 60px; }
+        .page-eyebrow { margin: 0 0 8px; color: var(--green); font: bold 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+        h1 { margin: 0 0 8px; font-size: clamp(28px, 4vw, 42px); line-height: 1.08; }
+        .description { color: var(--muted); font: 15px Arial, sans-serif; }
+        .empty-section { margin-top: 28px; padding: 28px; background: white; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); font: 14px Arial, sans-serif; }
+        .recommendation-card { margin-top: 28px; padding: 26px; background: white; border: 1px solid var(--line); border-left: 5px solid var(--green); border-radius: 8px; box-shadow: 0 4px 13px rgba(30, 75, 53, .05); }
+        .recommendation-label { margin-bottom: 18px; color: var(--green); font: bold 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+        .recommendation-title { margin: 0 0 8px; font-size: 25px; }
+        .recommendation-quantity { color: var(--muted); font: 14px Arial, sans-serif; }
+        .center-name { margin: 24px 0 14px; font-size: 20px; }
+        .center-name span { color: var(--green); }
+        .recommendation-stats { display: flex; flex-wrap: wrap; gap: 10px; }
+        .stat { padding: 8px 11px; border-radius: 18px; background: var(--mint); color: var(--green); font: bold 12px Arial, sans-serif; }
+        .match-score { margin-top: 20px; color: #9c5d13; font: bold 15px Arial, sans-serif; }
+        .reasons { margin: 10px 0 0; padding-left: 19px; color: var(--muted); font: 13px Arial, sans-serif; line-height: 1.8; }
+        .recommendation-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+        .recommendation-button { display: inline-block; padding: 10px 14px; border-radius: 5px; background: var(--green); color: white; font: bold 12px Arial, sans-serif; text-decoration: none; }
+        .recommendation-button.secondary { background: #edf3ee; color: var(--green); }
+        .nearby-heading { margin: 34px 0 14px; font-size: 21px; }
+        .nearby-layout { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 18px; }
+        .center-list { display: grid; gap: 13px; }
+        .center-card { padding: 20px; background: white; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); }
+        .center-card h3 { margin: 0 0 13px; font-size: 18px; }
+        .center-distance { margin-bottom: 13px; color: var(--muted); font: 13px Arial, sans-serif; }
+        .center-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .center-tag { padding: 7px 9px; border-radius: 16px; background: var(--mint); color: var(--green); font: bold 11px Arial, sans-serif; }
+        .center-tag.medium { background: #fff2d9; color: #9c5d13; }
+        .map-placeholder { min-height: 100%; display: grid; place-items: center; padding: 25px; border: 1px solid var(--line); border-radius: 8px; background: #edf5ee; color: var(--muted); text-align: center; font: 14px Arial, sans-serif; }
+        .map-placeholder strong { display: block; margin-bottom: 9px; color: var(--green); font: 20px Georgia, serif; }
+        .filters { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .filters input, .filters select { width: 100%; min-height: 42px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: white; color: var(--ink); font: 13px Arial, sans-serif; }
+        .filters input:focus, .filters select:focus { outline: 2px solid var(--mint); border-color: var(--green); }
+        @media (max-width: 900px) { .filters { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 700px) { .nearby-layout { grid-template-columns: 1fr; } .map-placeholder { min-height: 190px; } }
+        @media (max-width: 1000px) { .sidebar { width: 215px; } }
+        @media (max-width: 700px) { .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 5; transform: translateX(-100%); transition: transform .2s ease; } .sidebar.open { transform: translateX(0); } .menu-button { display: block; } .topbar { min-height: 68px; } .profile-text { display: none; } .content { padding-top: 27px; } }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
+            <div class="nav-label">Main menu</div>
+            <nav class="nav-list" aria-label="Farmer navigation">
+                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
+                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
+                <a class="nav-item active" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
+                <a class="nav-item" href="{% url 'appointments:appointments' %}"><span class="nav-icon">▣</span> Appointments</a>
+                <a class="nav-item" href="{% url 'tokens:token_queue' %}"><span class="nav-icon">▤</span> My Token</a>
+                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
+                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
+                <a class="nav-item" href="#"><span class="nav-icon">•</span> Notifications</a>
+            </nav>
+            <div class="sidebar-bottom nav-list">
+                <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Settings</a>
+                <a class="nav-item" href="#"><span class="nav-icon">?</span> Help &amp; Support</a>
+                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
+            </div>
+        </aside>
+        <div class="main-area">
+            <header class="topbar">
+                <div style="display:flex;align-items:center;gap:13px"><button class="menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" onclick="toggleSidebar()">☰</button><div class="crumb"><strong>Procurement Centers</strong> &nbsp;/&nbsp; Farmer space</div></div>
+                <div class="profile"><span aria-label="Notifications" style="font-size:22px;color:var(--green)">♢</span><div class="profile-text"><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><span class="profile-id">Farmer account</span></div><div class="avatar">{{ request.user.first_name|default:request.user.username|first|upper }}</div><span aria-hidden="true">⌄</span></div>
+            </header>
+            <main class="content">
+                <p class="page-eyebrow">FIND A CENTER</p>
+                <h1>Procurement Centers</h1>
+                <p class="description">Find the best procurement center for your produce.</p>
+                <section class="recommendation-card" aria-labelledby="recommendation-heading">
+                    <p class="recommendation-label">🎯 Recommended For You</p>
+                    <h2 class="recommendation-title" id="recommendation-heading">🌾 Wheat</h2>
+                    <p class="recommendation-quantity">50 Quintals</p>
+
+                    <h3 class="center-name"><span>📍</span> Lucknow Procurement Hub</h3>
+
+                    <div class="recommendation-stats">
+                        <span class="stat">8.4 km away</span>
+                        <span class="stat">🟢 Low Queue</span>
+                        <span class="stat">🟢 High Capacity</span>
+                    </div>
+
+                    <p class="match-score">⭐ 94% Best Match</p>
+                    <p class="description">Best match because of:</p>
+                    <ul class="reasons">
+                        <li>Shorter distance</li>
+                        <li>Low waiting time</li>
+                        <li>Sufficient capacity</li>
+                    </ul>
+
+                    <div class="recommendation-actions">
+                        <a class="recommendation-button secondary" href="{% url 'procurement:center_detail' %}">View Center Details</a>
+                        <a class="recommendation-button" href="#">Select Center →</a>
+                    </div>
+                </section>
+                <h2 class="nearby-heading">Nearby Procurement Centers</h2>
+                <form class="filters" aria-label="Filter procurement centers">
+                    <input type="search" placeholder="Search centers..." aria-label="Search centers">
+                    <select aria-label="Distance filter"><option>Any distance</option><option>Within 5 km</option><option>Within 10 km</option></select>
+                    <select aria-label="Queue filter"><option>Any queue</option><option>Low queue</option><option>Medium queue</option></select>
+                    <select aria-label="Availability filter"><option>Any availability</option><option>Available now</option><option>Closed</option></select>
+                </form>
+                <section class="nearby-layout" aria-label="Nearby procurement centers">
+                    <div class="center-list">
+                        <article class="center-card">
+                            <h3>🏢 Lucknow Center</h3>
+                            <p class="center-distance">6.2 km away</p>
+                            <div class="center-tags">
+                                <span class="center-tag">🟢 Low Queue</span>
+                                <span class="center-tag">🟢 Available</span>
+                            </div>
+                            <a class="recommendation-button secondary" href="{% url 'procurement:center_detail' %}">View Details</a>
+                        </article>
+                        <article class="center-card">
+                            <h3>🏢 Gomti Nagar Center</h3>
+                            <p class="center-distance">10.5 km away</p>
+                            <div class="center-tags">
+                                <span class="center-tag medium">🟡 Medium Queue</span>
+                                <span class="center-tag">🟢 Available</span>
+                            </div>
+                            <a class="recommendation-button secondary" href="{% url 'procurement:center_detail' %}">View Details</a>
+                        </article>
+                    </div>
+                    <div class="map-placeholder" role="img" aria-label="Map placeholder showing nearby centers">
+                        <div><strong>🗺️ Map View</strong>Center locations will appear here when map and location data are connected.</div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    <script>function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }</script>
+</body>
+</html>

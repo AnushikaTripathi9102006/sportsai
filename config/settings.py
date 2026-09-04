@@ -43,6 +43,11 @@ INSTALLED_APPS = [
     'accounts',
     'dashboard',
     'produce',
+    'procurement',
+    'appointments',
+    'tokens',
+    'payments',
+    'notifications',
     'api',
 ]
 
