@@ -10,8 +10,8 @@ ENV/
 .venv
 
 # Database & SQLite
-db.sqlite3
-*.sqlite3
+# db.sqlite3
+# *.sqlite3
 
 # IDE & Editor settings
 .idea/
