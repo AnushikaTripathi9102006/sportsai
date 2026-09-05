@@ -122,7 +122,7 @@
                     </div>
                     <div class="appointment-info">
                         <div>🌾 Crop & Est Qty: <strong>{{ active_record.crop_name }}</strong> ({{ active_record.estimated_quantity_quintals }} Quintals)</div>
-                        <div>📍 Procurement Center: <strong>{{ active_record.center_name|default:active_record.center.name }}</strong> (📍 {{ active_record.district }})</div>
+                        <div>📍 Procurement Center: <strong>{{ active_record.center_display_name }}</strong> (📍 {{ active_record.district }})</div>
                         <div><span class="token">🎟️ Token: #{{ active_record.token_number }}</span></div>
                     </div>
                 </section>
@@ -148,7 +148,7 @@
                                     <td><strong>#{{ rec.token_number }}</strong></td>
                                     <td><strong>📅 {{ rec.appointment_date }}</strong></td>
                                     <td>{{ rec.crop_name }} ({{ rec.estimated_quantity_quintals }} Qtl)</td>
-                                    <td>{{ rec.center_name|default:rec.center.name }}</td>
+                                    <td>{{ rec.center_display_name }}</td>
                                     <td><span class="history-status">{{ rec.get_current_stage_display }}</span></td>
                                 </tr>
                                 {% empty %}

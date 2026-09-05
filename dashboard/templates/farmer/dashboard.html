@@ -155,7 +155,7 @@
                             </div>
                             <div>
                                 {% if procurement_record %}
-                                    <strong>🏢 Center: {{ procurement_record.center_name|default:procurement_record.center.name }}</strong>
+                                    <strong>🏢 Center: {{ procurement_record.center_display_name }}</strong>
                                     <span class="muted" style="display: block; margin-top: 4px;">
                                         Crop: <strong>{{ procurement_record.crop_name }}</strong> ({{ procurement_record.estimated_quantity_quintals }} Qtl)<br>
                                         Token: <strong>#{{ procurement_record.token_number }}</strong> &bull; Status: <strong style="color: var(--green);">{{ procurement_record.get_current_stage_display }}</strong>
@@ -181,7 +181,7 @@
                             </div>
                             <div class="detail-row">
                                 <span>Procurement Center</span>
-                                <strong>{% if procurement_record %}{{ procurement_record.center_name|default:procurement_record.center.name }}{% else %}--{% endif %}</strong>
+                                <strong>{% if procurement_record %}{{ procurement_record.center_display_name }}{% else %}--{% endif %}</strong>
                             </div>
                             <div class="detail-row">
                                 <span>Appointment Date</span>

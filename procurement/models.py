@@ -139,6 +139,12 @@ class ProcurementRecord(models.Model):
     def appointment_slot(self):
         return self.appointment_date
 
+    @property
+    def center_display_name(self):
+        if self.center and getattr(self.center, "name", None):
+            return self.center.name
+        return self.center_name or "Procurement Center"
+
 
 
 class QualityAssessment(models.Model):
