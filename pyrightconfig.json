@@ -1,0 +1,19 @@
+{
+  "venvPath": ".",
+  "venv": "venv",
+  "extraPaths": [
+    "venv/Lib/site-packages",
+    "."
+  ],
+  "reportMissingTypeStubs": false,
+  "reportMissingImports": false,
+  "reportArgumentType": false,
+  "reportAttributeAccessIssue": false,
+  "reportGeneralTypeIssues": false,
+  "reportAssignmentType": false,
+  "reportIncompatibleVariableOverride": false,
+  "reportIncompatibleMethodOverride": false,
+  "reportOptionalSubscript": false,
+  "reportIndexIssue": false,
+  "reportOptionalMemberAccess": false
+}

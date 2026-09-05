@@ -51,6 +51,7 @@
         .nearby-layout { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 18px; }
         .center-list { display: grid; gap: 13px; }
         .center-card { padding: 20px; background: white; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); }
+        .center-card.district-match { border-left: 4px solid var(--green); }
         .center-card h3 { margin: 0 0 13px; font-size: 18px; }
         .center-distance { margin-bottom: 13px; color: var(--muted); font: 13px Arial, sans-serif; }
         .center-tags { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -94,65 +95,109 @@
                 <div class="profile"><span aria-label="Notifications" style="font-size:22px;color:var(--green)">♢</span><div class="profile-text"><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><span class="profile-id">Farmer account</span></div><div class="avatar">{{ request.user.first_name|default:request.user.username|first|upper }}</div><span aria-hidden="true">⌄</span></div>
             </header>
             <main class="content">
-                <p class="page-eyebrow">FIND A CENTER</p>
+                <p class="page-eyebrow">FIND A CENTER (UTTAR PRADESH)</p>
                 <h1>Procurement Centers</h1>
-                <p class="description">Find the best procurement center for your produce.</p>
-                <section class="recommendation-card" aria-labelledby="recommendation-heading">
-                    <p class="recommendation-label">🎯 Recommended For You</p>
-                    <h2 class="recommendation-title" id="recommendation-heading">🌾 Wheat</h2>
-                    <p class="recommendation-quantity">50 Quintals</p>
+                <p class="description">Locate the nearest government MSP procurement center matching your district and produce batch.</p>
 
-                    <h3 class="center-name"><span>📍</span> Lucknow Procurement Hub</h3>
+                {% if recommended_center %}
+                    {% if active_produce %}
+                    <section class="recommendation-card" aria-labelledby="recommendation-heading">
+                        <p class="recommendation-label">🎯 Assigned District Center For Your Produce</p>
+                        <h2 class="recommendation-title" id="recommendation-heading">🌾 {{ active_produce.crop_name }}</h2>
+                        <p class="recommendation-quantity">{{ active_produce.quantity }} {{ active_produce.get_unit_display }} &bull; 📍 District: <strong>{{ selected_district }}</strong></p>
 
-                    <div class="recommendation-stats">
-                        <span class="stat">8.4 km away</span>
-                        <span class="stat">🟢 Low Queue</span>
-                        <span class="stat">🟢 High Capacity</span>
-                    </div>
+                        <h3 class="center-name"><span>🏢</span> {{ recommended_center.name }}</h3>
 
-                    <p class="match-score">⭐ 94% Best Match</p>
-                    <p class="description">Best match because of:</p>
-                    <ul class="reasons">
-                        <li>Shorter distance</li>
-                        <li>Low waiting time</li>
-                        <li>Sufficient capacity</li>
-                    </ul>
+                        <div class="recommendation-stats">
+                            <span class="stat">📍 {{ recommended_center.district }} ({{ recommended_center.tehsil_block|default:"Sadar" }})</span>
+                            <span class="stat">⚡ ~{{ recommended_center.distance_km }} km away</span>
+                            <span class="stat">{% if recommended_center.queue_status == "LOW" %}🟢 Low Queue{% elif recommended_center.queue_status == "MEDIUM" %}🟡 Medium Queue{% else %}🔴 High Queue{% endif %}</span>
+                            <span class="stat">📞 {{ recommended_center.contact_number }}</span>
+                        </div>
 
-                    <div class="recommendation-actions">
-                        <a class="recommendation-button secondary" href="{% url 'procurement:center_detail' %}">View Center Details</a>
-                        <a class="recommendation-button" href="#">Select Center →</a>
-                    </div>
-                </section>
-                <h2 class="nearby-heading">Nearby Procurement Centers</h2>
-                <form class="filters" aria-label="Filter procurement centers">
-                    <input type="search" placeholder="Search centers..." aria-label="Search centers">
-                    <select aria-label="Distance filter"><option>Any distance</option><option>Within 5 km</option><option>Within 10 km</option></select>
-                    <select aria-label="Queue filter"><option>Any queue</option><option>Low queue</option><option>Medium queue</option></select>
-                    <select aria-label="Availability filter"><option>Any availability</option><option>Available now</option><option>Closed</option></select>
+                        <p class="match-score">⭐ Best District Match</p>
+                        <p class="description">Address: <strong>{{ recommended_center.address }}</strong></p>
+                        <ul class="reasons">
+                            <li>Nearest government facility in {{ recommended_center.district }} district</li>
+                            <li>Equipped for {{ recommended_center.crops_handled }}</li>
+                            <li>Operating Hours: {{ recommended_center.operating_hours }}</li>
+                        </ul>
+
+                        <div class="recommendation-actions">
+                            <a class="recommendation-button secondary" href="{% url 'procurement:center_detail' %}">View Center Details</a>
+                            <span class="recommendation-button" style="background:#e2e8f0;color:#334155;cursor:default;">🔒 Auto-Assigned by District & Officer</span>
+                        </div>
+                    </section>
+                    {% else %}
+                    <section class="recommendation-card" style="border-left-color: #d88424; background: #fffdfa;" aria-labelledby="recommendation-heading">
+                        <p class="recommendation-label" style="color: #b45309;">⚠️ No Registered Produce Found</p>
+                        <h2 class="recommendation-title" id="recommendation-heading" style="font-size: 22px;">Register Your Crop Produce to Enable Auto-Assignment</h2>
+                        <p class="recommendation-quantity">You currently have no active produce registered for MSP procurement. &bull; 📍 Active District: <strong>{{ selected_district }}</strong></p>
+
+                        <p class="description" style="margin-top: 12px; color: var(--muted);">
+                            Registering your produce batch enables automated matching with government procurement centers in <strong>{{ selected_district }}</strong> (e.g. 🏢 {{ recommended_center.name }}).
+                        </p>
+
+                        <div class="recommendation-actions" style="margin-top: 18px;">
+                            <a class="recommendation-button" href="{% url 'produce:add_produce' %}" style="background: var(--green);">➕ Register Produce Now</a>
+                            <a class="recommendation-button secondary" href="{% url 'produce:my_produce' %}">My Produce List</a>
+                        </div>
+                    </section>
+                    {% endif %}
+                {% endif %}
+
+                <h2 class="nearby-heading">Browse Procurement Centers by District</h2>
+
+                <form class="filters" method="get" aria-label="Filter procurement centers">
+                    <input type="search" name="search" value="{{ search_query }}" placeholder="Search center by name..." aria-label="Search centers">
+
+                    <select name="district" onchange="this.form.submit()" aria-label="District filter">
+                        <option value="">-- Select UP District --</option>
+                        {% for d in up_districts %}
+                            <option value="{{ d }}" {% if selected_district == d %}selected{% endif %}>{{ d }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <select name="queue" onchange="this.form.submit()" aria-label="Queue filter">
+                        <option value="">All Queues</option>
+                        <option value="LOW" {% if selected_queue == "LOW" %}selected{% endif %}>🟢 Low Queue</option>
+                        <option value="MEDIUM" {% if selected_queue == "MEDIUM" %}selected{% endif %}>🟡 Medium Queue</option>
+                        <option value="HIGH" {% if selected_queue == "HIGH" %}selected{% endif %}>🔴 High Queue</option>
+                    </select>
+
+                    <button type="submit" class="recommendation-button" style="border:none;cursor:pointer;">Filter</button>
                 </form>
+
                 <section class="nearby-layout" aria-label="Nearby procurement centers">
                     <div class="center-list">
-                        <article class="center-card">
-                            <h3>🏢 Lucknow Center</h3>
-                            <p class="center-distance">6.2 km away</p>
-                            <div class="center-tags">
-                                <span class="center-tag">🟢 Low Queue</span>
-                                <span class="center-tag">🟢 Available</span>
-                            </div>
-                            <a class="recommendation-button secondary" href="{% url 'procurement:center_detail' %}">View Details</a>
-                        </article>
-                        <article class="center-card">
-                            <h3>🏢 Gomti Nagar Center</h3>
-                            <p class="center-distance">10.5 km away</p>
-                            <div class="center-tags">
-                                <span class="center-tag medium">🟡 Medium Queue</span>
-                                <span class="center-tag">🟢 Available</span>
-                            </div>
-                            <a class="recommendation-button secondary" href="{% url 'procurement:center_detail' %}">View Details</a>
-                        </article>
+                        {% if nearby_centers %}
+                            {% for center in nearby_centers %}
+                            <article class="center-card{% if center.district|lower == selected_district|lower %} district-match{% endif %}">
+                                <h3>🏢 {{ center.name }}</h3>
+                                <p class="center-distance">📍 {{ center.district }} district &bull; {{ center.tehsil_block }} &bull; ~{{ center.distance_km }} km</p>
+                                <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">{{ center.address }}</p>
+                                <div class="center-tags">
+                                    <span class="center-tag {% if center.queue_status == 'MEDIUM' %}medium{% endif %}">
+                                        {% if center.queue_status == 'LOW' %}🟢 Low Queue{% elif center.queue_status == 'MEDIUM' %}🟡 Medium Queue{% else %}🔴 High Queue{% endif %}
+                                    </span>
+                                    <span class="center-tag">🌾 {{ center.crops_handled|truncatechars:30 }}</span>
+                                </div>
+                                <div style="margin-top:14px;display:flex;gap:8px;align-items:center;">
+                                    <a class="recommendation-button secondary" href="{% url 'procurement:center_detail' %}">View Details</a>
+                                    <span style="font-size:12px;color:var(--muted);">Managed by Officer</span>
+                                </div>
+                            </article>
+                            {% endfor %}
+                        {% else %}
+                            <p style="padding:20px;background:white;border-radius:8px;">No centers found matching the selected filters in {{ selected_district }}.</p>
+                        {% endif %}
                     </div>
-                    <div class="map-placeholder" role="img" aria-label="Map placeholder showing nearby centers">
-                        <div><strong>🗺️ Map View</strong>Center locations will appear here when map and location data are connected.</div>
+                    <div class="map-placeholder" role="img" aria-label="Uttar Pradesh Procurement Locations">
+                        <div>
+                            <strong>🗺️ Uttar Pradesh Procurement Map</strong>
+                            <p style="margin-top:8px;">Active District: <strong style="color:var(--green)">{{ selected_district }}</strong></p>
+                            <p style="font-size:13px;color:var(--muted);margin-top:12px;">Displaying {{ nearby_centers|length }} government MSP purchasing centers across {{ selected_district }} and adjacent UP regions.</p>
+                        </div>
                     </div>
                 </section>
             </main>

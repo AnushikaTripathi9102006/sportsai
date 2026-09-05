@@ -117,7 +117,8 @@
 
 
         .form-group input,
-        .form-group select {
+        .form-group select,
+        .form-group textarea {
             width: 100%;
 
             padding: 11px 12px;
@@ -135,7 +136,8 @@
 
 
         .form-group input:focus,
-        .form-group select:focus {
+        .form-group select:focus,
+        .form-group textarea:focus {
             outline: none;
 
             border-color: #1b5e20;
@@ -310,8 +312,8 @@
         .page-header p { color: var(--dashboard-muted); font: 15px Arial, sans-serif; }
         .form-card { max-width: 760px; border: 1px solid var(--dashboard-line); border-radius: 8px; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); }
         .form-group label { color: var(--dashboard-ink); font: bold 13px Arial, sans-serif; }
-        .form-group input, .form-group select { border-color: var(--dashboard-line); border-radius: 6px; }
-        .form-group input:focus, .form-group select:focus { border-color: var(--dashboard-green); box-shadow: 0 0 0 2px var(--dashboard-mint); }
+        .form-group input, .form-group select, .form-group textarea { border-color: var(--dashboard-line); border-radius: 6px; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--dashboard-green); box-shadow: 0 0 0 2px var(--dashboard-mint); }
         .form-actions { border-top-color: var(--dashboard-line); }
         .btn-primary { background: var(--dashboard-green); box-shadow: 0 4px 12px rgba(31, 107, 69, .16); }
         .btn-primary:hover { background: var(--dashboard-deep-green); }
@@ -479,6 +481,50 @@
                     {{ form.harvest_date }}
 
                     {% for error in form.harvest_date.errors %}
+
+                        <span class="field-error">
+                            {{ error }}
+                        </span>
+
+                    {% endfor %}
+
+                </div>
+
+
+
+                <!-- District Selection (UP) -->
+
+                <div class="form-group">
+
+                    {{ form.district.label_tag }}
+
+                    {{ form.district }}
+
+                    {% for error in form.district.errors %}
+
+                        <span class="field-error">
+                            {{ error }}
+                        </span>
+
+                    {% endfor %}
+
+                </div>
+
+
+
+                <!-- Farm / Pickup Address -->
+
+                <div class="form-group">
+
+                    {{ form.address.label_tag }}
+
+                    {{ form.address }}
+
+                    <small style="display:block;margin-top:5px;color:var(--dashboard-muted);font-size:12px;font-family:Arial,sans-serif;">
+                        📍 This address will be used to automatically locate and match the nearest procurement center.
+                    </small>
+
+                    {% for error in form.address.errors %}
 
                         <span class="field-error">
                             {{ error }}

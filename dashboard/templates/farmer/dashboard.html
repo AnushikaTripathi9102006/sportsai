@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Farmer Dashboard | KisanFlow</title>
+    
     <style>
         :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --white: #fff; --amber: #d88424; }
         * { box-sizing: border-box; }
@@ -55,8 +56,11 @@
         .stage { position: relative; color: #9ba9a0; font: 11px Arial, sans-serif; text-align: center; }
         .stage:not(:last-child)::after { content: ''; position: absolute; height: 2px; background: var(--line); left: 50%; right: -50%; top: 8px; z-index: 0; }
         .stage-dot { position: relative; z-index: 1; width: 17px; height: 17px; margin: 0 auto 9px; border: 3px solid var(--line); border-radius: 50%; background: var(--white); }
-        .stage.current { color: var(--green); font-weight: bold; }
-        .stage.current .stage-dot { border-color: var(--green); background: var(--green); }
+        .stage.done { color: var(--green); font-weight: bold; }
+        .stage.done .stage-dot { border-color: var(--green); background: var(--green); }
+        .stage.done:not(:last-child)::after { background: var(--green); }
+        .stage.current { color: var(--amber); font-weight: bold; }
+        .stage.current .stage-dot { border-color: var(--amber); background: var(--amber); box-shadow: 0 0 0 3px #ffeec9; }
         .dashboard-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 18px; }
         .split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
         .card-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
@@ -117,22 +121,83 @@
                 <div class="section-heading"><h2>Quick actions</h2></div>
                 <section class="actions">
                     <a class="action" href="{% url 'produce:add_produce' %}"><span class="action-icon">＋</span><strong>Register Produce</strong><span>Register newly harvested crops.</span></a>
-                    <a class="action" href="#centers"><span class="action-icon">⌖</span><strong>Find Procurement Center</strong><span>See centers near you.</span></a>
-                    <a class="action" href="#appointments"><span class="action-icon">▣</span><strong>Book Appointment</strong><span>Schedule a procurement visit.</span></a>
+                    <a class="action" href="{% url 'procurement:centers' %}"><span class="action-icon">⌖</span><strong>Find Procurement Center</strong><span>See centers near you.</span></a>
+                    <a class="action" href="{% url 'appointments:appointments' %}"><span class="action-icon">▣</span><strong>Book Appointment</strong><span>Schedule a procurement visit.</span></a>
                     <a class="action" href="{% url 'procurement:status' %}"><span class="action-icon">→</span><strong>Track Procurement</strong><span>Check your current progress.</span></a>
                 </section>
                 <div class="section-heading" id="procurement"><h2>Current procurement</h2></div>
                 <section class="panel journey">
-                    <div class="journey-head"><div><div class="eyebrow">Your latest produce</div>{% if current_produce %}<h2>{{ current_produce.crop_name }}</h2><div class="journey-detail">{{ current_produce.quantity }} {{ current_produce.get_unit_display }}</div>{% else %}<h2>No procurement started</h2><div class="journey-detail">Register produce to begin your procurement journey.</div>{% endif %}</div><span class="status-pill">{% if current_produce %}{{ current_produce.get_status_display }}{% else %}Waiting for produce{% endif %}</span></div>
-                    <div class="timeline" aria-label="Procurement progress"><div class="stage current"><div class="stage-dot"></div>Registered</div><div class="stage"><div class="stage-dot"></div>Center</div><div class="stage"><div class="stage-dot"></div>Appointment</div><div class="stage"><div class="stage-dot"></div>Token</div><div class="stage"><div class="stage-dot"></div>Verification</div><div class="stage"><div class="stage-dot"></div>Procured</div><div class="stage"><div class="stage-dot"></div>Payment</div></div>
+                    <div class="journey-head"><div><div class="eyebrow">Your latest produce</div>{% if current_produce %}<h2>{{ current_produce.crop_name }}</h2><div class="journey-detail">{{ current_produce.quantity }} {{ current_produce.get_unit_display }}</div>{% else %}<h2>No procurement started</h2><div class="journey-detail">Register produce to begin your procurement journey.</div>{% endif %}</div><span class="status-pill">{% if procurement_record %}{{ procurement_record.get_current_stage_display }}{% elif current_produce %}{{ current_produce.get_status_display }}{% else %}Waiting for produce{% endif %}</span></div>
+                    <div class="timeline" aria-label="Procurement progress">
+                        <div class="stage {% if procurement_stage_num >= 1 %}done{% endif %} {% if procurement_stage_num == 1 %}current{% endif %}"><div class="stage-dot"></div>Registered</div>
+                        <div class="stage {% if procurement_stage_num >= 2 %}done{% endif %} {% if procurement_stage_num == 2 %}current{% endif %}"><div class="stage-dot"></div>Appointment</div>
+                        <div class="stage {% if procurement_stage_num >= 3 %}done{% endif %} {% if procurement_stage_num == 3 %}current{% endif %}"><div class="stage-dot"></div>Gate Entry</div>
+                        <div class="stage {% if procurement_stage_num >= 4 %}done{% endif %} {% if procurement_stage_num == 4 %}current{% endif %}"><div class="stage-dot"></div>Quality Check</div>
+                        <div class="stage {% if procurement_stage_num >= 5 %}done{% endif %} {% if procurement_stage_num == 5 %}current{% endif %}"><div class="stage-dot"></div>Weighing</div>
+                        <div class="stage {% if procurement_stage_num >= 6 %}done{% endif %} {% if procurement_stage_num == 6 or procurement_stage_num == 7 %}current{% endif %}"><div class="stage-dot"></div>Accepted &amp; Billed</div>
+                        <div class="stage {% if procurement_stage_num >= 10 %}done{% endif %} {% if procurement_stage_num >= 8 and procurement_stage_num < 10 %}current{% endif %}"><div class="stage-dot"></div>Payment</div>
+                    </div>
                 </section>
                 <div class="split-grid" id="appointments">
-                    <section class="panel"><div class="card-title"><h3>Upcoming appointment</h3><span style="font-size:22px;color:var(--green)">▣</span></div><div class="appointment-main"><div class="date-box"><small>Date</small>Not set</div><div><strong>Appointment not available</strong><span class="muted">Appointment services will appear here.</span></div></div><a class="button muted-button" href="#appointments">View appointment</a></section>
-                    <section class="panel" id="token"><div class="card-title"><h3>My token</h3><span style="font-size:22px;color:var(--green)">▤</span></div><div class="detail-list"><div class="detail-row"><span>Token number</span><strong>Not assigned</strong></div><div class="detail-row"><span>Queue position</span><strong>--</strong></div><div class="detail-row"><span>Estimated wait</span><strong>--</strong></div></div><a class="button muted-button" href="{% url 'tokens:token_queue' %}">View token</a></section>
+                    <section class="panel">
+                        <div class="card-title">
+                            <h3>Upcoming Appointment Slot</h3>
+                            <span style="font-size:22px;color:var(--green)">▣</span>
+                        </div>
+                        <div class="appointment-main">
+                            <div class="date-box" style="min-width: 110px;">
+                                <small>Scheduled Slot</small>
+                                {% if procurement_record and procurement_record.appointment_date %}
+                                    {{ procurement_record.appointment_date }}
+                                {% else %}
+                                    Slot Pending
+                                {% endif %}
+                            </div>
+                            <div>
+                                {% if procurement_record %}
+                                    <strong>🏢 Center: {{ procurement_record.center_name|default:procurement_record.center.name }}</strong>
+                                    <span class="muted" style="display: block; margin-top: 4px;">
+                                        Crop: <strong>{{ procurement_record.crop_name }}</strong> ({{ procurement_record.estimated_quantity_quintals }} Qtl)<br>
+                                        Token: <strong>#{{ procurement_record.token_number }}</strong> &bull; Status: <strong style="color: var(--green);">{{ procurement_record.get_current_stage_display }}</strong>
+                                    </span>
+                                {% else %}
+                                    <strong>No Active Procurement Slot</strong>
+                                    <span class="muted" style="display: block; margin-top: 4px;">Register your harvested crop to get an assigned procurement appointment slot.</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <a class="button" href="{% url 'appointments:appointments' %}">View Full Appointment Details →</a>
+                    </section>
+
+                    <section class="panel" id="token">
+                        <div class="card-title">
+                            <h3>My Token & Queue</h3>
+                            <span style="font-size:22px;color:var(--green)">▤</span>
+                        </div>
+                        <div class="detail-list">
+                            <div class="detail-row">
+                                <span>Token Number</span>
+                                <strong>{% if procurement_record %}#{{ procurement_record.token_number }}{% else %}Not assigned{% endif %}</strong>
+                            </div>
+                            <div class="detail-row">
+                                <span>Procurement Center</span>
+                                <strong>{% if procurement_record %}{{ procurement_record.center_name|default:procurement_record.center.name }}{% else %}--{% endif %}</strong>
+                            </div>
+                            <div class="detail-row">
+                                <span>Appointment Date</span>
+                                <strong>{% if procurement_record %}{{ procurement_record.appointment_date }}{% else %}--{% endif %}</strong>
+                            </div>
+                            <div class="detail-row">
+                                <span>Current Stage</span>
+                                <strong style="color: var(--green);">{% if procurement_record %}{{ procurement_record.get_current_stage_display }}{% else %}--{% endif %}</strong>
+                            </div>
+                        </div>
+                        <a class="button" href="{% url 'tokens:token_queue' %}">View Token Queue →</a>
+                    </section>
                 </div>
                 <div class="split-grid">
                     <section class="panel"><div class="card-title"><h3>My produce</h3><a class="section-link" href="{% url 'produce:my_produce' %}">View all →</a></div>{% if produce_list %}<div class="produce-list">{% for produce in produce_list %}<div class="produce-row"><div><strong>{{ produce.crop_name }}</strong><span class="muted">{{ produce.quantity }} {{ produce.get_unit_display }}</span></div><span class="produce-status">{{ produce.get_status_display }}</span></div>{% endfor %}</div>{% else %}<p class="empty">You have not registered any produce yet.</p>{% endif %}<a class="button" href="{% url 'produce:add_produce' %}">＋ Register produce</a></section>
-                    <section class="panel recommendation" id="centers"><div class="card-title"><h3>Recommended center</h3><span style="font-size:22px;color:var(--green)">⌖</span></div><p class="empty">Procurement center recommendations will appear once center services are connected.</p><ul><li>Near your location</li><li>Queue information</li><li>Crop suitability</li></ul><a class="button muted-button" href="#centers">View center</a></section>
+                    <section class="panel recommendation" id="centers"><div class="card-title"><h3>Recommended center</h3><span style="font-size:22px;color:var(--green)">⌖</span></div><p class="empty">Find state government MSP centers matched to your district and crop.</p><ul><li>District matching</li><li>Queue &amp; wait time</li><li>Crop suitability</li></ul><a class="button" href="{% url 'procurement:centers' %}">Find Procurement Center →</a></section>
                 </div>
                 <div class="split-grid">
                     <section class="panel" id="payments"><div class="card-title"><h3>Payment status</h3><span style="font-size:22px;color:var(--green)">₹</span></div><p class="empty">Track your active procurement payouts and historical payment transfers.</p><div class="payment-amount" style="font-size:24px;">₹12,000 Processing</div><a class="button" href="{% url 'payments:payments' %}">View payment details →</a></section>

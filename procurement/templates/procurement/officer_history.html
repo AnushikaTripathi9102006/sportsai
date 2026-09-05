@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procurement Audit History | KisanFlow</title>
+    <style>
+        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --white: #fff; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
+        a { color: inherit; text-decoration: none; }
+        .app-shell { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .brand { padding: 0 14px 25px; font-size: 24px; font-weight: bold; border-bottom: 1px solid #2e6848; margin-bottom: 20px; }
+        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 11px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
+        .nav-list { display: grid; gap: 4px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; }
+        .nav-item:hover, .nav-item.active { background: #286c4a; color: var(--white); }
+        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
+        .main-area { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+        .topbar { min-height: 70px; background: var(--white); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); }
+        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
+        .crumb strong { color: var(--ink); }
+        .content { max-width: 1360px; margin: 0 auto; padding: 30px clamp(20px, 4vw, 50px) 60px; width: 100%; }
+
+        .filter-bar { background: var(--white); border: 1px solid var(--line); border-radius: 10px; padding: 18px 24px; margin-bottom: 24px; }
+        .filter-form { display: flex; gap: 14px; width: 100%; flex-wrap: wrap; align-items: center; }
+        .form-control { padding: 9px 14px; border: 1px solid var(--line); border-radius: 6px; font: 14px Arial, sans-serif; background: var(--paper); color: var(--ink); flex: 1; min-width: 180px; }
+        .btn { display: inline-block; padding: 9px 18px; background: var(--green); color: var(--white); font: 14px Arial, sans-serif; font-weight: bold; border-radius: 6px; border: 0; cursor: pointer; }
+        .btn:hover { background: var(--deep-green); }
+        .btn-secondary { background: #e2e8f0; color: #334155; }
+
+        .table-card { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; font: 14px Arial, sans-serif; }
+        .data-table th { background: var(--paper); padding: 12px 14px; color: var(--muted); font-size: 12px; text-transform: uppercase; border-bottom: 1px solid var(--line); }
+        .data-table td { padding: 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; font-family: Arial, sans-serif; text-transform: uppercase; }
+        .badge-comp { background: #d1fae5; color: #065f46; }
+        .badge-rej { background: #fee2e2; color: #b91c1c; }
+        .badge-proc { background: #e0f2fe; color: #0369a1; }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">🌾 KisanFlow<small>Officer Portal</small></div>
+            <div class="nav-label">Navigation</div>
+            <nav class="nav-list">
+                <a href="{% url 'officer_dashboard' %}" class="nav-item"><span>📊 Dashboard</span></a>
+                <a href="{% url 'procurement:officer_appointments' %}" class="nav-item"><span>📅 Appointments</span></a>
+                <a href="{% url 'procurement:officer_gate_entry' %}" class="nav-item"><span>🚪 Gate Entry</span></a>
+                <a href="{% url 'procurement:officer_queue' %}" class="nav-item"><span>🚦 Live Center Queue</span></a>
+                <a href="{% url 'procurement:officer_quality_check' %}" class="nav-item"><span>🔬 Quality Check</span></a>
+                <a href="{% url 'procurement:officer_weighing' %}" class="nav-item"><span>⚖️ Weighing Scale</span></a>
+                <a href="{% url 'procurement:officer_acceptance' %}" class="nav-item"><span>✅ Final Acceptance</span></a>
+                <a href="{% url 'procurement:officer_bills' %}" class="nav-item"><span>📄 Billing</span></a>
+                <a href="{% url 'procurement:officer_payments' %}" class="nav-item"><span>💳 Payments</span></a>
+                <a href="{% url 'procurement:officer_history' %}" class="nav-item active"><span>📜 History Audit</span></a>
+            </nav>
+            <div class="sidebar-bottom">
+                <a href="{% url 'logout' %}" class="nav-item"><span>🚪 Sign Out</span></a>
+            </div>
+        </aside>
+
+        <main class="main-area">
+            <header class="topbar">
+                <div class="crumb">Officer Portal / <strong>Complete Procurement Audit History</strong></div>
+            </header>
+
+            <div class="content">
+                <h1 style="font-size: 28px; margin-bottom: 8px;">📜 Procurement History & Audit Logs</h1>
+                <p style="color: var(--muted); margin-bottom: 24px; font: 14px Arial, sans-serif;">Searchable database of all historical procurement records, quality inspections, weighings, and payments.</p>
+
+                <div class="filter-bar">
+                    <form class="filter-form" method="GET">
+                        <input type="text" name="search" class="form-control" placeholder="Search Token, Farmer, Crop..." value="{{ search_query }}">
+                        
+                        <select name="crop" class="form-control">
+                            <option value="">-- All Crops --</option>
+                            {% for cr in crops %}
+                                <option value="{{ cr }}" {% if selected_crop == cr %}selected{% endif %}>{{ cr }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <select name="stage" class="form-control">
+                            <option value="">-- All Stages --</option>
+                            <option value="COMPLETED" {% if selected_stage == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                            <option value="REJECTED" {% if selected_stage == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                            <option value="PAYMENT_INITIATED" {% if selected_stage == 'PAYMENT_INITIATED' %}selected{% endif %}>Payment Initiated</option>
+                            <option value="BILL_GENERATED" {% if selected_stage == 'BILL_GENERATED' %}selected{% endif %}>Bill Generated</option>
+                        </select>
+
+                        <button type="submit" class="btn">Search</button>
+                        {% if search_query or selected_stage or selected_crop %}
+                            <a href="{% url 'procurement:officer_history' %}" class="btn btn-secondary">Reset</a>
+                        {% endif %}
+                    </form>
+                </div>
+
+                <div class="table-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Token</th>
+                                <th>Farmer</th>
+                                <th>Crop</th>
+                                <th>Quantity (Qtl)</th>
+                                <th>Bill Amount</th>
+                                <th>Stage Status</th>
+                                <th>Last Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rec in records %}
+                            <tr>
+                                <td><strong>#{{ rec.token_number }}</strong></td>
+                                <td>
+                                    <strong>{{ rec.farmer.get_full_name|default:rec.farmer.username }}</strong><br>
+                                    <small style="color: var(--muted);">
+                                        ID: <strong>{{ rec.farmer.profile.farmer_id|default:"FAR-N/A" }}</strong> | 📞 <strong>{{ rec.farmer.profile.phone|default:"N/A" }}</strong><br>
+                                        📍 {{ rec.district }}{% if rec.farmer.profile.village %}, {{ rec.farmer.profile.village }}{% endif %}
+                                    </small>
+                                </td>
+                                <td><strong>{{ rec.crop_name }}</strong></td>
+                                <td>
+                                    {% if rec.actual_quantity_quintals %}
+                                        <strong>{{ rec.actual_quantity_quintals }}</strong> Net
+                                    {% else %}
+                                        {{ rec.estimated_quantity_quintals }} Est.
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rec.bill %}
+                                        <strong style="color: var(--green);">₹{{ rec.bill.net_amount }}</strong><br>
+                                        <small style="color: var(--muted);">Bill #{{ rec.bill.bill_number }}</small>
+                                    {% else %}
+                                        <span style="color: var(--muted);">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if rec.stage == 'COMPLETED' %}badge-comp
+                                        {% elif rec.stage == 'REJECTED' %}badge-rej
+                                        {% else %}badge-proc{% endif %}">
+                                        {{ rec.get_stage_display }}
+                                    </span>
+                                </td>
+                                <td>{{ rec.updated_at|date:"M d, Y, h:i A" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" style="text-align: center; color: var(--muted); padding: 40px;">
+                                    No historical records found matching your filters.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

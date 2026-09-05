@@ -730,6 +730,14 @@
                         </div>
 
 
+                        {% if produce.address %}
+                        <div class="produce-detail">
+                            <strong>Pickup Address:</strong>
+                            {{ produce.address|truncatechars:45 }}
+                        </div>
+                        {% endif %}
+
+
                         <div class="produce-detail">
 
                             <strong>Status:</strong>
@@ -760,7 +768,7 @@
                         <!-- Actions -->
                         <div class="actions">
 
-                            {% if produce.status == "AVAILABLE" %}
+                            {% if produce.status != "PROCURED" %}
 
                                 <!-- Edit -->
                                 <a
@@ -800,13 +808,22 @@
                                 </a>
 
 
+                                {% if produce.status == "AVAILABLE" %}
                                 <!-- Procurement -->
                                 <a
-                                    href="#"
+                                    href="{% url 'produce:request_procurement' produce.pk %}"
                                     class="btn btn-primary"
                                 >
                                     Request Procurement
                                 </a>
+                                {% else %}
+                                <a
+                                    href="{% url 'procurement:centers' %}"
+                                    class="btn btn-primary"
+                                >
+                                    View Center
+                                </a>
+                                {% endif %}
 
 
                             {% else %}

@@ -164,15 +164,6 @@
 
                 {% if active_produce %}
 
-                <!-- State Switcher Preview Bar -->
-                <div class="stage-switcher">
-                    <span class="switcher-label">Preview Procurement Stage:</span>
-                    <a href="?stage=verification" class="stage-pill {% if selected_stage == 'verification' %}active{% endif %}">1. Verification</a>
-                    <a href="?stage=quality" class="stage-pill {% if selected_stage == 'quality' %}active{% endif %}">2. Quality Check</a>
-                    <a href="?stage=weighing" class="stage-pill {% if selected_stage == 'weighing' %}active{% endif %}">3. Weighing</a>
-                    <a href="?stage=completed" class="stage-pill {% if selected_stage == 'completed' %}active{% endif %}">4. Procurement Completed</a>
-                </div>
-
                 <!-- 1. Active Procurement Hero Section -->
                 <section class="card hero-card" aria-label="Active Procurement Summary">
                     <div class="hero-header">
@@ -180,7 +171,7 @@
                             <h2 class="hero-title">🌾 {{ procurement.crop_name }}</h2>
                             <span class="description">{{ procurement.registered_qty }} {{ procurement.unit }} registered for procurement</span>
                         </div>
-                        <span class="status-pill {% if selected_stage == 'completed' %}completed{% endif %}">
+                        <span class="status-pill {% if procurement.stage_rank >= 10 %}completed{% endif %}">
                             {{ procurement.overall_status }}
                         </span>
                     </div>
@@ -205,7 +196,7 @@
                     </div>
 
                     <div>
-                        <a href="{% url 'procurement_status:detail' %}?stage={{ selected_stage }}" class="btn-link">View Full Details →</a>
+                        <a href="{% url 'procurement_status:detail' %}" class="btn-link">View Full Details →</a>
                     </div>
                 </section>
 
@@ -214,7 +205,7 @@
                     <h2>Procurement Progress Tracker</h2>
                     <div class="progress-flow">
                         <!-- Step 1 -->
-                        <div class="progress-step-item done">
+                        <div class="progress-step-item {% if procurement.stage_rank >= 1 %}done{% endif %}">
                             <div class="step-icon-bubble">✓</div>
                             <div class="step-content">
                                 <div class="step-title">1. Produce Registered</div>
@@ -222,7 +213,7 @@
                             </div>
                         </div>
                         <!-- Step 2 -->
-                        <div class="progress-step-item done">
+                        <div class="progress-step-item {% if procurement.stage_rank >= 2 %}done{% endif %}">
                             <div class="step-icon-bubble">✓</div>
                             <div class="step-content">
                                 <div class="step-title">2. Appointment Confirmed</div>
@@ -230,7 +221,7 @@
                             </div>
                         </div>
                         <!-- Step 3 -->
-                        <div class="progress-step-item done">
+                        <div class="progress-step-item {% if procurement.stage_rank >= 3 %}done{% endif %}">
                             <div class="step-icon-bubble">✓</div>
                             <div class="step-content">
                                 <div class="step-title">3. Farmer Arrived</div>
@@ -238,51 +229,51 @@
                             </div>
                         </div>
                         <!-- Step 4: Verification -->
-                        <div class="progress-step-item {% if selected_stage != 'verification' %}done{% else %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if selected_stage != 'verification' %}✓{% else %}●{% endif %}</div>
+                        <div class="progress-step-item {% if procurement.stage_rank > 3 %}done{% elif procurement.stage_rank == 3 %}current{% endif %}">
+                            <div class="step-icon-bubble">{% if procurement.stage_rank > 3 %}✓{% elif procurement.stage_rank == 3 %}●{% else %}○{% endif %}</div>
                             <div class="step-content">
                                 <div class="step-title">4. Verification</div>
                                 <div class="step-desc">Farmer identity and produce ownership verified by {{ procurement.verified_by }}.</div>
                             </div>
                         </div>
                         <!-- Step 5: Quality Check -->
-                        <div class="progress-step-item {% if selected_stage in 'weighing completed' %}done{% elif selected_stage == 'quality' %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if selected_stage in 'weighing completed' %}✓{% elif selected_stage == 'quality' %}●{% else %}○{% endif %}</div>
+                        <div class="progress-step-item {% if procurement.stage_rank > 4 %}done{% elif procurement.stage_rank == 4 %}current{% endif %}">
+                            <div class="step-icon-bubble">{% if procurement.stage_rank > 4 %}✓{% elif procurement.stage_rank == 4 %}●{% else %}○{% endif %}</div>
                             <div class="step-content">
                                 <div class="step-title">5. Quality Check</div>
-                                <div class="step-desc">Inspection grade: {{ procurement.quality_grade }} | Moisture: {{ procurement.moisture_content }}.</div>
+                                <div class="step-desc">Inspection grade: {{ procurement.quality_grade }} | Moisture: {{ procurement.moisture_content }}. Status: {{ procurement.quality_status }}.</div>
                             </div>
                         </div>
                         <!-- Step 6: Weighing -->
-                        <div class="progress-step-item {% if selected_stage == 'completed' %}done{% elif selected_stage == 'weighing' %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if selected_stage == 'completed' %}✓{% elif selected_stage == 'weighing' %}●{% else %}○{% endif %}</div>
+                        <div class="progress-step-item {% if procurement.stage_rank > 5 %}done{% elif procurement.stage_rank == 5 %}current{% endif %}">
+                            <div class="step-icon-bubble">{% if procurement.stage_rank > 5 %}✓{% elif procurement.stage_rank == 5 %}●{% else %}○{% endif %}</div>
                             <div class="step-content">
                                 <div class="step-title">6. Weighing</div>
-                                <div class="step-desc">{% if procurement.actual_qty %}Actual Recorded Weight: {{ procurement.actual_qty }} {{ procurement.unit }}.{% else %}Weighing in progress at Counter 2.{% endif %}</div>
+                                <div class="step-desc">{% if procurement.actual_qty %}Actual Recorded Weight: {{ procurement.actual_qty }} {{ procurement.unit }}.{% else %}Weighing in progress at center.{% endif %}</div>
                             </div>
                         </div>
-                        <!-- Step 7: Procurement Confirmed -->
-                        <div class="progress-step-item {% if selected_stage == 'completed' %}done{% endif %}">
-                            <div class="step-icon-bubble">{% if selected_stage == 'completed' %}✓{% else %}○{% endif %}</div>
+                        <!-- Step 7: Procurement Confirmed & Bill -->
+                        <div class="progress-step-item {% if procurement.stage_rank > 7 %}done{% elif procurement.stage_rank in '6 7' %}current{% endif %}">
+                            <div class="step-icon-bubble">{% if procurement.stage_rank > 7 %}✓{% elif procurement.stage_rank in '6 7' %}●{% else %}○{% endif %}</div>
                             <div class="step-content">
-                                <div class="step-title">7. Procurement Confirmed</div>
-                                <div class="step-desc">Procurement slip generated and approved by center officer.</div>
+                                <div class="step-title">7. Procurement Accepted & Bill Generated</div>
+                                <div class="step-desc">{% if procurement.stage_rank >= 7 %}Bill generated for ₹{{ procurement.total_amount|floatformat:2 }}.{% else %}Officer acceptance and billing pending.{% endif %}</div>
                             </div>
                         </div>
                         <!-- Step 8: Payment Processing -->
-                        <div class="progress-step-item {% if selected_stage == 'completed' %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if selected_stage == 'completed' %}●{% else %}○{% endif %}</div>
+                        <div class="progress-step-item {% if procurement.stage_rank > 8 %}done{% elif procurement.stage_rank == 8 %}current{% endif %}">
+                            <div class="step-icon-bubble">{% if procurement.stage_rank > 8 %}✓{% elif procurement.stage_rank == 8 %}●{% else %}○{% endif %}</div>
                             <div class="step-content">
                                 <div class="step-title">8. Payment Processing</div>
-                                <div class="step-desc">Amount ₹{{ procurement.total_amount }} submitted to direct bank transfer queue.</div>
+                                <div class="step-desc">Status: {{ procurement.payment_status }}. Total Amount: ₹{{ procurement.total_amount|floatformat:2 }}.</div>
                             </div>
                         </div>
                         <!-- Step 9: Payment Completed -->
-                        <div class="progress-step-item">
-                            <div class="step-icon-bubble">○</div>
+                        <div class="progress-step-item {% if procurement.stage_rank >= 10 %}done{% elif procurement.stage_rank == 9 %}current{% endif %}">
+                            <div class="step-icon-bubble">{% if procurement.stage_rank >= 10 %}✓{% elif procurement.stage_rank == 9 %}●{% else %}○{% endif %}</div>
                             <div class="step-content">
                                 <div class="step-title">9. Payment Completed</div>
-                                <div class="step-desc">Final payment credited to farmer account.</div>
+                                <div class="step-desc">{% if procurement.stage_rank >= 10 %}Final payment credited to farmer account.{% else %}Awaiting final payment confirmation.{% endif %}</div>
                             </div>
                         </div>
                     </div>

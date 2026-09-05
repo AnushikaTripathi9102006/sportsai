@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gate Entry Verification | KisanFlow</title>
+    <style>
+        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --white: #fff; --amber: #d88424; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
+        a { color: inherit; text-decoration: none; }
+        .app-shell { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .brand { padding: 0 14px 25px; font-size: 24px; font-weight: bold; border-bottom: 1px solid #2e6848; margin-bottom: 20px; }
+        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 11px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
+        .nav-list { display: grid; gap: 4px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; }
+        .nav-item:hover, .nav-item.active { background: #286c4a; color: var(--white); }
+        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
+        .main-area { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+        .topbar { min-height: 70px; background: var(--white); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); }
+        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
+        .crumb strong { color: var(--ink); }
+        .content { max-width: 1360px; margin: 0 auto; padding: 30px clamp(20px, 4vw, 50px) 60px; width: 100%; }
+
+        .grid-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
+        @media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } }
+
+        .card { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .card-title { font-size: 18px; margin-top: 0; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+        
+        .record-list { display: grid; gap: 10px; max-height: 500px; overflow-y: auto; }
+        .record-item { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); transition: all 0.2s; cursor: pointer; }
+        .record-item:hover, .record-item.active { border-color: var(--green); background: var(--mint); }
+        .record-item strong { color: var(--ink); font-size: 15px; }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font: 13px Arial, sans-serif; font-weight: bold; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .form-control { width: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 6px; font: 14px Arial, sans-serif; background: var(--paper); color: var(--ink); }
+        .form-control:focus { border-color: var(--green); outline: none; background: var(--white); }
+        .btn { display: inline-block; width: 100%; padding: 12px; background: var(--green); color: var(--white); font: 15px Arial, sans-serif; font-weight: bold; border-radius: 6px; border: 0; cursor: pointer; text-align: center; }
+        .btn:hover { background: var(--deep-green); }
+        
+        .info-box { background: var(--mint); border-left: 4px solid var(--green); padding: 14px; border-radius: 6px; margin-bottom: 20px; font: 14px Arial, sans-serif; }
+        .alert { padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font: 14px Arial, sans-serif; }
+        .alert-error { background: #fee2e2; color: #991b1b; }
+        .alert-success { background: #d1fae5; color: #065f46; }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">🌾 KisanFlow<small>Officer Portal</small></div>
+            <div class="nav-label">Navigation</div>
+            <nav class="nav-list">
+                <a href="{% url 'officer_dashboard' %}" class="nav-item"><span>📊 Dashboard</span></a>
+                <a href="{% url 'procurement:officer_appointments' %}" class="nav-item"><span>📅 Appointments</span></a>
+                <a href="{% url 'procurement:officer_gate_entry' %}" class="nav-item active"><span>🚪 Gate Entry</span></a>
+                <a href="{% url 'procurement:officer_queue' %}" class="nav-item"><span>🚦 Live Center Queue</span></a>
+                <a href="{% url 'procurement:officer_quality_check' %}" class="nav-item"><span>🔬 Quality Check</span></a>
+                <a href="{% url 'procurement:officer_weighing' %}" class="nav-item"><span>⚖️ Weighing Scale</span></a>
+                <a href="{% url 'procurement:officer_acceptance' %}" class="nav-item"><span>✅ Final Acceptance</span></a>
+                <a href="{% url 'procurement:officer_bills' %}" class="nav-item"><span>📄 Billing</span></a>
+                <a href="{% url 'procurement:officer_payments' %}" class="nav-item"><span>💳 Payments</span></a>
+                <a href="{% url 'procurement:officer_history' %}" class="nav-item"><span>📜 History Audit</span></a>
+            </nav>
+            <div class="sidebar-bottom">
+                <a href="{% url 'logout' %}" class="nav-item"><span>🚪 Sign Out</span></a>
+            </div>
+        </aside>
+
+        <main class="main-area">
+            <header class="topbar">
+                <div class="crumb">Officer Portal / <strong>Gate Entry Verification</strong></div>
+            </header>
+
+            <div class="content">
+                <h1 style="font-size: 28px; margin-bottom: 8px;">🚪 Gate Entry & Arrival Verification</h1>
+                <p style="color: var(--muted); margin-bottom: 24px; font: 14px Arial, sans-serif;">Verify farmer arrival at procurement center and issue entry pass to move to quality testing queue.</p>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="grid-layout">
+                    <div class="card">
+                        <h2 class="card-title">1. Select Arriving Farmer</h2>
+                        <div class="record-list">
+                            {% for rec in pending_records %}
+                                <a href="?record_id={{ rec.id }}" class="record-item {% if selected_record and selected_record.id == rec.id %}active{% endif %}">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <strong>#{{ rec.token_number }}</strong>
+                                        <small style="color: var(--green); font-weight: bold;">{{ rec.crop_name }}</small>
+                                    </div>
+                                    <div style="font: 13px Arial, sans-serif; color: var(--ink);">
+                                        👤 <strong>{{ rec.farmer.get_full_name|default:rec.farmer.username }}</strong>
+                                        <span style="color: var(--muted); font-size: 11px;">(ID: {{ rec.farmer.profile.farmer_id|default:"FAR-N/A" }})</span>
+                                    </div>
+                                    <div style="font: 12px Arial, sans-serif; color: var(--muted); margin-top: 4px;">
+                                        📞 {{ rec.farmer.profile.phone|default:"N/A" }} | Est. Qty: {{ rec.estimated_quantity_quintals }} Qtl | 📍 {{ rec.district }}
+                                    </div>
+                                </a>
+                            {% empty %}
+                                <div style="text-align: center; color: var(--muted); padding: 30px; font: 14px Arial, sans-serif;">
+                                    No pending arrivals awaiting gate entry.
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2 class="card-title">2. Record Vehicle & Issue Gate Pass</h2>
+                        {% if selected_record %}
+                            <div class="info-box">
+                                <strong>Farmer & Procurement Record Details:</strong><br>
+                                • Token: <strong>#{{ selected_record.token_number }}</strong><br>
+                                • Farmer Name: <strong>{{ selected_record.farmer.get_full_name|default:selected_record.farmer.username }}</strong> (ID: {{ selected_record.farmer.profile.farmer_id|default:"FAR-N/A" }})<br>
+                                • Contact Phone: <strong>{{ selected_record.farmer.profile.phone|default:"N/A" }}</strong><br>
+                                • District / Village: <strong>{{ selected_record.district }}</strong>{% if selected_record.farmer.profile.village %} ({{ selected_record.farmer.profile.village }}){% endif %}<br>
+                                • Crop & Est Qty: <strong>{{ selected_record.crop_name }} ({{ selected_record.estimated_quantity_quintals }} Quintals)</strong>
+                            </div>
+
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="record_id" value="{{ selected_record.id }}">
+                                
+                                <div class="form-group">
+                                    <label>Vehicle / Tractor Number</label>
+                                    {{ form.vehicle_number }}
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Arrival Notes / Comments</label>
+                                    {{ form.notes }}
+                                </div>
+
+                                <button type="submit" class="btn">Confirm Gate Entry & Send to Quality Queue →</button>
+                            </form>
+                        {% else %}
+                            <div style="text-align: center; padding: 50px 20px; color: var(--muted); font: 15px Georgia, serif;">
+                                👈 Please select a farmer record from the left queue to proceed with Gate Entry.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

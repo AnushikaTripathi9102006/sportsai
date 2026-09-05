@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Procurement Queue | KisanFlow</title>
+    <style>
+        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --white: #fff; }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
+        a { color: inherit; text-decoration: none; }
+        .app-shell { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .brand { padding: 0 14px 25px; font-size: 24px; font-weight: bold; border-bottom: 1px solid #2e6848; margin-bottom: 20px; }
+        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 11px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
+        .nav-list { display: grid; gap: 4px; }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; }
+        .nav-item:hover, .nav-item.active { background: #286c4a; color: var(--white); }
+        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
+        .main-area { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+        .topbar { min-height: 70px; background: var(--white); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); }
+        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
+        .crumb strong { color: var(--ink); }
+        .content { max-width: 1360px; margin: 0 auto; padding: 30px clamp(20px, 4vw, 50px) 60px; width: 100%; }
+
+        .summary-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 24px; }
+        .summary-chip { background: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 14px; text-align: center; }
+        .summary-chip .num { font-size: 24px; font-weight: bold; color: var(--ink); }
+        .summary-chip .lbl { font: 11px Arial, sans-serif; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+
+        .table-card { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; font: 14px Arial, sans-serif; }
+        .data-table th { background: var(--paper); padding: 12px 14px; color: var(--muted); font-size: 12px; text-transform: uppercase; border-bottom: 1px solid var(--line); }
+        .data-table td { padding: 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; font-family: Arial, sans-serif; text-transform: uppercase; }
+        .badge-gate { background: #dcfce7; color: #15803d; }
+        .badge-qual { background: #fae8ff; color: #86198f; }
+        .badge-weigh { background: #f3e8ff; color: #6b21a8; }
+        .badge-acc { background: #dbeafe; color: #1e40af; }
+        .badge-bill { background: #ccfbf1; color: #0f766e; }
+        .badge-pay { background: #fef9c3; color: #a16207; }
+
+        .btn { display: inline-block; padding: 6px 12px; background: var(--green); color: var(--white); font: 12px Arial, sans-serif; font-weight: bold; border-radius: 6px; text-align: center; }
+        .btn:hover { background: var(--deep-green); }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">🌾 KisanFlow<small>Officer Portal</small></div>
+            <div class="nav-label">Navigation</div>
+            <nav class="nav-list">
+                <a href="{% url 'officer_dashboard' %}" class="nav-item"><span>📊 Dashboard</span></a>
+                <a href="{% url 'procurement:officer_appointments' %}" class="nav-item"><span>📅 Appointments</span></a>
+                <a href="{% url 'procurement:officer_gate_entry' %}" class="nav-item"><span>🚪 Gate Entry</span></a>
+                <a href="{% url 'procurement:officer_queue' %}" class="nav-item active"><span>🚦 Live Center Queue</span></a>
+                <a href="{% url 'procurement:officer_quality_check' %}" class="nav-item"><span>🔬 Quality Check</span></a>
+                <a href="{% url 'procurement:officer_weighing' %}" class="nav-item"><span>⚖️ Weighing Scale</span></a>
+                <a href="{% url 'procurement:officer_acceptance' %}" class="nav-item"><span>✅ Final Acceptance</span></a>
+                <a href="{% url 'procurement:officer_bills' %}" class="nav-item"><span>📄 Billing</span></a>
+                <a href="{% url 'procurement:officer_payments' %}" class="nav-item"><span>💳 Payments</span></a>
+                <a href="{% url 'procurement:officer_history' %}" class="nav-item"><span>📜 History Audit</span></a>
+            </nav>
+            <div class="sidebar-bottom">
+                <a href="{% url 'logout' %}" class="nav-item"><span>🚪 Sign Out</span></a>
+            </div>
+        </aside>
+
+        <main class="main-area">
+            <header class="topbar">
+                <div class="crumb">Officer Portal / <strong>Live Center Active Queue</strong></div>
+            </header>
+
+            <div class="content">
+                <h1 style="font-size: 28px; margin-bottom: 8px;">🚦 Live Procurement Queue</h1>
+                <p style="color: var(--muted); margin-bottom: 24px; font: 14px Arial, sans-serif;">
+                    Real-time view of all active farmer batches currently inside <strong>{{ center.name }}</strong>.
+                </p>
+
+                <div class="summary-bar">
+                    <div class="summary-chip">
+                        <div class="num">{{ queue_counts.gate_entry|default:0 }}</div>
+                        <div class="lbl">Gate Entry</div>
+                    </div>
+                    <div class="summary-chip">
+                        <div class="num" style="color: #86198f;">{{ queue_counts.quality_check|default:0 }}</div>
+                        <div class="lbl">Lab Testing</div>
+                    </div>
+                    <div class="summary-chip">
+                        <div class="num" style="color: #6b21a8;">{{ queue_counts.weighing|default:0 }}</div>
+                        <div class="lbl">Weighing</div>
+                    </div>
+                    <div class="summary-chip">
+                        <div class="num" style="color: #1e40af;">{{ queue_counts.acceptance|default:0 }}</div>
+                        <div class="lbl">Acceptance</div>
+                    </div>
+                    <div class="summary-chip">
+                        <div class="num" style="color: #0f766e;">{{ queue_counts.bill_generated|default:0 }}</div>
+                        <div class="lbl">Billing</div>
+                    </div>
+                    <div class="summary-chip">
+                        <div class="num" style="color: #a16207;">{{ queue_counts.payment_initiated|default:0 }}</div>
+                        <div class="lbl">Payout</div>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Token</th>
+                                <th>Farmer Name</th>
+                                <th>Crop & Quantity</th>
+                                <th>Vehicle No</th>
+                                <th>Current Pipeline Stage</th>
+                                <th>Next Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rec in active_records %}
+                            <tr>
+                                <td><strong>#{{ rec.token_number }}</strong></td>
+                                <td>
+                                    <strong>{{ rec.farmer.get_full_name|default:rec.farmer.username }}</strong><br>
+                                    <small style="color: var(--muted);">
+                                        ID: <strong>{{ rec.farmer.profile.farmer_id|default:"FAR-N/A" }}</strong> | 📞 <strong>{{ rec.farmer.profile.phone|default:"N/A" }}</strong><br>
+                                        📍 {{ rec.district }}{% if rec.farmer.profile.village %}, {{ rec.farmer.profile.village }}{% endif %}
+                                    </small>
+                                </td>
+                                <td>
+                                    <strong>{{ rec.crop_name }}</strong><br>
+                                    <small style="color: var(--muted);">{{ rec.estimated_quantity_quintals }} Quintals</small>
+                                </td>
+                                <td>
+                                    {% if rec.vehicle_number %}
+                                        🚚 <strong>{{ rec.vehicle_number }}</strong>
+                                    {% else %}
+                                        <span style="color: var(--muted);">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if rec.stage == 'GATE_ENTRY' %}badge-gate
+                                        {% elif rec.stage == 'QUALITY_CHECK' %}badge-qual
+                                        {% elif rec.stage == 'WEIGHING' %}badge-weigh
+                                        {% elif rec.stage == 'ACCEPTANCE' %}badge-acc
+                                        {% elif rec.stage == 'BILL_GENERATED' %}badge-bill
+                                        {% elif rec.stage == 'PAYMENT_INITIATED' %}badge-pay{% endif %}">
+                                        {{ rec.get_stage_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if rec.stage == 'GATE_ENTRY' %}
+                                        <a href="{% url 'procurement:officer_quality_check' %}?record_id={{ rec.id }}" class="btn">Test Quality</a>
+                                    {% elif rec.stage == 'QUALITY_CHECK' %}
+                                        <a href="{% url 'procurement:officer_weighing' %}?record_id={{ rec.id }}" class="btn">Scale Weighing</a>
+                                    {% elif rec.stage == 'WEIGHING' %}
+                                        <a href="{% url 'procurement:officer_acceptance' %}?record_id={{ rec.id }}" class="btn">Final Accept</a>
+                                    {% elif rec.stage == 'ACCEPTANCE' %}
+                                        <a href="{% url 'procurement:officer_bills' %}?record_id={{ rec.id }}" class="btn">Generate Bill</a>
+                                    {% elif rec.stage == 'BILL_GENERATED' or rec.stage == 'PAYMENT_INITIATED' %}
+                                        <a href="{% url 'procurement:officer_payments' %}?record_id={{ rec.id }}" class="btn">Process Payment</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: var(--muted); padding: 40px;">
+                                    No active batches currently in the live queue.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

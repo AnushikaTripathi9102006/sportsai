@@ -55,10 +55,7 @@ def add_produce(request):
             produce.farmer = request.user
             produce.save()
 
-            return render(
-                request,
-                "produce/redirect_to_my_produce.html",
-            )
+            return redirect("produce:my_produce")
 
     else:
         form = ProduceForm()
@@ -95,7 +92,7 @@ def edit_produce(request, pk):
         farmer=request.user,
     )
 
-    if produce.status != "AVAILABLE":
+    if produce.status == "PROCURED":
         return redirect("produce:my_produce")
 
     if request.method == "POST":
@@ -106,11 +103,7 @@ def edit_produce(request, pk):
 
         if form.is_valid():
             form.save()
-
-            return render(
-                request,
-                "produce/redirect_to_my_produce.html",
-            )
+            return redirect("produce:my_produce")
 
     else:
         form = ProduceForm(instance=produce)
@@ -125,6 +118,7 @@ def edit_produce(request, pk):
         },
     )
 
+
 @login_required
 def delete_produce(request, pk):
     produce = get_object_or_404(
@@ -133,15 +127,35 @@ def delete_produce(request, pk):
         farmer=request.user,
     )
 
-    if produce.status != "AVAILABLE":
+    if produce.status == "PROCURED":
         return redirect("produce:my_produce")
 
     if request.method == "POST":
         produce.delete()
-
-        return render(
-            request,
-            "produce/redirect_to_my_produce.html",
-        )
+        return redirect("produce:my_produce")
 
     return redirect("produce:my_produce")
+
+
+@login_required
+def request_procurement(request, pk):
+    produce = get_object_or_404(
+        Produce,
+        pk=pk,
+        farmer=request.user,
+    )
+
+    produce.status = "REQUESTED"
+    produce.save()
+
+    from procurement.services import sync_all_farmer_procurements
+    from django.contrib import messages
+
+    sync_all_farmer_procurements()
+
+    messages.success(
+        request,
+        f"Procurement request submitted for {produce.crop_name} ({produce.quantity} {produce.get_unit_display()}). Center assignment is managed by the Procurement Officer for {produce.district} district.",
+    )
+
+    return redirect("produce:my_produce")

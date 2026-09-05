@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 
 
 class Profile(models.Model):
+    objects = models.Manager()
 
     ROLE_CHOICES = [
         ("FARMER", "Farmer"),
@@ -29,6 +30,14 @@ class Profile(models.Model):
         unique=True,
         blank=True,
         null=True
+    )
+
+    assigned_center = models.ForeignKey(
+        "procurement.ProcurementCenter",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="officers",
     )
 
     is_approved = models.BooleanField(default=True)
@@ -60,10 +69,10 @@ class Profile(models.Model):
         if self.role == "FARMER" and not self.farmer_id:
             farmer_numbers = [
                 int(match.group(1))
-                for farmer_id in Profile.objects.filter(
+                for f_id in Profile.objects.filter(
                     farmer_id__startswith="FAR-",
                 ).values_list("farmer_id", flat=True)
-                if (match := re.fullmatch(r"FAR-(\d+)", farmer_id))
+                if (match := re.fullmatch(r"FAR-(\d+)", str(f_id)))
             ]
             next_number = max(farmer_numbers, default=0) + 1
 

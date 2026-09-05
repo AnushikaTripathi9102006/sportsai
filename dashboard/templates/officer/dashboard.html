@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Officer Dashboard | KisanFlow Procurement System</title>
+    
+    <style>
+        :root { 
+            --green: #1f6b45; 
+            --deep-green: #174b35; 
+            --mint: #e6f2e9; 
+            --ink: #19352a; 
+            --muted: #6b7c72; 
+            --line: #dfe9e1; 
+            --paper: #f6faf7; 
+            --white: #fff; 
+            --amber: #d88424;
+            --blue: #2563eb;
+            --red: #dc2626;
+            --purple: #7c3aed;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
+        a { color: inherit; text-decoration: none; }
+        .app-shell { display: flex; min-height: 100vh; }
+        .sidebar { width: 260px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
+        .brand { padding: 0 14px 25px; font-size: 24px; font-weight: bold; border-bottom: 1px solid #2e6848; margin-bottom: 20px; }
+        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 11px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
+        .nav-list { display: grid; gap: 4px; }
+        .nav-item { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; }
+        .nav-item:hover, .nav-item.active { background: #286c4a; color: var(--white); }
+        .nav-link-content { display: flex; align-items: center; gap: 12px; }
+        .nav-icon { width: 20px; text-align: center; font-size: 16px; }
+        .badge-count { background: rgba(255,255,255,0.2); font-size: 11px; padding: 2px 7px; border-radius: 10px; font-weight: bold; }
+        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
+        .main-area { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+        .topbar { min-height: 70px; background: var(--white); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); }
+        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
+        .crumb strong { color: var(--ink); }
+        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
+        .profile-text { text-align: right; line-height: 1.4; }
+        .profile-text strong { display: block; color: var(--ink); }
+        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
+        .content { max-width: 1360px; margin: 0 auto; padding: 30px clamp(20px, 4vw, 50px) 60px; width: 100%; }
+        
+        .hero-banner { background: linear-gradient(135deg, var(--deep-green) 0%, #1e5c3e 100%); color: var(--white); padding: 28px 32px; border-radius: 12px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; box-shadow: 0 4px 12px rgba(23,75,53,0.15); }
+        .hero-text h1 { margin: 0 0 6px; font-size: 28px; }
+        .hero-text p { margin: 0; color: #b7d6c2; font: 14px Arial, sans-serif; }
+        .center-tag { background: rgba(255,255,255,0.15); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.25); padding: 10px 18px; border-radius: 8px; font: 13px Arial, sans-serif; }
+        
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .metric-card { background: var(--white); border: 1px solid var(--line); border-radius: 10px; padding: 20px; transition: transform 0.2s, box-shadow 0.2s; }
+        .metric-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+        .metric-title { color: var(--muted); font: 12px Arial, sans-serif; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+        .metric-value { font-size: 32px; font-weight: bold; color: var(--ink); line-height: 1; }
+        .metric-sub { font: 12px Arial, sans-serif; color: var(--muted); margin-top: 6px; }
+
+        .stage-pipeline { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 24px; margin-bottom: 32px; }
+        .pipeline-title { font-size: 18px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
+        .pipeline-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+        .pipeline-step { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 14px; text-align: center; display: block; transition: all 0.2s; }
+        .pipeline-step:hover { border-color: var(--green); background: var(--mint); }
+        .pipeline-step .icon { font-size: 22px; margin-bottom: 4px; display: block; }
+        .pipeline-step .label { font: 12px Arial, sans-serif; color: var(--ink); font-weight: bold; display: block; }
+        .pipeline-step .count { display: inline-block; background: var(--green); color: var(--white); font: 11px Arial, sans-serif; font-weight: bold; padding: 2px 8px; border-radius: 10px; margin-top: 6px; }
+
+        .table-card { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+        .table-header h2 { margin: 0; font-size: 20px; }
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; font: 14px Arial, sans-serif; }
+        .data-table th { background: var(--paper); padding: 12px 14px; color: var(--muted); font-size: 12px; text-transform: uppercase; border-bottom: 1px solid var(--line); }
+        .data-table td { padding: 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+        .data-table tr:hover td { background: #fbfdfc; }
+        
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; font-family: Arial, sans-serif; text-transform: uppercase; }
+        .badge-reg { background: #e0f2fe; color: #0369a1; }
+        .badge-app { background: #fef3c7; color: #b45309; }
+        .badge-gate { background: #dcfce7; color: #15803d; }
+        .badge-qual { background: #fae8ff; color: #86198f; }
+        .badge-weigh { background: #f3e8ff; color: #6b21a8; }
+        .badge-acc { background: #dbeafe; color: #1e40af; }
+        .badge-bill { background: #ccfbf1; color: #0f766e; }
+        .badge-pay { background: #fef9c3; color: #a16207; }
+        .badge-comp { background: #d1fae5; color: #065f46; }
+        .badge-rej { background: #fee2e2; color: #b91c1c; }
+
+        .btn { display: inline-block; padding: 8px 14px; background: var(--green); color: var(--white); font: 13px Arial, sans-serif; font-weight: bold; border-radius: 6px; transition: background 0.2s; }
+        .btn:hover { background: var(--deep-green); }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
+        .btn-secondary { background: #e2e8f0; color: #334155; }
+        .btn-secondary:hover { background: #cbd5e1; }
+        .alert { padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font: 14px Arial, sans-serif; }
+        .alert-error { background: #fee2e2; color: #991b1b; }
+        .alert-success { background: #d1fae5; color: #065f46; }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                🌾 KisanFlow
+                <small>Officer Portal</small>
+            </div>
+            <div class="nav-label">Navigation</div>
+            <nav class="nav-list">
+                <a href="{% url 'officer_dashboard' %}" class="nav-item active">
+                    <span class="nav-link-content"><span class="nav-icon">📊</span> Dashboard</span>
+                </a>
+                <a href="{% url 'procurement:officer_appointments' %}" class="nav-item">
+                    <span class="nav-link-content"><span class="nav-icon">📅</span> Appointments</span>
+                    <span class="badge-count">{{ total_appointments }}</span>
+                </a>
+                <a href="{% url 'procurement:officer_gate_entry' %}" class="nav-item">
+                    <span class="nav-link-content"><span class="nav-icon">🚪</span> Gate Entry</span>
+                </a>
+                <a href="{% url 'procurement:officer_queue' %}" class="nav-item">
+                    <span class="nav-link-content"><span class="nav-icon">🚦</span> Live Center Queue</span>
+                </a>
+                <a href="{% url 'procurement:officer_quality_check' %}" class="nav-item">
+                    <span class="nav-link-content"><span class="nav-icon">🔬</span> Quality Check</span>
+                    {% if pending_quality %}<span class="badge-count">{{ pending_quality }}</span>{% endif %}
+                </a>
+                <a href="{% url 'procurement:officer_weighing' %}" class="nav-item">
+                    <span class="nav-link-content"><span class="nav-icon">⚖️</span> Weighing Scale</span>
+                    {% if pending_weighing %}<span class="badge-count">{{ pending_weighing }}</span>{% endif %}
+                </a>
+                <a href="{% url 'procurement:officer_acceptance' %}" class="nav-item">
+                    <span class="nav-link-content"><span class="nav-icon">✅</span> Final Acceptance</span>
+                    {% if pending_acceptance %}<span class="badge-count">{{ pending_acceptance }}</span>{% endif %}
+                </a>
+                <a href="{% url 'procurement:officer_bills' %}" class="nav-item">
+                    <span class="nav-link-content"><span class="nav-icon">📄</span> Billing</span>
+                    {% if pending_bills %}<span class="badge-count">{{ pending_bills }}</span>{% endif %}
+                </a>
+                <a href="{% url 'procurement:officer_payments' %}" class="nav-item">
+                    <span class="nav-link-content"><span class="nav-icon">💳</span> Payments</span>
+                    {% if pending_payments %}<span class="badge-count">{{ pending_payments }}</span>{% endif %}
+                </a>
+                <a href="{% url 'procurement:officer_history' %}" class="nav-item">
+                    <span class="nav-link-content"><span class="nav-icon">📜</span> History Audit</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <a href="{% url 'logout' %}" class="nav-item">
+                    <span class="nav-link-content"><span class="nav-icon">🚪</span> Sign Out</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="main-area">
+            <header class="topbar">
+                <div class="crumb">
+                    KisanFlow Officer Portal / <strong>Dashboard Overview</strong>
+                </div>
+                <div class="profile">
+                    <div class="profile-text">
+                        <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                        <span>Procurement Officer</span>
+                    </div>
+                    <div class="avatar">{{ request.user.username|slice:":1"|upper }}</div>
+                </div>
+            </header>
+
+            <div class="content">
+                <div class="hero-banner">
+                    <div class="hero-text">
+                        <h1>Welcome back, Officer {{ request.user.first_name }}!</h1>
+                        <p>Manage daily grain arrivals, inspections, weighing, and instant MSP payout pipeline.</p>
+                    </div>
+                    {% if center %}
+                    <div class="center-tag">
+                        📍 <strong>Assigned Center:</strong> {{ center.name }} ({{ center.district }})<br>
+                        <small>Capacity: {{ center.daily_capacity_quintals }} Quintals/Day | Operational</small>
+                    </div>
+                    {% else %}
+                    <div class="center-tag" style="border-color: var(--amber);">
+                        ⚠️ <strong>No Center Assigned!</strong> Contact Administrator.
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-title">Today Gate Entries</div>
+                        <div class="metric-value">{{ gate_entries_today }}</div>
+                        <div class="metric-sub">Farmers checked in today</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Pending Quality Inspection</div>
+                        <div class="metric-value" style="color: var(--amber);">{{ pending_quality }}</div>
+                        <div class="metric-sub">Awaiting lab assessment</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Pending Weighbridge</div>
+                        <div class="metric-value" style="color: var(--purple);">{{ pending_weighing }}</div>
+                        <div class="metric-sub">Ready for net weight scale</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-title">Completed Today</div>
+                        <div class="metric-value" style="color: var(--green);">{{ completed_today }}</div>
+                        <div class="metric-sub">Fully processed & paid</div>
+                    </div>
+                </div>
+
+                <div class="stage-pipeline">
+                    <div class="pipeline-title">
+                        <strong>⚡ Quick Action Stage Pipeline</strong>
+                        <span class="crumb">Click any stage to process pending records</span>
+                    </div>
+                    <div class="pipeline-grid">
+                        <a href="{% url 'procurement:officer_appointments' %}" class="pipeline-step">
+                            <span class="icon">📅</span>
+                            <span class="label">1. Scheduled</span>
+                            <span class="count">{{ total_appointments }}</span>
+                        </a>
+                        <a href="{% url 'procurement:officer_gate_entry' %}" class="pipeline-step">
+                            <span class="icon">🚪</span>
+                            <span class="label">2. Gate Entry</span>
+                            <span class="count">Check-in</span>
+                        </a>
+                        <a href="{% url 'procurement:officer_quality_check' %}" class="pipeline-step">
+                            <span class="icon">🔬</span>
+                            <span class="label">3. Quality</span>
+                            <span class="count">{{ pending_quality }}</span>
+                        </a>
+                        <a href="{% url 'procurement:officer_weighing' %}" class="pipeline-step">
+                            <span class="icon">⚖️</span>
+                            <span class="label">4. Weighing</span>
+                            <span class="count">{{ pending_weighing }}</span>
+                        </a>
+                        <a href="{% url 'procurement:officer_acceptance' %}" class="pipeline-step">
+                            <span class="icon">✅</span>
+                            <span class="label">5. Acceptance</span>
+                            <span class="count">{{ pending_acceptance }}</span>
+                        </a>
+                        <a href="{% url 'procurement:officer_bills' %}" class="pipeline-step">
+                            <span class="icon">📄</span>
+                            <span class="label">6. Billing</span>
+                            <span class="count">{{ pending_bills }}</span>
+                        </a>
+                        <a href="{% url 'procurement:officer_payments' %}" class="pipeline-step">
+                            <span class="icon">💳</span>
+                            <span class="label">7. Payments</span>
+                            <span class="count">{{ pending_payments }}</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header">
+                        <h2>📋 Recent Procurement Records</h2>
+                        <a href="{% url 'procurement:officer_history' %}" class="btn btn-secondary btn-sm">View Full History →</a>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Token</th>
+                                <th>Farmer Details</th>
+                                <th>Crop & Qty</th>
+                                <th>Current Stage</th>
+                                <th>Registered Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rec in recent_records %}
+                            <tr>
+                                <td><strong>#{{ rec.token_number }}</strong></td>
+                                <td>
+                                    <strong>{{ rec.farmer.get_full_name|default:rec.farmer.username }}</strong><br>
+                                    <small style="color: var(--muted);">
+                                        ID: <strong>{{ rec.farmer.profile.farmer_id|default:"FAR-N/A" }}</strong> | 📞 <strong>{{ rec.farmer.profile.phone|default:"N/A" }}</strong><br>
+                                        📍 {{ rec.district }}{% if rec.farmer.profile.village %}, {{ rec.farmer.profile.village }}{% endif %}
+                                    </small>
+                                </td>
+                                <td>
+                                    <strong>{{ rec.crop_name }}</strong><br>
+                                    <small style="color: var(--muted);">Est: {{ rec.estimated_quantity_quintals }} Quintals</small>
+                                </td>
+                                <td>
+                                    <span class="badge 
+                                        {% if rec.stage == 'REGISTRATION' %}badge-reg
+                                        {% elif rec.stage == 'APPOINTMENT' %}badge-app
+                                        {% elif rec.stage == 'GATE_ENTRY' %}badge-gate
+                                        {% elif rec.stage == 'QUALITY_CHECK' %}badge-qual
+                                        {% elif rec.stage == 'WEIGHING' %}badge-weigh
+                                        {% elif rec.stage == 'ACCEPTANCE' %}badge-acc
+                                        {% elif rec.stage == 'BILL_GENERATED' %}badge-bill
+                                        {% elif rec.stage == 'PAYMENT_INITIATED' %}badge-pay
+                                        {% elif rec.stage == 'COMPLETED' %}badge-comp
+                                        {% else %}badge-rej{% endif %}">
+                                        {{ rec.get_stage_display }}
+                                    </span>
+                                </td>
+                                <td>{{ rec.created_at|date:"M d, Y, h:i A" }}</td>
+                                <td>
+                                    {% if rec.stage == 'GATE_ENTRY' %}
+                                        <a href="{% url 'procurement:officer_quality_check' %}" class="btn btn-sm">Inspect Quality</a>
+                                    {% elif rec.stage == 'QUALITY_CHECK' %}
+                                        <a href="{% url 'procurement:officer_weighing' %}" class="btn btn-sm">Weigh Batch</a>
+                                    {% elif rec.stage == 'WEIGHING' %}
+                                        <a href="{% url 'procurement:officer_acceptance' %}" class="btn btn-sm">Accept Batch</a>
+                                    {% elif rec.stage == 'ACCEPTANCE' %}
+                                        <a href="{% url 'procurement:officer_bills' %}" class="btn btn-sm">Generate Bill</a>
+                                    {% elif rec.stage == 'BILL_GENERATED' or rec.stage == 'PAYMENT_INITIATED' %}
+                                        <a href="{% url 'procurement:officer_payments' %}" class="btn btn-sm">Process Payout</a>
+                                    {% else %}
+                                        <a href="{% url 'procurement:officer_history' %}" class="btn btn-secondary btn-sm">Details</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: var(--muted); padding: 30px;">
+                                    No procurement records found for your assigned center.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

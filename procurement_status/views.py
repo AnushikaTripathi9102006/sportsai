@@ -1,70 +1,124 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from produce.models import Produce
+from procurement.models import ProcurementRecord
+from procurement.services import sync_all_farmer_procurements
+
+STAGE_RANKS = {
+    "REGISTRATION": 1,
+    "APPOINTMENT": 2,
+    "GATE_ENTRY": 3,
+    "QUALITY_CHECK": 4,
+    "WEIGHING": 5,
+    "ACCEPTANCE": 6,
+    "BILL_GENERATED": 7,
+    "PAYMENT_INITIATED": 8,
+    "PAYMENT_RECEIVED": 9,
+    "COMPLETED": 10,
+    "REJECTED": -1,
+    "CANCELLED": -1,
+}
 
 
 @login_required
 def procurement_status(request):
     profile = getattr(request.user, "profile", None)
+    sync_all_farmer_procurements()
 
-    # Fetch farmer's active produce
+    procurement_records = ProcurementRecord.objects.filter(farmer=request.user).order_by("-created_at")
+    procurement_record = procurement_records.first()
+
     produce_list = Produce.objects.filter(farmer=request.user).order_by("-created_at")
     active_produce = produce_list.filter(status="REQUESTED").first() or produce_list.first()
 
-    # Stage switcher via query parameter for testing/demoing all state transitions
-    selected_stage = request.GET.get("stage", "weighing").lower()
+    if procurement_record:
+        stage = procurement_record.current_stage
+        stage_rank = STAGE_RANKS.get(stage, 1)
 
-    valid_stages = ["verification", "quality", "weighing", "completed"]
-    if selected_stage not in valid_stages:
-        selected_stage = "weighing"
+        crop_name = procurement_record.crop_name
+        registered_qty = float(procurement_record.registered_quantity)
+        actual_qty = float(procurement_record.actual_quantity) if procurement_record.actual_quantity is not None else None
+        diff_qty = round(actual_qty - registered_qty, 2) if actual_qty is not None else None
 
-    stage_display_map = {
-        "verification": "Verification in Progress",
-        "quality": "Quality Inspection in Progress",
-        "weighing": "Weighing in Progress",
-        "completed": "Procurement Confirmed",
-    }
+        unit = procurement_record.unit
+        center_name = procurement_record.center_name or (procurement_record.center.name if procurement_record.center else "Procurement Center")
+        token_number = procurement_record.token_number
+        appointment_time = procurement_record.appointment_date
 
-    # Dynamic values based on active produce or defaults
-    crop_name = active_produce.crop_name if active_produce else "Wheat"
-    registered_qty = float(active_produce.quantity) if active_produce else 50.0
-    actual_qty = round(registered_qty - 1.3, 2) if selected_stage in ["weighing", "completed"] else None
-    diff_qty = round(actual_qty - registered_qty, 2) if actual_qty else None
+        if stage == "COMPLETED":
+            overall_status = "Procurement Completed"
+        elif stage == "REJECTED":
+            overall_status = "Procurement Rejected"
+        elif stage == "CANCELLED":
+            overall_status = "Procurement Cancelled"
+        else:
+            overall_status = f"Status: {procurement_record.get_current_stage_display()}"
 
-    rate_per_quintal = 2275.00
-    total_amount = round(actual_qty * rate_per_quintal, 2) if actual_qty else round(registered_qty * rate_per_quintal, 2)
+        verification_status = "Completed" if stage_rank >= 3 else "Pending"
+        verified_by = procurement_record.verified_by or "Procurement Officer"
 
-    procurement_data = {
-        "crop_name": crop_name,
-        "registered_qty": registered_qty,
-        "actual_qty": actual_qty,
-        "diff_qty": diff_qty,
-        "unit": active_produce.get_unit_display() if active_produce else "Quintals",
-        "center_name": "Lucknow Procurement Hub",
-        "counter_number": "Counter 2",
-        "token_number": f"A-1{active_produce.id:02d}" if active_produce else "A-104",
-        "appointment_time": "12 September 2026, 10:30 AM",
-        "current_stage": selected_stage,
-        "stage_title": stage_display_map[selected_stage],
-        "overall_status": "Procurement Completed" if selected_stage == "completed" else "Procurement in Progress",
-        # Verification
-        "verification_status": "Completed" if selected_stage in ["quality", "weighing", "completed"] else "In Progress",
-        "verified_by": "Officer R. Sharma",
-        # Quality Check
-        "quality_status": "Passed" if selected_stage in ["weighing", "completed"] else ("In Progress" if selected_stage == "quality" else "Pending"),
-        "quality_grade": "Grade A",
-        "moisture_content": "11.5%",
-        "officer_remarks": "Produce meets all fair market procurement quality standards.",
-        # Financials
-        "rate_per_quintal": rate_per_quintal,
-        "total_amount": total_amount,
-        "payment_status": "Completed" if selected_stage == "completed" else "Processing",
-    }
+        quality_assessment = getattr(procurement_record, "quality_assessment", None)
+        if quality_assessment:
+            quality_status = quality_assessment.get_result_display()
+            quality_grade = quality_assessment.get_quality_grade_display()
+            moisture_content = f"{quality_assessment.moisture_percentage}%"
+            officer_remarks = quality_assessment.remarks or procurement_record.officer_remarks or "Quality inspection completed."
+        else:
+            quality_status = procurement_record.quality_status
+            quality_grade = procurement_record.quality_grade
+            moisture_content = procurement_record.moisture_content
+            officer_remarks = procurement_record.officer_remarks or "Quality inspection pending."
 
+        bill = getattr(procurement_record, "bill", None)
+        rate_per_quintal = float(bill.rate_per_quintal) if bill else float(procurement_record.rate_per_unit)
+        total_amount = float(bill.net_amount) if bill else float(procurement_record.total_amount or (registered_qty * rate_per_quintal))
+
+        payment_record = getattr(procurement_record, "payment_record", None)
+        if payment_record:
+            payment_status = payment_record.get_payment_status_display()
+        else:
+            payment_status = procurement_record.payment_status
+
+        procurement_data = {
+            "id": procurement_record.id,
+            "crop_name": crop_name,
+            "registered_qty": registered_qty,
+            "actual_qty": actual_qty,
+            "diff_qty": diff_qty,
+            "unit": unit,
+            "center_name": center_name,
+            "counter_number": procurement_record.counter_number,
+            "token_number": token_number,
+            "appointment_time": appointment_time,
+            "current_stage": stage,
+            "stage_rank": stage_rank,
+            "stage_title": procurement_record.get_current_stage_display(),
+            "overall_status": overall_status,
+            "verification_status": verification_status,
+            "verified_by": verified_by,
+            "quality_status": quality_status,
+            "quality_grade": quality_grade,
+            "moisture_content": moisture_content,
+            "officer_remarks": officer_remarks,
+            "rejection_reason": procurement_record.rejection_reason,
+            "rate_per_quintal": rate_per_quintal,
+            "total_amount": total_amount,
+            "payment_status": payment_status,
+        }
+    else:
+        procurement_data = None
+
+    history_records = procurement_records.filter(current_stage="COMPLETED")
     procurement_history = [
-        {"date": "28 Aug 2026", "crop": "Wheat", "quantity": "45.0 Quintals", "center": "Lucknow Hub", "amount": "₹102,375.00", "status": "Completed"},
-        {"date": "18 Aug 2026", "crop": "Rice", "quantity": "30.0 Quintals", "center": "Gomti Center", "amount": "₹65,400.00", "status": "Completed"},
-        {"date": "10 Aug 2026", "crop": "Pulses", "quantity": "20.0 Quintals", "center": "Center A", "amount": "₹48,000.00", "status": "Completed"},
+        {
+            "date": rec.updated_at.strftime("%d %b %Y"),
+            "crop": rec.crop_name,
+            "quantity": f"{rec.actual_quantity or rec.registered_quantity} {rec.unit}",
+            "center": rec.center_name or (rec.center.name if rec.center else "Procurement Center"),
+            "amount": f"₹{rec.total_amount:,.2f}",
+            "status": "Completed",
+        }
+        for rec in history_records
     ]
 
     return render(
@@ -75,8 +129,8 @@ def procurement_status(request):
             "profile": profile,
             "active_produce": active_produce,
             "procurement": procurement_data,
+            "procurement_record": procurement_record,
             "procurement_history": procurement_history,
-            "selected_stage": selected_stage,
         },
     )
 
@@ -84,47 +138,65 @@ def procurement_status(request):
 @login_required
 def procurement_detail(request):
     profile = getattr(request.user, "profile", None)
+    sync_all_farmer_procurements()
+
+    procurement_records = ProcurementRecord.objects.filter(farmer=request.user).order_by("-created_at")
+    procurement_record = procurement_records.first()
 
     produce_list = Produce.objects.filter(farmer=request.user).order_by("-created_at")
     active_produce = produce_list.filter(status="REQUESTED").first() or produce_list.first()
-    selected_stage = request.GET.get("stage", "weighing").lower()
 
-    registered_qty = float(active_produce.quantity) if active_produce else 50.0
-    actual_qty = round(registered_qty - 1.3, 2)
-    rate_per_quintal = 2275.00
-    total_amount = round(actual_qty * rate_per_quintal, 2)
+    if procurement_record:
+        stage = procurement_record.current_stage
+        stage_rank = STAGE_RANKS.get(stage, 1)
 
-    procurement_data = {
-        "crop_name": active_produce.crop_name if active_produce else "Wheat",
-        "registered_qty": registered_qty,
-        "actual_qty": actual_qty,
-        "diff_qty": round(actual_qty - registered_qty, 2),
-        "unit": active_produce.get_unit_display() if active_produce else "Quintals",
-        "harvest_date": active_produce.harvest_date.strftime("%d %b %Y") if active_produce else "01 Sep 2026",
-        "center_name": "Lucknow Procurement Hub",
-        "counter_number": "Counter 2",
-        "token_number": f"A-1{active_produce.id:02d}" if active_produce else "A-104",
-        "appointment_time": "12 September 2026, 10:30 AM",
-        "verified_by": "Officer R. Sharma",
-        "quality_grade": "Grade A",
-        "moisture_content": "11.5%",
-        "officer_remarks": "Produce meets all fair market procurement quality standards.",
-        "rate_per_quintal": rate_per_quintal,
-        "total_amount": total_amount,
-        "payment_status": "Processing",
-    }
+        registered_qty = float(procurement_record.registered_quantity)
+        actual_qty = float(procurement_record.actual_quantity) if procurement_record.actual_quantity is not None else None
+        diff_qty = round(actual_qty - registered_qty, 2) if actual_qty is not None else None
 
-    timeline_items = [
-        {"stage": "Produce Registered", "timestamp": "01 Sep 2026, 09:30 AM", "status": "done"},
-        {"stage": "Appointment Confirmed", "timestamp": "10 Sep 2026, 02:15 PM", "status": "done"},
-        {"stage": "Farmer Arrived", "timestamp": "12 Sep 2026, 10:20 AM", "status": "done"},
-        {"stage": "Verification Completed", "timestamp": "12 Sep 2026, 10:45 AM", "status": "done"},
-        {"stage": "Quality Inspection Passed", "timestamp": "12 Sep 2026, 11:10 AM", "status": "done"},
-        {"stage": "Weighing Recorded (48.7 Q)", "timestamp": "12 Sep 2026, 11:35 AM", "status": "current"},
-        {"stage": "Procurement Confirmed", "timestamp": "Pending", "status": "pending"},
-        {"stage": "Payment Processing", "timestamp": "Pending", "status": "pending"},
-        {"stage": "Payment Completed", "timestamp": "Pending", "status": "pending"},
-    ]
+        bill = getattr(procurement_record, "bill", None)
+        rate_per_quintal = float(bill.rate_per_quintal) if bill else float(procurement_record.rate_per_unit)
+        total_amount = float(bill.net_amount) if bill else float(procurement_record.total_amount or (registered_qty * rate_per_quintal))
+
+        payment_record = getattr(procurement_record, "payment_record", None)
+        payment_status = payment_record.get_payment_status_display() if payment_record else procurement_record.payment_status
+
+        procurement_data = {
+            "crop_name": procurement_record.crop_name,
+            "registered_qty": registered_qty,
+            "actual_qty": actual_qty,
+            "diff_qty": diff_qty,
+            "unit": procurement_record.unit,
+            "harvest_date": procurement_record.created_at.strftime("%d %b %Y"),
+            "center_name": procurement_record.center_name or (procurement_record.center.name if procurement_record.center else "Procurement Center"),
+            "counter_number": procurement_record.counter_number,
+            "token_number": procurement_record.token_number,
+            "appointment_time": procurement_record.appointment_date,
+            "verified_by": procurement_record.verified_by or "Officer R. Sharma",
+            "quality_grade": procurement_record.quality_grade,
+            "moisture_content": procurement_record.moisture_content,
+            "officer_remarks": procurement_record.officer_remarks or "Produce meets procurement standards.",
+            "rate_per_quintal": rate_per_quintal,
+            "total_amount": total_amount,
+            "payment_status": payment_status,
+            "stage_rank": stage_rank,
+            "stage_title": procurement_record.get_current_stage_display(),
+        }
+
+        timeline_items = [
+            {"stage": "Produce Registered", "timestamp": procurement_record.created_at.strftime("%d %b %Y, %I:%M %p"), "status": "done" if stage_rank > 1 else ("current" if stage_rank == 1 else "pending")},
+            {"stage": "Appointment Confirmed", "timestamp": procurement_record.appointment_date, "status": "done" if stage_rank > 2 else ("current" if stage_rank == 2 else "pending")},
+            {"stage": "Farmer Arrived", "timestamp": procurement_record.gate_entry_at.strftime("%d %b %Y, %I:%M %p") if procurement_record.gate_entry_at else ("Done" if stage_rank > 3 else ("Current" if stage_rank == 3 else "Pending")), "status": "done" if stage_rank > 3 else ("current" if stage_rank == 3 else "pending")},
+            {"stage": "Verification Completed", "timestamp": "Completed" if stage_rank >= 3 else "Pending", "status": "done" if stage_rank > 3 else ("current" if stage_rank == 3 else "pending")},
+            {"stage": f"Quality Inspection ({procurement_record.quality_grade})", "timestamp": "Passed" if stage_rank >= 5 else "Pending", "status": "done" if stage_rank > 4 else ("current" if stage_rank == 4 else "pending")},
+            {"stage": f"Weighing Recorded ({actual_qty or registered_qty} {procurement_record.unit})", "timestamp": "Recorded" if stage_rank >= 5 else "Pending", "status": "done" if stage_rank > 5 else ("current" if stage_rank == 5 else "pending")},
+            {"stage": "Officer Acceptance & Bill Generated", "timestamp": "Generated" if stage_rank >= 7 else "Pending", "status": "done" if stage_rank > 7 else ("current" if stage_rank in [6, 7] else "pending")},
+            {"stage": "Payment Processing", "timestamp": payment_status, "status": "done" if stage_rank > 8 else ("current" if stage_rank == 8 else "pending")},
+            {"stage": "Payment Completed", "timestamp": "Completed" if stage_rank >= 10 else "Pending", "status": "done" if stage_rank == 10 else "pending"},
+        ]
+    else:
+        procurement_data = None
+        timeline_items = []
 
     return render(
         request,
@@ -134,7 +206,7 @@ def procurement_detail(request):
             "profile": profile,
             "active_produce": active_produce,
             "procurement": procurement_data,
+            "procurement_record": procurement_record,
             "timeline": timeline_items,
-            "selected_stage": selected_stage,
         },
     )

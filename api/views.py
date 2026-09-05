@@ -20,7 +20,8 @@ class RegisterView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
-        user = User.objects.get(username=response.data["username"])
+        resp_data = response.data or {}
+        user = User.objects.get(username=resp_data["username"])
         profile = user.profile
         response.data = {
             "message": "Registration successful.",
@@ -38,7 +39,8 @@ class LoginView(views.APIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data["user"]
+        val_data = serializer.validated_data or {}
+        user = val_data["user"]
         refresh = RefreshToken.for_user(user)
         profile = user.profile
         return Response({

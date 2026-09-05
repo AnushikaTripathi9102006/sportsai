@@ -110,73 +110,55 @@
             </header>
             <main class="content">
                 <section class="page-header"><div><p class="eyebrow">PLAN YOUR VISIT</p><h1>📅 Appointments</h1><p class="description">Manage your procurement appointments.</p></div><a class="button" href="{% url 'appointments:book_appointment' %}">＋ Book Appointment</a></section>
-                <section class="recommendation" aria-labelledby="recommended-appointment-heading">
-                    <p class="recommendation-label">🤖 Appointment Recommended</p>
-                    <h2 id="recommended-appointment-heading">A suitable time is ready for your procurement.</h2>
-                    <p class="recommendation-subtitle">KisanFlow found a convenient appointment based on your produce and center.</p>
-                    <div class="appointment-details">
-                        <div>🌾 <strong>Wheat - 50 Quintals</strong></div>
-                        <div>📍 <strong>Lucknow Procurement Hub</strong></div>
-                        <div class="date-time">📅 12 September 2026 &nbsp; | &nbsp; 🕐 10:30 AM - 11:00 AM</div>
-                    </div>
-                    <div class="recommendation-reason">Why this slot?
-                        <ul>
-                            <li>Low expected queue</li>
-                            <li>Center has available capacity</li>
-                            <li>Suitable for your quantity</li>
-                        </ul>
-                    </div>
-                    <div class="recommendation-actions">
-                        <a class="button secondary" href="{% url 'appointments:appointment_detail' %}">View Details</a>
-                        <a class="button" href="#">Confirm Appointment →</a>
-                    </div>
-                </section>
-                <h2 class="section-heading">Your Upcoming Appointment</h2>
+                {% if active_record %}
+                <h2 class="section-heading">Your Scheduled Procurement Appointment</h2>
                 <section class="upcoming-card" aria-labelledby="upcoming-appointment-heading">
                     <div class="card-heading">
-                        <h2 id="upcoming-appointment-heading">📅 Upcoming Appointment</h2>
-                        <span class="confirmed">🟢 Confirmed</span>
+                        <h2 id="upcoming-appointment-heading">📅 Confirmed Appointment Slot</h2>
+                        <span class="confirmed">🟢 {{ active_record.get_current_stage_display }}</span>
                     </div>
-                    <div class="appointment-date">12 September 2026<span class="appointment-time">10:30 AM - 11:00 AM</span></div>
+                    <div class="appointment-date">
+                        {{ active_record.appointment_date }}
+                    </div>
                     <div class="appointment-info">
-                        <div>🌾 <strong>Wheat</strong> · 50 Quintals</div>
-                        <div>📍 <strong>Lucknow Procurement Hub</strong></div>
-                        <div><span class="token">🎟️ Token: A-104</span></div>
-                    </div>
-                    <div class="upcoming-actions">
-                        <a class="button" href="{% url 'appointments:appointment_detail' %}">View Appointment</a>
-                        <a class="button" href="#">Reschedule</a>
-                        <a class="button" href="#">Cancel</a>
+                        <div>🌾 Crop & Est Qty: <strong>{{ active_record.crop_name }}</strong> ({{ active_record.estimated_quantity_quintals }} Quintals)</div>
+                        <div>📍 Procurement Center: <strong>{{ active_record.center_name|default:active_record.center.name }}</strong> (📍 {{ active_record.district }})</div>
+                        <div><span class="token">🎟️ Token: #{{ active_record.token_number }}</span></div>
                     </div>
                 </section>
-                <h2 class="section-heading">Appointment Status</h2>
-                <section class="progress-card" aria-labelledby="appointment-progress-heading">
-                    <div class="card-heading"><h2 id="appointment-progress-heading">Appointment Progress</h2></div>
-                    <div class="progress-list">
-                        <div class="progress-step done"><span class="progress-dot">✓</span> Appointment Requested</div>
-                        <div class="progress-step done"><span class="progress-dot">✓</span> Appointment Confirmed</div>
-                        <div class="progress-step current"><span class="progress-dot">●</span> Waiting for Appointment</div>
-                        <div class="progress-step"><span class="progress-dot">○</span> Farmer Arrived</div>
-                        <div class="progress-step"><span class="progress-dot">○</span> Verification</div>
-                        <div class="progress-step"><span class="progress-dot">○</span> Weighing</div>
-                        <div class="progress-step"><span class="progress-dot">○</span> Procurement Completed</div>
+                {% else %}
+                <section class="upcoming-card" style="border-left: 5px solid var(--amber);">
+                    <div class="card-heading">
+                        <h2>⚠️ No Active Appointment Slot Found</h2>
                     </div>
-                    <p class="progress-note">This progress is a visual preview until appointment tracking is connected.</p>
+                    <p style="color: var(--muted); margin-bottom: 16px;">You have no active procurement appointment scheduled. Please register your harvested crop to get an assigned procurement appointment slot.</p>
+                    <a class="button" href="{% url 'produce:add_produce' %}">➕ Register Produce Now</a>
                 </section>
-                <h2 class="section-heading">📜 Appointment History</h2>
+                {% endif %}
+
+                <h2 class="section-heading">📜 All Procurement Appointments</h2>
                 <section class="history-card" aria-labelledby="appointment-history-heading">
-                    <div class="card-heading"><h2 id="appointment-history-heading">Recent Appointments</h2></div>
+                    <div class="card-heading"><h2 id="appointment-history-heading">My Appointment Records</h2></div>
                     <div class="history-table-wrap">
                         <table class="history-table">
-                            <thead><tr><th>Date</th><th>Produce</th><th>Center</th><th>Status</th></tr></thead>
+                            <thead><tr><th>Token</th><th>Scheduled Slot</th><th>Crop & Qty</th><th>Center</th><th>Stage</th></tr></thead>
                             <tbody>
-                                <tr><td>28 Aug 2026</td><td>Wheat</td><td>Lucknow Hub</td><td><span class="history-status">✓ Completed</span></td></tr>
-                                <tr><td>18 Aug 2026</td><td>Rice</td><td>Center B</td><td><span class="history-status cancelled">✕ Cancelled</span></td></tr>
-                                <tr><td>10 Aug 2026</td><td>Pulses</td><td>Center A</td><td><span class="history-status">✓ Completed</span></td></tr>
+                                {% for rec in records %}
+                                <tr>
+                                    <td><strong>#{{ rec.token_number }}</strong></td>
+                                    <td><strong>📅 {{ rec.appointment_date }}</strong></td>
+                                    <td>{{ rec.crop_name }} ({{ rec.estimated_quantity_quintals }} Qtl)</td>
+                                    <td>{{ rec.center_name|default:rec.center.name }}</td>
+                                    <td><span class="history-status">{{ rec.get_current_stage_display }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: var(--muted); padding: 20px;">No appointment records found.</td>
+                                </tr>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
-                    <a class="history-button" href="#">View History →</a>
                 </section>
             </main>
         </div>

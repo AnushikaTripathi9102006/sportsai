@@ -31,4 +31,10 @@ urlpatterns = [
         views.delete_produce,
         name="delete_produce",
     ),
+
+    path(
+        "request/<int:pk>/",
+        views.request_procurement,
+        name="request_procurement",
+    ),
 ]
