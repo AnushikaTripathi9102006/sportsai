@@ -24,8 +24,20 @@ def signup(request):
 
             if role == 'FARMER':
                 profile.is_approved = True
-            elif role == 'OFFICER':
+            if role == 'OFFICER':
                 profile.is_approved = False
+                try:
+                    from notifications.services import notify_admin
+                    notify_admin(
+                        title="👮 Officer Registration Pending",
+                        message=f"A new officer account '{user.get_full_name() or user.username}' is waiting for approval.",
+                        notification_type="SYSTEM",
+                        target_url="/admin/accounts/profile/",
+                        related_object=user,
+                        event_key=f"officer_reg_{user.id}",
+                    )
+                except Exception:
+                    pass
 
             profile.save()
 

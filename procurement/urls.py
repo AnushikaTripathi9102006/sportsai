@@ -6,6 +6,7 @@ app_name = "procurement"
 
 urlpatterns = [
     path("centers/", views.centers, name="centers"),
+    path("select-center/", views.select_center, name="select_center"),
     path("centers/details/", views.center_detail, name="center_detail"),
     path("centers/confirm/", views.confirm_center, name="confirm_center"),
     path("status/", views.status, name="status"),

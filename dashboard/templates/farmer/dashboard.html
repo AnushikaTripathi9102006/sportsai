@@ -114,20 +114,111 @@
         <div class="main-area">
             <header class="topbar">
                 <div style="display:flex;align-items:center;gap:13px"><button class="menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" onclick="toggleSidebar()">☰</button><div class="crumb"><strong>Home</strong> &nbsp;/&nbsp; Farmer dashboard</div></div>
-                <div class="profile"><span aria-label="Notifications" style="font-size:22px;color:var(--green)">♢</span><div class="profile-text"><strong>{{ farmer.get_full_name|default:farmer.username }}</strong><span class="profile-id">Farmer ID: {{ profile.farmer_id|default:'Not assigned' }}</span></div><div class="avatar">{{ farmer.first_name|default:farmer.username|first|upper }}</div><span aria-hidden="true">⌄</span></div>
+                <div class="profile">
+                    <a href="{% url 'notifications:notifications' %}" title="Notifications" style="text-decoration:none;position:relative;display:inline-flex;align-items:center;margin-right:6px;">
+                        <span aria-label="Notifications" style="font-size:22px;color:var(--green)">🔔</span>
+                        {% if unread_notifications_count %}
+                        <span style="position:absolute;top:-4px;right:-8px;background:#b71c1c;color:#fff;font-size:10px;font-weight:bold;padding:1px 5px;border-radius:10px;font-family:Arial;">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </a>
+                    <div class="profile-text"><strong>{{ farmer.get_full_name|default:farmer.username }}</strong><span class="profile-id">Farmer ID: {{ profile.farmer_id|default:'Not assigned' }}</span></div><div class="avatar">{{ farmer.first_name|default:farmer.username|first|upper }}</div><span aria-hidden="true">⌄</span></div>
             </header>
             <main class="content">
-                <section class="welcome"><div><h1>Good morning, {{ farmer.get_full_name|default:farmer.username }} 👋</h1><p>Here is the latest update on your produce and procurement.</p></div><div class="farmer-badge">Farmer ID: <strong>{{ profile.farmer_id|default:'Not assigned' }}</strong></div></section>
+                <section class="welcome">
+                    <div>
+                        <h1>Good morning, {{ farmer.get_full_name|default:farmer.username }} 👋</h1>
+                        <p>Here is the live procurement status for all your registered crops.</p>
+                    </div>
+                    <div class="farmer-badge">Farmer ID: <strong>{{ profile.farmer_id|default:'Not assigned' }}</strong></div>
+                </section>
+
+                <!-- Summary Metrics Bar -->
+                <div class="actions" style="margin-bottom: 24px;">
+                    <div class="action" style="cursor:default;">
+                        <span class="action-icon">🌾</span>
+                        <strong>{{ summary.total_produce }} Registered Crop{% if summary.total_produce != 1 %}s{% endif %}</strong>
+                        <span>Total produce batches in system.</span>
+                    </div>
+                    <div class="action" style="cursor:default;">
+                        <span class="action-icon">📦</span>
+                        <strong>{{ summary.requested_procurements }} Procurement Request{% if summary.requested_procurements != 1 %}s{% endif %}</strong>
+                        <span>Active MSP purchase requests.</span>
+                    </div>
+                    <div class="action" style="cursor:default;">
+                        <span class="action-icon">▣</span>
+                        <strong>{{ summary.active_appointments }} Active Appointment{% if summary.active_appointments != 1 %}s{% endif %}</strong>
+                        <span>Scheduled procurement center slots.</span>
+                    </div>
+                    <div class="action" style="cursor:default;">
+                        <span class="action-icon">🎫</span>
+                        <strong>{{ summary.active_tokens }} Queue Token{% if summary.active_tokens != 1 %}s{% endif %}</strong>
+                        <span>Active live queue tokens issued.</span>
+                    </div>
+                </div>
+
                 <div class="section-heading"><h2>Quick actions</h2></div>
                 <section class="actions">
                     <a class="action" href="{% url 'produce:add_produce' %}"><span class="action-icon">＋</span><strong>Register Produce</strong><span>Register newly harvested crops.</span></a>
-                    <a class="action" href="{% url 'procurement:centers' %}"><span class="action-icon">⌖</span><strong>Find Procurement Center</strong><span>See centers near you.</span></a>
+                    <a class="action" href="{% url 'procurement:centers' %}{% if current_produce %}?produce_id={{ current_produce.id }}{% endif %}"><span class="action-icon">⌖</span><strong>Request Procurement</strong><span>Select procurement center &amp; request MSP purchase.</span></a>
                     <a class="action" href="{% url 'appointments:appointments' %}"><span class="action-icon">▣</span><strong>Book Appointment</strong><span>Schedule a procurement visit.</span></a>
                     <a class="action" href="{% url 'procurement:status' %}"><span class="action-icon">→</span><strong>Track Procurement</strong><span>Check your current progress.</span></a>
                 </section>
-                <div class="section-heading" id="procurement"><h2>Current procurement</h2></div>
+
+                <!-- Procurement Journeys Section -->
+                <div class="section-heading" id="procurement"><h2>All Produce Procurement Journeys</h2></div>
+                
+                {% if produce_journeys %}
+                <!-- All Farmer Crops Overview Cards -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; margin-bottom: 20px;">
+                    {% for journey in produce_journeys %}
+                    <div class="panel" style="padding: 16px; border-left: 4px solid {% if journey.stage_num >= 10 %}var(--green){% elif journey.stage_num >= 2 %}var(--amber){% else %}var(--line){% endif %}; {% if active_journey and active_journey.id == journey.id %}box-shadow: 0 0 0 2px var(--green); background: #fbfefc;{% endif %}">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                            <div>
+                                <h3 style="margin: 0; font-size: 18px;">🌾 {{ journey.crop_name }}</h3>
+                                <span class="muted" style="font-size: 12px;">{{ journey.quantity }} {{ journey.unit }}</span>
+                            </div>
+                            <span class="status-pill" style="font-size: 11px; padding: 4px 8px;">{{ journey.stage_display }}</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.6;">
+                            🏢 Center: <strong>{{ journey.center_name }}</strong><br>
+                            📅 Appt: <strong>{{ journey.appointment_time }}</strong><br>
+                            🎫 Token: <strong>{{ journey.token_number }}</strong>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
+                            {% if journey.status == 'AVAILABLE' %}
+                                <a href="{% url 'procurement:centers' %}?produce_id={{ journey.id }}" class="button" style="padding: 5px 10px; font-size: 11px; margin-top: 0; background: var(--green);">Request Procurement →</a>
+                            {% else %}
+                                <a href="{% url 'farmer_dashboard' %}?produce_id={{ journey.id }}#procurement" class="button" style="padding: 5px 10px; font-size: 11px; margin-top: 0; background: {% if active_journey and active_journey.id == journey.id %}var(--deep-green){% else %}var(--green){% endif %};">View Timeline ↓</a>
+                                <a href="{% url 'procurement:status' %}?produce_id={{ journey.id }}" class="button muted-button" style="padding: 5px 10px; font-size: 11px; margin-top: 0;">Full Details →</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Detailed Timeline for Selected Active Crop -->
                 <section class="panel journey">
-                    <div class="journey-head"><div><div class="eyebrow">Your latest produce</div>{% if current_produce %}<h2>{{ current_produce.crop_name }}</h2><div class="journey-detail">{{ current_produce.quantity }} {{ current_produce.get_unit_display }}</div>{% else %}<h2>No procurement started</h2><div class="journey-detail">Register produce to begin your procurement journey.</div>{% endif %}</div><span class="status-pill">{% if procurement_record %}{{ procurement_record.get_current_stage_display }}{% elif current_produce %}{{ current_produce.get_status_display }}{% else %}Waiting for produce{% endif %}</span></div>
+                    <div class="journey-head">
+                        <div>
+                            <div class="eyebrow">Active Procurement Progress</div>
+                            {% if active_journey %}
+                                <h2>🌾 {{ active_journey.crop_name }}</h2>
+                                <div class="journey-detail">{{ active_journey.quantity }} {{ active_journey.unit }} &bull; Center: {{ active_journey.center_name }}</div>
+                            {% else %}
+                                <h2>No produce registered</h2>
+                                <div class="journey-detail">Register produce to begin your procurement journey.</div>
+                            {% endif %}
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="status-pill">{% if active_journey %}{{ active_journey.stage_display }}{% else %}Waiting for produce{% endif %}</span>
+                            {% if active_journey and active_journey.status == 'AVAILABLE' %}
+                                <div style="margin-top: 10px;">
+                                    <a class="button" href="{% url 'procurement:centers' %}?produce_id={{ active_journey.id }}" style="background: var(--green); margin-top: 0;">Request Procurement →</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
                     <div class="timeline" aria-label="Procurement progress">
                         <div class="stage {% if procurement_stage_num >= 1 %}done{% endif %} {% if procurement_stage_num == 1 %}current{% endif %}"><div class="stage-dot"></div>Registered</div>
                         <div class="stage {% if procurement_stage_num >= 2 %}done{% endif %} {% if procurement_stage_num == 2 %}current{% endif %}"><div class="stage-dot"></div>Appointment</div>
@@ -138,70 +229,206 @@
                         <div class="stage {% if procurement_stage_num >= 10 %}done{% endif %} {% if procurement_stage_num >= 8 and procurement_stage_num < 10 %}current{% endif %}"><div class="stage-dot"></div>Payment</div>
                     </div>
                 </section>
+
                 <div class="split-grid" id="appointments">
+                    <!-- Upcoming Appointments Section -->
                     <section class="panel">
                         <div class="card-title">
-                            <h3>Upcoming Appointment Slot</h3>
+                            <h3>Upcoming Appointment Slots</h3>
                             <span style="font-size:22px;color:var(--green)">▣</span>
                         </div>
-                        <div class="appointment-main">
-                            <div class="date-box" style="min-width: 110px;">
-                                <small>Scheduled Slot</small>
-                                {% if procurement_record and procurement_record.appointment_date %}
-                                    {{ procurement_record.appointment_date }}
-                                {% else %}
+
+                        {% if active_appointments %}
+                            <div style="display: grid; gap: 14px;">
+                                {% for appt in active_appointments %}
+                                <div class="appointment-main" style="border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 0;">
+                                    <div class="date-box" style="min-width: 120px;">
+                                        <small>Slot Date</small>
+                                        {{ appt.appointment_date|date:"d M Y" }}
+                                        <div style="font-size:10px;margin-top:2px;">{{ appt.appointment_time_slot }}</div>
+                                    </div>
+                                    <div>
+                                        <strong>🏢 {{ appt.procurement_center.name }}</strong>
+                                        <span class="muted" style="display: block; margin-top: 4px;">
+                                            Crop: <strong>🌾 {{ appt.produce.crop_name }}</strong> ({{ appt.produce.quantity }} {{ appt.produce.get_unit_display }})<br>
+                                            Appt: <strong>{{ appt.appointment_code }}</strong> &bull; Token: <strong>#{{ appt.token_number|default:'Pending' }}</strong><br>
+                                            Status: <strong style="color: var(--green);">{{ appt.get_status_display }}</strong>
+                                        </span>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="appointment-main">
+                                <div class="date-box" style="min-width: 120px;">
+                                    <small>Scheduled Slot</small>
                                     Slot Pending
-                                {% endif %}
-                            </div>
-                            <div>
-                                {% if procurement_record %}
-                                    <strong>🏢 Center: {{ procurement_record.center_display_name }}</strong>
-                                    <span class="muted" style="display: block; margin-top: 4px;">
-                                        Crop: <strong>{{ procurement_record.crop_name }}</strong> ({{ procurement_record.estimated_quantity_quintals }} Qtl)<br>
-                                        Token: <strong>#{{ procurement_record.token_number }}</strong> &bull; Status: <strong style="color: var(--green);">{{ procurement_record.get_current_stage_display }}</strong>
-                                    </span>
-                                {% else %}
+                                </div>
+                                <div>
                                     <strong>No Active Procurement Slot</strong>
-                                    <span class="muted" style="display: block; margin-top: 4px;">Register your harvested crop to get an assigned procurement appointment slot.</span>
-                                {% endif %}
+                                    <span class="muted" style="display: block; margin-top: 4px;">Register your harvested crop to schedule an assigned procurement appointment slot.</span>
+                                </div>
                             </div>
-                        </div>
+                        {% endif %}
                         <a class="button" href="{% url 'appointments:appointments' %}">View Full Appointment Details →</a>
                     </section>
 
+                    <!-- Active Tokens & Live Queue Section -->
                     <section class="panel" id="token">
                         <div class="card-title">
-                            <h3>My Token & Queue</h3>
+                            <h3>My Active Tokens &amp; Live Queue</h3>
                             <span style="font-size:22px;color:var(--green)">▤</span>
                         </div>
-                        <div class="detail-list">
-                            <div class="detail-row">
-                                <span>Token Number</span>
-                                <strong>{% if procurement_record %}#{{ procurement_record.token_number }}{% else %}Not assigned{% endif %}</strong>
+
+                        {% if active_tokens %}
+                            <div style="display: grid; gap: 14px;">
+                                {% for tok in active_tokens %}
+                                <div style="border-bottom: 1px solid var(--line); padding-bottom: 12px;">
+                                    {% if tok.is_your_turn %}
+                                    <div style="background:#fff5f5;border:2px solid #b71c1c;border-radius:8px;padding:10px;margin-bottom:10px;text-align:center;">
+                                        <strong style="color:#b71c1c;font-size:15px;">🚨 IT'S YOUR TURN!</strong>
+                                        <div style="font-size:12px;color:var(--ink);margin-top:2px;">Proceed to <strong>{{ tok.counter_number }}</strong> at {{ tok.procurement_center.name }}</div>
+                                    </div>
+                                    {% endif %}
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                        <strong>🌾 {{ tok.produce.crop_name }} &bull; Token #{{ tok.token_number }}</strong>
+                                        <span class="status-pill" style="font-size: 11px; padding: 2px 8px;">{{ tok.get_status_display }}</span>
+                                    </div>
+                                    <div class="detail-list" style="border-top: 0; padding-top: 0; gap: 6px;">
+                                        <div class="detail-row">
+                                            <span>Center</span>
+                                            <strong>{{ tok.procurement_center.name }}</strong>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span>Queue Position</span>
+                                            <strong style="color:var(--green);">#{{ tok.get_queue_position }}</strong>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span>Estimated Wait</span>
+                                            <strong>{{ tok.get_estimated_wait_display }}</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
                             </div>
-                            <div class="detail-row">
-                                <span>Procurement Center</span>
-                                <strong>{% if procurement_record %}{{ procurement_record.center_display_name }}{% else %}--{% endif %}</strong>
+                        {% else %}
+                            <div class="detail-list">
+                                <div class="detail-row">
+                                    <span>Token Status</span>
+                                    <strong>No Active Tokens</strong>
+                                </div>
+                                <div class="detail-row">
+                                    <span>Procurement Center</span>
+                                    <strong>{% if active_journey %}{{ active_journey.center_name }}{% else %}--{% endif %}</strong>
+                                </div>
+                                <div class="detail-row">
+                                    <span>Current Stage</span>
+                                    <strong style="color: var(--green);">{% if active_journey %}{{ active_journey.stage_display }}{% else %}--{% endif %}</strong>
+                                </div>
                             </div>
-                            <div class="detail-row">
-                                <span>Appointment Date</span>
-                                <strong>{% if procurement_record %}{{ procurement_record.appointment_date }}{% else %}--{% endif %}</strong>
-                            </div>
-                            <div class="detail-row">
-                                <span>Current Stage</span>
-                                <strong style="color: var(--green);">{% if procurement_record %}{{ procurement_record.get_current_stage_display }}{% else %}--{% endif %}</strong>
-                            </div>
-                        </div>
-                        <a class="button" href="{% url 'tokens:token_queue' %}">View Token Queue →</a>
+                        {% endif %}
+                        <a class="button" href="{% url 'tokens:token_queue' %}" style="margin-top:14px;">View Live Token Queue →</a>
                     </section>
                 </div>
+
                 <div class="split-grid">
-                    <section class="panel"><div class="card-title"><h3>My produce</h3><a class="section-link" href="{% url 'produce:my_produce' %}">View all →</a></div>{% if produce_list %}<div class="produce-list">{% for produce in produce_list %}<div class="produce-row"><div><strong>{{ produce.crop_name }}</strong><span class="muted">{{ produce.quantity }} {{ produce.get_unit_display }}</span></div><span class="produce-status">{{ produce.get_status_display }}</span></div>{% endfor %}</div>{% else %}<p class="empty">You have not registered any produce yet.</p>{% endif %}<a class="button" href="{% url 'produce:add_produce' %}">＋ Register produce</a></section>
-                    <section class="panel recommendation" id="centers"><div class="card-title"><h3>Recommended center</h3><span style="font-size:22px;color:var(--green)">⌖</span></div><p class="empty">Find state government MSP centers matched to your district and crop.</p><ul><li>District matching</li><li>Queue &amp; wait time</li><li>Crop suitability</li></ul><a class="button" href="{% url 'procurement:centers' %}">Find Procurement Center →</a></section>
+                    <!-- My Produce Section -->
+                    <section class="panel">
+                        <div class="card-title">
+                            <h3>My produce</h3>
+                            <a class="section-link" href="{% url 'produce:my_produce' %}">View all →</a>
+                        </div>
+                        {% if produce_list %}
+                            <div class="produce-list">
+                                {% for produce in produce_list %}
+                                <div class="produce-row">
+                                    <div>
+                                        <strong>🌾 {{ produce.crop_name }}</strong>
+                                        <span class="muted">{{ produce.quantity }} {{ produce.get_unit_display }} &bull; {{ produce.district }}</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <span class="produce-status">{{ produce.get_status_display }}</span>
+                                        {% if produce.status == 'AVAILABLE' %}
+                                            <a href="{% url 'procurement:centers' %}?produce_id={{ produce.id }}" class="button" style="padding:4px 10px;font-size:11px;margin-top:0;background:var(--green);">Request Procurement</a>
+                                        {% else %}
+                                            <a href="{% url 'procurement:status' %}?produce_id={{ produce.id }}" class="button muted-button" style="padding:4px 10px;font-size:11px;margin-top:0;">Track</a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="empty">You have not registered any produce yet.</p>
+                        {% endif %}
+                        <a class="button" href="{% url 'produce:add_produce' %}">＋ Register produce</a>
+                    </section>
+
+                    <!-- Recommended Center Section -->
+                    <section class="panel recommendation" id="centers">
+                        <div class="card-title">
+                            <h3>Recommended center</h3>
+                            <span style="font-size:22px;color:var(--green)">⌖</span>
+                        </div>
+                        <p class="empty">Find state government MSP centers matched to your district and crop.</p>
+                        <ul>
+                            <li>District matching</li>
+                            <li>Queue &amp; wait time</li>
+                            <li>Crop suitability</li>
+                        </ul>
+                        <a class="button" href="{% url 'procurement:centers' %}">Find Procurement Center →</a>
+                    </section>
                 </div>
+
                 <div class="split-grid">
-                    <section class="panel" id="payments"><div class="card-title"><h3>Payment status</h3><span style="font-size:22px;color:var(--green)">₹</span></div><p class="empty">Track your active procurement payouts and historical payment transfers.</p><div class="payment-amount" style="font-size:24px;">₹12,000 Processing</div><a class="button" href="{% url 'payments:payments' %}">View payment details →</a></section>
-                    <section class="panel" id="notifications"><div class="card-title"><h3>Recent updates</h3><a class="section-link" href="#notifications">View all →</a></div><div class="notification-row"><span>♢</span><span class="empty">No new notifications.</span></div><div class="notification-row"><span>🌾</span><span class="empty">Your registered produce will be shown here.</span></div></section>
+                    <!-- Payment Status Section -->
+                    <section class="panel" id="payments">
+                        <div class="card-title">
+                            <h3>Payment status</h3>
+                            <span style="font-size:22px;color:var(--green)">₹</span>
+                        </div>
+                        <p class="empty">Track your active procurement payouts and historical payment transfers.</p>
+                        <div class="payment-amount" style="font-size:24px;">₹{{ summary.payout_processing|floatformat:2 }} Processing</div>
+                        {% if summary.payout_completed > 0 %}
+                            <div style="font-size: 13px; color: var(--green); margin-bottom: 10px;">✓ ₹{{ summary.payout_completed|floatformat:2 }} Total Received</div>
+                        {% endif %}
+
+                        {% if payment_records %}
+                            <div class="detail-list" style="margin-top: 10px;">
+                                {% for item in payment_records %}
+                                <div class="detail-row">
+                                    <span>🌾 {{ item.crop_name }} ({{ item.quantity }})</span>
+                                    <strong>₹{{ item.amount|floatformat:2 }} &bull; {{ item.status }}</strong>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <a class="button" href="{% url 'payments:payments' %}" style="margin-top:12px;">View payment details →</a>
+                    </section>
+
+                    <!-- Recent Updates / Notifications Section -->
+                    <section class="panel" id="notifications">
+                        <div class="card-title">
+                            <h3>Recent updates</h3>
+                            <a class="section-link" href="{% url 'notifications:notifications' %}">View all →</a>
+                        </div>
+                        {% if recent_notifications %}
+                            <div style="display: grid; gap: 8px;">
+                                {% for notif in recent_notifications %}
+                                <div class="notification-row">
+                                    <span>🔔</span>
+                                    <div>
+                                        <strong style="display:block;">{{ notif.title }}</strong>
+                                        <span class="empty" style="font-size:12px;">{{ notif.message }}</span>
+                                        <div style="font-size:10px;color:var(--muted);margin-top:2px;">{{ notif.created_at|timesince }} ago</div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="notification-row"><span>♢</span><span class="empty">No new notifications.</span></div>
+                            <div class="notification-row"><span>🌾</span><span class="empty">Your registered produce updates will appear here.</span></div>
+                        {% endif %}
+                    </section>
                 </div>
             </main>
         </div>

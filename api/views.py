@@ -135,3 +135,13 @@ class ProduceViewSet(viewsets.ModelViewSet):
                 "Only available produce can be deleted."
             )
         instance.delete()
+
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    from .serializers import NotificationSerializer
+    serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        from notifications.models import Notification
+        return Notification.objects.filter(user=self.request.user).order_by("-created_at")

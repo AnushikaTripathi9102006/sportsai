@@ -100,3 +100,20 @@ class ProduceSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        from notifications.models import Notification
+        model = Notification
+        fields = [
+            "id",
+            "title",
+            "message",
+            "notification_type",
+            "is_read",
+            "target_url",
+            "created_at",
+            "read_at",
+        ]
+        read_only_fields = ["id", "created_at", "read_at"]

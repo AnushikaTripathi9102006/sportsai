@@ -173,7 +173,7 @@
                     {% if center %}
                     <div class="center-tag">
                         📍 <strong>Assigned Center:</strong> {{ center.name }} ({{ center.district }})<br>
-                        <small>Capacity: {{ center.daily_capacity_quintals }} Quintals/Day | Operational</small>
+                        <small>Capacity: {{ center.capacity_quintals }} Quintals/Day | Operational</small>
                     </div>
                     {% else %}
                     <div class="center-tag" style="border-color: var(--amber);">
@@ -191,26 +191,26 @@
                 {% endif %}
 
                 <div class="metrics-grid">
-                    <div class="metric-card">
+                    <a href="{% url 'procurement:officer_gate_entry' %}" class="metric-card">
                         <div class="metric-title">Today Gate Entries</div>
                         <div class="metric-value">{{ gate_entries_today }}</div>
-                        <div class="metric-sub">Farmers checked in today</div>
-                    </div>
-                    <div class="metric-card">
+                        <div class="metric-sub">Farmers checked in today →</div>
+                    </a>
+                    <a href="{% url 'procurement:officer_quality_check' %}" class="metric-card">
                         <div class="metric-title">Pending Quality Inspection</div>
                         <div class="metric-value" style="color: var(--amber);">{{ pending_quality }}</div>
-                        <div class="metric-sub">Awaiting lab assessment</div>
-                    </div>
-                    <div class="metric-card">
+                        <div class="metric-sub">Awaiting lab assessment →</div>
+                    </a>
+                    <a href="{% url 'procurement:officer_weighing' %}" class="metric-card">
                         <div class="metric-title">Pending Weighbridge</div>
                         <div class="metric-value" style="color: var(--purple);">{{ pending_weighing }}</div>
-                        <div class="metric-sub">Ready for net weight scale</div>
-                    </div>
-                    <div class="metric-card">
+                        <div class="metric-sub">Ready for net weight scale →</div>
+                    </a>
+                    <a href="{% url 'procurement:officer_history' %}?stage=COMPLETED" class="metric-card">
                         <div class="metric-title">Completed Today</div>
                         <div class="metric-value" style="color: var(--green);">{{ completed_today }}</div>
-                        <div class="metric-sub">Fully processed & paid</div>
-                    </div>
+                        <div class="metric-sub">Fully processed & paid →</div>
+                    </a>
                 </div>
 
                 <div class="stage-pipeline">
@@ -305,18 +305,20 @@
                                 </td>
                                 <td>{{ rec.created_at|date:"M d, Y, h:i A" }}</td>
                                 <td>
-                                    {% if rec.stage == 'GATE_ENTRY' %}
-                                        <a href="{% url 'procurement:officer_quality_check' %}" class="btn btn-sm">Inspect Quality</a>
+                                    {% if rec.stage == 'REGISTRATION' or rec.stage == 'APPOINTMENT' %}
+                                        <a href="{% url 'procurement:officer_gate_entry_action' rec.id %}" class="btn btn-sm">Gate Entry Pass</a>
+                                    {% elif rec.stage == 'GATE_ENTRY' %}
+                                        <a href="{% url 'procurement:officer_quality_check_action' rec.id %}" class="btn btn-sm">Inspect Quality</a>
                                     {% elif rec.stage == 'QUALITY_CHECK' %}
-                                        <a href="{% url 'procurement:officer_weighing' %}" class="btn btn-sm">Weigh Batch</a>
+                                        <a href="{% url 'procurement:officer_weighing_action' rec.id %}" class="btn btn-sm">Weigh Batch</a>
                                     {% elif rec.stage == 'WEIGHING' %}
-                                        <a href="{% url 'procurement:officer_acceptance' %}" class="btn btn-sm">Accept Batch</a>
+                                        <a href="{% url 'procurement:officer_acceptance_action' rec.id %}" class="btn btn-sm">Accept Batch</a>
                                     {% elif rec.stage == 'ACCEPTANCE' %}
-                                        <a href="{% url 'procurement:officer_bills' %}" class="btn btn-sm">Generate Bill</a>
+                                        <a href="{% url 'procurement:officer_bills_action' rec.id %}" class="btn btn-sm">Generate Bill</a>
                                     {% elif rec.stage == 'BILL_GENERATED' or rec.stage == 'PAYMENT_INITIATED' %}
-                                        <a href="{% url 'procurement:officer_payments' %}" class="btn btn-sm">Process Payout</a>
+                                        <a href="{% url 'procurement:officer_payments_action' rec.id %}" class="btn btn-sm">Process Payout</a>
                                     {% else %}
-                                        <a href="{% url 'procurement:officer_history' %}" class="btn btn-secondary btn-sm">Details</a>
+                                        <a href="{% url 'procurement:officer_history' %}?search={{ rec.token_number }}" class="btn btn-secondary btn-sm">Details</a>
                                     {% endif %}
                                 </td>
                             </tr>

@@ -5,113 +5,97 @@ from produce.models import Produce
 
 @login_required
 def payments(request):
+    from procurement.models import ProcurementRecord
+    from procurement.services import sync_all_farmer_procurements
+
+    sync_all_farmer_procurements()
+
     profile = getattr(request.user, "profile", None)
 
-    # Overview Cards Mock Metrics (isolated & clear for easy API replacement)
+    records = ProcurementRecord.objects.filter(
+        farmer=request.user
+    ).select_related("produce", "center").prefetch_related("bill", "payment_record").order_by("-updated_at")
+
+    history_records = []
+    total_earned = 0.0
+    pending_amount = 0.0
+    paid_amount = 0.0
+    last_payment_amount = 0.0
+    last_payment_date = "--"
+
+    current_payment = None
+
+    for rec in records:
+        bill = getattr(rec, "bill", None)
+        payment_rec = getattr(rec, "payment_record", None)
+
+        amt = float(bill.net_amount) if bill else float(rec.total_amount or 0.0)
+        if amt == 0 and rec.registered_quantity and rec.rate_per_unit:
+            amt = float(rec.registered_quantity * rec.rate_per_unit)
+
+        st = payment_rec.get_payment_status_display() if payment_rec else rec.payment_status
+        is_completed = (st in ["Received", "Completed", "PAYMENT_RECEIVED", "COMPLETED"]) or rec.current_stage in ["PAYMENT_RECEIVED", "COMPLETED"]
+
+        if is_completed:
+            paid_amount += amt
+            total_earned += amt
+            if last_payment_amount == 0 and amt > 0:
+                last_payment_amount = amt
+                last_payment_date = rec.updated_at.strftime("%d %b %Y")
+        else:
+            if amt > 0 or rec.current_stage in ["BILL_GENERATED", "PAYMENT_INITIATED", "ACCEPTANCE"]:
+                pending_amount += amt
+
+        item = {
+            "id": rec.id,
+            "date": rec.updated_at.strftime("%d %b %Y"),
+            "crop": rec.crop_name,
+            "quantity": f"{rec.actual_quantity or rec.registered_quantity} {rec.unit}",
+            "amount": f"₹{amt:,.2f}",
+            "amount_raw": amt,
+            "status": "Completed" if is_completed else "Processing",
+            "status_code": "COMPLETED" if is_completed else "PROCESSING",
+            "badge_color": "green" if is_completed else "yellow",
+            "receipt_available": is_completed or hasattr(rec, "bill"),
+            "token_number": f"#{rec.token_number}",
+            "center_name": rec.center_display_name,
+            "rate": f"₹{bill.rate_per_quintal if bill else rec.rate_per_unit:,.2f} / {rec.unit}",
+            "quality_grade": rec.quality_grade or "Grade A",
+            "transaction_id": payment_rec.transaction_reference if (payment_rec and payment_rec.transaction_reference) else (f"TXN-{rec.id:06d}"),
+            "stepper": [
+                {"label": "Amount Calculated", "state": "done" if rec.current_stage in ["ACCEPTANCE", "BILL_GENERATED", "PAYMENT_INITIATED", "PAYMENT_RECEIVED", "COMPLETED"] else "current"},
+                {"label": "Bill Generated", "state": "done" if rec.current_stage in ["BILL_GENERATED", "PAYMENT_INITIATED", "PAYMENT_RECEIVED", "COMPLETED"] else "pending"},
+                {"label": "Processing", "state": "current" if rec.current_stage in ["PAYMENT_INITIATED", "BILL_GENERATED"] else ("done" if is_completed else "pending")},
+                {"label": "Payment Completed", "state": "done" if is_completed else "pending"},
+            ]
+        }
+
+        history_records.append(item)
+
+        if not current_payment and not is_completed and amt > 0:
+            current_payment = item
+
+    if not current_payment and history_records:
+        current_payment = history_records[0]
+
     overview = {
-        "total_earned": "₹84,500",
-        "pending_amount": "₹12,000",
-        "paid_amount": "₹72,500",
-        "last_payment": "₹25,000",
-        "last_payment_date": "28 Aug 2026",
+        "total_earned": f"₹{total_earned:,.2f}",
+        "pending_amount": f"₹{pending_amount:,.2f}",
+        "paid_amount": f"₹{paid_amount:,.2f}",
+        "last_payment": f"₹{last_payment_amount:,.2f}" if last_payment_amount > 0 else "₹0.00",
+        "last_payment_date": last_payment_date,
     }
 
-    # Latest / Current Payment in Progress
-    current_payment = {
-        "id": 1,
-        "crop": "Wheat",
-        "quantity": "45 Quintal",
-        "rate": "₹2,666 / Quintal",
-        "quality_grade": "Grade A",
-        "amount": "₹12,000",
-        "status_code": "PROCESSING",
-        "status_label": "Processing",
-        "procurement_date": "04 Sep 2026",
-        "expected_date": "05 Sep 2026",
-        "token_number": "KF-1042",
-        "center_name": "Lucknow Procurement Center",
-        "payment_method": "Direct Bank Transfer",
-        "transaction_id": "Pending",
-        "stepper": [
-            {"label": "Amount Calculated", "state": "done"},
-            {"label": "Payment Initiated", "state": "done"},
-            {"label": "Processing", "state": "current"},
-            {"label": "Payment Completed", "state": "pending"},
-        ],
-    }
-
-    # Smart Payment Update (with preview query param ?delay=1)
     is_delayed = request.GET.get("delay", "0") == "1"
     smart_update = {
         "is_delayed": is_delayed,
         "title": "⚠️ PAYMENT DELAY" if is_delayed else "🤖 PAYMENT UPDATE",
         "message": (
-            "Your ₹12,000 payment for Wheat is taking slightly longer than expected due to bank network queue. "
-            "KisanFlow is monitoring the payment status automatically. You don't need to take any action right now."
+            f"Your payout for {current_payment['crop'] if current_payment else 'crop'} is processing automatically via bank network queue."
             if is_delayed
-            else "Your payment of ₹12,000 is currently processing. Based on the current payment status, "
-            "it is expected to reach your bank account by 05 Sep 2026."
+            else f"Your active payout of {current_payment['amount'] if current_payment else '₹0'} for {current_payment['crop'] if current_payment else 'produce'} is currently processing."
         ),
     }
-
-    # Payment History Data
-    history_records = [
-        {
-            "id": 1,
-            "date": "04 Sep 2026",
-            "crop": "Wheat",
-            "quantity": "45 Q",
-            "amount": "₹12,000",
-            "status": "Processing",
-            "status_code": "PROCESSING",
-            "badge_color": "yellow",
-            "receipt_available": False,
-        },
-        {
-            "id": 2,
-            "date": "28 Aug 2026",
-            "crop": "Rice",
-            "quantity": "30 Q",
-            "amount": "₹18,500",
-            "status": "Completed",
-            "status_code": "COMPLETED",
-            "badge_color": "green",
-            "receipt_available": True,
-        },
-        {
-            "id": 3,
-            "date": "15 Aug 2026",
-            "crop": "Wheat",
-            "quantity": "25 Q",
-            "amount": "₹15,000",
-            "status": "Completed",
-            "status_code": "COMPLETED",
-            "badge_color": "green",
-            "receipt_available": True,
-        },
-        {
-            "id": 4,
-            "date": "02 Aug 2026",
-            "crop": "Pulses",
-            "quantity": "18 Q",
-            "amount": "₹27,000",
-            "status": "Completed",
-            "status_code": "COMPLETED",
-            "badge_color": "green",
-            "receipt_available": True,
-        },
-        {
-            "id": 5,
-            "date": "20 Jul 2026",
-            "crop": "Mustard",
-            "quantity": "10 Q",
-            "amount": "₹12,000",
-            "status": "Failed",
-            "status_code": "FAILED",
-            "badge_color": "red",
-            "receipt_available": False,
-        },
-    ]
 
     return render(
         request,

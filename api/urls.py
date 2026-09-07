@@ -7,6 +7,7 @@ from .views import (
     LoginView,
     LogoutView,
     MeView,
+    NotificationViewSet,
     ProduceViewSet,
     ProfileView,
     RegisterView,
@@ -14,6 +15,7 @@ from .views import (
 
 router = DefaultRouter()
 router.register("produce", ProduceViewSet, basename="produce")
+router.register("notifications", NotificationViewSet, basename="notifications")
 
 urlpatterns = [
     path("auth/register/", RegisterView.as_view(), name="api-register"),

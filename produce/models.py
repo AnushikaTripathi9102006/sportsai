@@ -89,4 +89,10 @@ class Produce(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.crop_name} - {self.quantity} {self.get_unit_display()}"
+        return f"{self.crop_name} - {self.quantity} {self.get_unit_display()}"
+
+    @property
+    def appointment(self):
+        if hasattr(self, "appointments"):
+            return self.appointments.filter(status="CONFIRMED").first() or self.appointments.first()
+        return None

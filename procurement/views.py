@@ -29,15 +29,23 @@ from .services import (
 
 
 
+from .recommendation_engine import get_recommended_centers
+
+
 @login_required
 def centers(request):
     profile = getattr(request.user, "profile", None)
 
-    # Fetch farmer's latest registered produce
+    # Fetch farmer's latest registered produce or produce requested via query param
     produce_list = Produce.objects.filter(farmer=request.user).order_by("-created_at")
-    active_produce = produce_list.first()
+    produce_id = request.GET.get("produce_id")
+    active_produce = None
+    if produce_id:
+        active_produce = produce_list.filter(pk=produce_id).first()
+    if not active_produce:
+        active_produce = produce_list.first()
 
-    # Determine target district from GET search or produce district or default
+    # Determine target district
     selected_district = request.GET.get("district", "").strip()
     search_query = request.GET.get("search", "").strip()
     selected_queue = request.GET.get("queue", "").strip().upper()
@@ -47,24 +55,19 @@ def centers(request):
     if not selected_district:
         selected_district = "Lucknow"
 
-    all_centers = ProcurementCenter.objects.filter(is_active=True)
+    # Use Intelligent Recommendation Engine
+    top_recommendation, ranked_centers = get_recommended_centers(
+        produce=active_produce,
+        farmer=request.user,
+        target_district=selected_district,
+    )
 
-    # Filter by search query
-    filtered_centers = all_centers
+    # Apply search and queue filters if provided
+    filtered_centers = ranked_centers
     if search_query:
-        filtered_centers = filtered_centers.filter(name__icontains=search_query)
-
-    # Filter by queue status
+        filtered_centers = [c for c in filtered_centers if search_query.lower() in c.name.lower()]
     if selected_queue in ["LOW", "MEDIUM", "HIGH"]:
-        filtered_centers = filtered_centers.filter(queue_status=selected_queue)
-
-    # Priority matching by district
-    same_district_centers = filtered_centers.filter(district__iexact=selected_district)
-    other_district_centers = filtered_centers.exclude(district__iexact=selected_district)
-
-    nearby_centers = list(same_district_centers) + list(other_district_centers)
-
-    recommended_center = same_district_centers.first() or filtered_centers.first() or all_centers.first()
+        filtered_centers = [c for c in filtered_centers if (c.queue_status or "LOW").upper() == selected_queue]
 
     up_districts_list = [d[0] for d in UP_DISTRICTS]
 
@@ -75,14 +78,77 @@ def centers(request):
             "farmer": request.user,
             "profile": profile,
             "active_produce": active_produce,
-            "recommended_center": recommended_center,
-            "nearby_centers": nearby_centers,
+            "recommended_center": top_recommendation,
+            "ranked_centers": filtered_centers,
+            "nearby_centers": filtered_centers,
             "selected_district": selected_district,
             "search_query": search_query,
             "selected_queue": selected_queue,
             "up_districts": up_districts_list,
         },
     )
+
+
+@login_required
+def select_center(request):
+    """
+    Farmer Explicit Center Selection Endpoint.
+    Saves the selected procurement center against the farmer's procurement record.
+    """
+    if request.method != "POST":
+        return redirect("procurement:centers")
+
+    produce_id = request.POST.get("produce_id")
+    center_id = request.POST.get("center_id")
+
+    if not produce_id or not center_id:
+        messages.error(request, "Please select a valid produce batch and procurement center.")
+        return redirect("procurement:centers")
+
+    produce = get_object_or_404(Produce, pk=produce_id, farmer=request.user)
+    center = get_object_or_404(ProcurementCenter, pk=center_id, is_active=True)
+
+    # Backend Validation: Ensure center handles the crop
+    crops_list = [c.strip().lower() for c in center.crops_handled.split(",")]
+    if produce.crop_name.lower() not in crops_list and not any(produce.crop_name.lower() in c for c in crops_list):
+        messages.error(request, f"Center '{center.name}' does not handle procurement for crop '{produce.crop_name}'.")
+        return redirect(f"/procurement/centers/?produce_id={produce.id}")
+
+    with transaction.atomic():
+        rec, created = ProcurementRecord.objects.get_or_create(
+            produce=produce,
+            farmer=request.user,
+            defaults={
+                "crop_name": produce.crop_name,
+                "registered_quantity": produce.quantity,
+                "unit": produce.get_unit_display(),
+                "center": center,
+                "center_name": center.name,
+                "current_stage": "REGISTRATION",
+            },
+        )
+        if not created:
+            rec.center = center
+            rec.center_name = center.name
+            rec.save()
+
+        if produce.status == "AVAILABLE":
+            produce.status = "REQUESTED"
+            produce.save()
+
+        from notifications.services import notify_farmer
+        notify_farmer(
+            farmer_user=request.user,
+            title="📍 Procurement Center Selected",
+            message=f"Your procurement request for {produce.crop_name} has been registered at {center.name}.",
+            notification_type="CENTER_ASSIGNED",
+            target_url=f"/appointments/book/?produce_id={produce.id}&center_id={center.id}",
+            related_object=center,
+            event_key=f"center_select_{produce.id}_{center.id}",
+        )
+
+    messages.success(request, f"Procurement center '{center.name}' selected! Now select your appointment date and time slot.")
+    return redirect(f"/appointments/book/?produce_id={produce.id}&center_id={center.id}")
 
 
 @login_required
@@ -95,68 +161,219 @@ def confirm_center(request):
     return render(request, "procurement/confirm_center.html")
 
 
-@login_required
-def status(request):
-    profile = getattr(request.user, "profile", None)
+STAGE_RANKS = {
+    "AVAILABLE": 0,
+    "REQUESTED": 1,
+    "REGISTRATION": 1,
+    "APPOINTMENT": 2,
+    "GATE_ENTRY": 3,
+    "QUALITY_CHECK": 4,
+    "WEIGHING": 5,
+    "ACCEPTANCE": 6,
+    "BILL_GENERATED": 7,
+    "PAYMENT_INITIATED": 8,
+    "PAYMENT_RECEIVED": 9,
+    "COMPLETED": 10,
+    "REJECTED": -1,
+    "CANCELLED": -1,
+}
 
-    # Fetch farmer's active produce
-    produce_list = Produce.objects.filter(farmer=request.user).order_by("-created_at")
-    active_produce = produce_list.filter(status="REQUESTED").first() or produce_list.first()
+def _build_produce_status_dict(produce, farmer):
+    from appointments.models import Appointment
+    from tokens.models import Token
 
-    # Stage switcher via query parameter for testing/demoing all state transitions
-    selected_stage = request.GET.get("stage", "weighing").lower()
+    rec = ProcurementRecord.objects.filter(produce=produce, farmer=farmer).first()
+    appt = Appointment.objects.filter(produce=produce, farmer=farmer).first() if not rec else None
+    tok = Token.objects.filter(produce=produce, farmer=farmer).first() if not rec else None
 
-    valid_stages = ["verification", "quality", "weighing", "completed"]
-    if selected_stage not in valid_stages:
-        selected_stage = "weighing"
+    registered_qty = float(produce.quantity)
+    unit = produce.get_unit_display()
 
-    stage_display_map = {
-        "verification": "Verification in Progress",
-        "quality": "Quality Inspection in Progress",
-        "weighing": "Weighing in Progress",
-        "completed": "Procurement Confirmed",
-    }
+    if rec:
+        stage = rec.current_stage
+        stage_rank = STAGE_RANKS.get(stage, 1)
+        stage_display = rec.get_current_stage_display()
+        center_name = rec.center.name if rec.center else (rec.center_name or "Procurement Center")
+        token_number = f"#{rec.token_number}" if rec.token_number else "Pending"
+        appointment_time = rec.appointment_date or "Slot Assigned"
+        
+        actual_qty = float(rec.actual_quantity) if rec.actual_quantity is not None else None
+        diff_qty = round(actual_qty - registered_qty, 2) if actual_qty is not None else None
+        
+        verified_by = rec.verified_by or "Procurement Officer"
+        verification_status = "Completed" if stage_rank >= 3 else ("In Progress" if stage_rank == 2 else "Pending")
 
-    # Dynamic values based on active produce or defaults
-    crop_name = active_produce.crop_name if active_produce else "Wheat"
-    registered_qty = float(active_produce.quantity) if active_produce else 50.0
-    actual_qty = round(registered_qty - 1.3, 2) if selected_stage in ["weighing", "completed"] else None
-    diff_qty = round(actual_qty - registered_qty, 2) if actual_qty else None
+        quality_assessment = getattr(rec, "quality_assessment", None)
+        if quality_assessment:
+            quality_status = quality_assessment.get_result_display()
+            quality_grade = quality_assessment.get_quality_grade_display()
+            moisture_content = f"{quality_assessment.moisture_percentage}%"
+            officer_remarks = quality_assessment.remarks or rec.officer_remarks or "Quality inspection completed."
+        else:
+            quality_status = rec.quality_status
+            quality_grade = rec.quality_grade
+            moisture_content = rec.moisture_content
+            officer_remarks = rec.officer_remarks or ("Quality inspection pending." if stage_rank < 4 else "In progress")
 
-    rate_per_quintal = 2275.00
-    total_amount = round(actual_qty * rate_per_quintal, 2) if actual_qty else round(registered_qty * rate_per_quintal, 2)
+        bill = getattr(rec, "bill", None)
+        if bill:
+            rate_per_quintal = float(bill.rate_per_quintal)
+            total_amount = float(bill.net_amount)
+        else:
+            rate_per_quintal = float(rec.rate_per_unit)
+            total_amount = float(rec.total_amount) if rec.total_amount else round((actual_qty or registered_qty) * rate_per_quintal, 2)
 
-    procurement_data = {
-        "crop_name": crop_name,
+        payment_record = getattr(rec, "payment_record", None)
+        if payment_record:
+            payment_status = payment_record.get_payment_status_display()
+        else:
+            payment_status = rec.payment_status
+
+        overall_status = f"Status: {stage_display}"
+        if stage == "COMPLETED":
+            overall_status = "Procurement Completed ✅"
+        elif stage == "REJECTED":
+            overall_status = "Procurement Rejected ❌"
+
+    elif appt:
+        stage = "APPOINTMENT"
+        stage_rank = 2
+        stage_display = "Appointment Confirmed"
+        center_name = appt.procurement_center.name if appt.procurement_center else "Procurement Center"
+        token_number = f"#{appt.token_number}" if appt.token_number else "Pending"
+        appointment_time = f"{appt.appointment_date} ({appt.appointment_time_slot})"
+        actual_qty = None
+        diff_qty = None
+        verified_by = "Procurement Officer"
+        verification_status = "Pending"
+        quality_status = "Pending"
+        quality_grade = "Pending"
+        moisture_content = "--"
+        officer_remarks = "Awaiting arrival at center."
+        rate_per_quintal = 2275.00
+        total_amount = round(registered_qty * rate_per_quintal, 2)
+        payment_status = "Pending"
+        overall_status = "Appointment Confirmed 📅"
+
+    elif tok:
+        stage = "APPOINTMENT"
+        stage_rank = 2
+        stage_display = f"Token Issued (#{tok.token_number})"
+        center_name = tok.procurement_center.name if tok.procurement_center else "Procurement Center"
+        token_number = f"#{tok.token_number}"
+        appointment_time = f"{tok.date}"
+        actual_qty = None
+        diff_qty = None
+        verified_by = "Procurement Officer"
+        verification_status = "Pending"
+        quality_status = "Pending"
+        quality_grade = "Pending"
+        moisture_content = "--"
+        officer_remarks = "Token generated."
+        rate_per_quintal = 2275.00
+        total_amount = round(registered_qty * rate_per_quintal, 2)
+        payment_status = "Pending"
+        overall_status = "Token Active 🎟️"
+
+    elif produce.status == "REQUESTED":
+        stage = "REQUESTED"
+        stage_rank = 1
+        stage_display = "Procurement Requested"
+        center_name = "Awaiting Center Selection"
+        token_number = "--"
+        appointment_time = "--"
+        actual_qty = None
+        diff_qty = None
+        verified_by = "Procurement Officer"
+        verification_status = "Pending"
+        quality_status = "Pending"
+        quality_grade = "Pending"
+        moisture_content = "--"
+        officer_remarks = "Procurement requested. Please select a procurement center."
+        rate_per_quintal = 2275.00
+        total_amount = round(registered_qty * rate_per_quintal, 2)
+        payment_status = "Pending"
+        overall_status = "Procurement Requested 📦"
+
+    else:
+        stage = "AVAILABLE"
+        stage_rank = 0
+        stage_display = "Available / Not Requested"
+        center_name = "--"
+        token_number = "--"
+        appointment_time = "--"
+        actual_qty = None
+        diff_qty = None
+        verified_by = "--"
+        verification_status = "Not Started"
+        quality_status = "Not Started"
+        quality_grade = "--"
+        moisture_content = "--"
+        officer_remarks = "Produce registered. Click 'Request Procurement' to select a center."
+        rate_per_quintal = 2275.00
+        total_amount = round(registered_qty * rate_per_quintal, 2)
+        payment_status = "Not Started"
+        overall_status = "Available for Procurement 🌾"
+
+    return {
+        "produce": produce,
+        "id": produce.id,
+        "crop_name": produce.crop_name,
         "registered_qty": registered_qty,
         "actual_qty": actual_qty,
         "diff_qty": diff_qty,
-        "unit": active_produce.get_unit_display() if active_produce else "Quintals",
-        "center_name": "Lucknow Procurement Hub",
-        "counter_number": "Counter 2",
-        "token_number": f"A-1{active_produce.id:02d}" if active_produce else "A-104",
-        "appointment_time": "12 September 2026, 10:30 AM",
-        "current_stage": selected_stage,
-        "stage_title": stage_display_map[selected_stage],
-        "overall_status": "Procurement Completed" if selected_stage == "completed" else "Procurement in Progress",
-        # Verification
-        "verification_status": "Completed" if selected_stage in ["quality", "weighing", "completed"] else "In Progress",
-        "verified_by": "Officer R. Sharma",
-        # Quality Check
-        "quality_status": "Passed" if selected_stage in ["weighing", "completed"] else ("In Progress" if selected_stage == "quality" else "Pending"),
-        "quality_grade": "Grade A",
-        "moisture_content": "11.5%",
-        "officer_remarks": "Produce meets all fair market procurement quality standards.",
-        # Financials
+        "unit": unit,
+        "status": produce.status,
+        "harvest_date": produce.harvest_date,
+        "center_name": center_name,
+        "counter_number": rec.counter_number if rec else "Counter 1",
+        "token_number": token_number,
+        "appointment_time": appointment_time,
+        "stage": stage,
+        "stage_rank": stage_rank,
+        "stage_title": stage_display,
+        "overall_status": overall_status,
+        "verification_status": verification_status,
+        "verified_by": verified_by,
+        "quality_status": quality_status,
+        "quality_grade": quality_grade,
+        "moisture_content": moisture_content,
+        "officer_remarks": officer_remarks,
         "rate_per_quintal": rate_per_quintal,
         "total_amount": total_amount,
-        "payment_status": "Completed" if selected_stage == "completed" else "Processing",
+        "payment_status": payment_status,
+        "procurement_record": rec,
     }
 
+
+@login_required
+def status(request):
+    sync_all_farmer_procurements()
+    profile = getattr(request.user, "profile", None)
+
+    produce_list = Produce.objects.filter(farmer=request.user).order_by("-created_at")
+    all_farmer_crops = [_build_produce_status_dict(p, request.user) for p in produce_list]
+
+    target_produce_id = request.GET.get("produce_id")
+    active_crop = None
+    if target_produce_id:
+        active_crop = next((c for c in all_farmer_crops if str(c["id"]) == str(target_produce_id)), None)
+    if not active_crop:
+        # Default to first crop in progress / requested, or first crop
+        active_crop = next((c for c in all_farmer_crops if c["stage_rank"] > 0), None) or (all_farmer_crops[0] if all_farmer_crops else None)
+
+    history_records = ProcurementRecord.objects.filter(farmer=request.user, current_stage="COMPLETED").order_by("-updated_at")
     procurement_history = [
-        {"date": "28 Aug 2026", "crop": "Wheat", "quantity": "45.0 Quintals", "center": "Lucknow Hub", "amount": "₹102,375.00", "status": "Completed"},
-        {"date": "18 Aug 2026", "crop": "Rice", "quantity": "30.0 Quintals", "center": "Gomti Center", "amount": "₹65,400.00", "status": "Completed"},
-        {"date": "10 Aug 2026", "crop": "Pulses", "quantity": "20.0 Quintals", "center": "Center A", "amount": "₹48,000.00", "status": "Completed"},
+        {
+            "id": rec.id,
+            "date": rec.updated_at.strftime("%d %b %Y"),
+            "crop": rec.crop_name,
+            "quantity": f"{rec.actual_quantity or rec.registered_quantity} {rec.unit}",
+            "center": rec.center_display_name,
+            "amount": f"₹{rec.bill.net_amount:,.2f}" if hasattr(rec, "bill") else f"₹{rec.total_amount:,.2f}",
+            "status": "Completed",
+        }
+        for rec in history_records
     ]
 
     return render(
@@ -165,58 +382,48 @@ def status(request):
         {
             "farmer": request.user,
             "profile": profile,
-            "active_produce": active_produce,
-            "procurement": procurement_data,
+            "all_farmer_crops": all_farmer_crops,
+            "active_crop": active_crop,
+            "procurement": active_crop,
             "procurement_history": procurement_history,
-            "selected_stage": selected_stage,
+            "total_crops_count": len(all_farmer_crops),
         },
     )
 
 
 @login_required
 def status_detail(request):
+    sync_all_farmer_procurements()
     profile = getattr(request.user, "profile", None)
 
     produce_list = Produce.objects.filter(farmer=request.user).order_by("-created_at")
-    active_produce = produce_list.filter(status="REQUESTED").first() or produce_list.first()
-    selected_stage = request.GET.get("stage", "weighing").lower()
+    all_farmer_crops = [_build_produce_status_dict(p, request.user) for p in produce_list]
 
-    registered_qty = float(active_produce.quantity) if active_produce else 50.0
-    actual_qty = round(registered_qty - 1.3, 2)
-    rate_per_quintal = 2275.00
-    total_amount = round(actual_qty * rate_per_quintal, 2)
+    target_produce_id = request.GET.get("produce_id")
+    active_crop = None
+    if target_produce_id:
+        active_crop = next((c for c in all_farmer_crops if str(c["id"]) == str(target_produce_id)), None)
+    if not active_crop:
+        active_crop = next((c for c in all_farmer_crops if c["stage_rank"] > 0), None) or (all_farmer_crops[0] if all_farmer_crops else None)
 
-    procurement_data = {
-        "crop_name": active_produce.crop_name if active_produce else "Wheat",
-        "registered_qty": registered_qty,
-        "actual_qty": actual_qty,
-        "diff_qty": round(actual_qty - registered_qty, 2),
-        "unit": active_produce.get_unit_display() if active_produce else "Quintals",
-        "harvest_date": active_produce.harvest_date.strftime("%d %b %Y") if active_produce else "01 Sep 2026",
-        "center_name": "Lucknow Procurement Hub",
-        "counter_number": "Counter 2",
-        "token_number": f"A-1{active_produce.id:02d}" if active_produce else "A-104",
-        "appointment_time": "12 September 2026, 10:30 AM",
-        "verified_by": "Officer R. Sharma",
-        "quality_grade": "Grade A",
-        "moisture_content": "11.5%",
-        "officer_remarks": "Produce meets all fair market procurement quality standards.",
-        "rate_per_quintal": rate_per_quintal,
-        "total_amount": total_amount,
-        "payment_status": "Processing",
-    }
+    timeline_items = []
+    if active_crop:
+        rank = active_crop["stage_rank"]
+        rec = active_crop["procurement_record"]
 
-    timeline_items = [
-        {"stage": "Produce Registered", "timestamp": "01 Sep 2026, 09:30 AM", "status": "done"},
-        {"stage": "Appointment Confirmed", "timestamp": "10 Sep 2026, 02:15 PM", "status": "done"},
-        {"stage": "Farmer Arrived", "timestamp": "12 Sep 2026, 10:20 AM", "status": "done"},
-        {"stage": "Verification Completed", "timestamp": "12 Sep 2026, 10:45 AM", "status": "done"},
-        {"stage": "Quality Inspection Passed", "timestamp": "12 Sep 2026, 11:10 AM", "status": "done"},
-        {"stage": "Weighing Recorded (48.7 Q)", "timestamp": "12 Sep 2026, 11:35 AM", "status": "current"},
-        {"stage": "Procurement Confirmed", "timestamp": "Pending", "status": "pending"},
-        {"stage": "Payment Processing", "timestamp": "Pending", "status": "pending"},
-        {"stage": "Payment Completed", "timestamp": "Pending", "status": "pending"},
-    ]
+        created_ts = produce_list.filter(id=active_crop["id"]).first().created_at.strftime("%d %b %Y, %I:%M %p") if produce_list.filter(id=active_crop["id"]).first() else "Registered"
+        
+        timeline_items = [
+            {"stage": "Produce Registered", "timestamp": created_ts, "status": "done" if rank >= 1 else "current"},
+            {"stage": "Appointment & Center Confirmed", "timestamp": active_crop["appointment_time"], "status": "done" if rank >= 2 else ("current" if rank == 1 else "pending")},
+            {"stage": "Gate Entry & Arrival", "timestamp": rec.gate_entry_at.strftime("%d %b %Y, %I:%M %p") if (rec and rec.gate_entry_at) else "Pending", "status": "done" if rank >= 3 else ("current" if rank == 2 else "pending")},
+            {"stage": "Identity & Produce Verification", "timestamp": f"Verified by {active_crop['verified_by']}" if rank >= 3 else "Pending", "status": "done" if rank >= 4 else ("current" if rank == 3 else "pending")},
+            {"stage": "Quality Inspection Passed", "timestamp": f"Grade {active_crop['quality_grade']} ({active_crop['moisture_content']})" if rank >= 4 else "Pending", "status": "done" if rank >= 5 else ("current" if rank == 4 else "pending")},
+            {"stage": "Weighing Scale Measured", "timestamp": f"{active_crop['actual_qty']} {active_crop['unit']}" if active_crop['actual_qty'] else "Pending", "status": "done" if rank >= 6 else ("current" if rank == 5 else "pending")},
+            {"stage": "Final Batch Acceptance", "timestamp": "Approved by Officer" if rank >= 6 else "Pending", "status": "done" if rank >= 7 else ("current" if rank == 6 else "pending")},
+            {"stage": "Bill Generated", "timestamp": f"₹{active_crop['total_amount']:,.2f}" if rank >= 7 else "Pending", "status": "done" if rank >= 8 else ("current" if rank == 7 else "pending")},
+            {"stage": "Payment Disbursement & Completed", "timestamp": active_crop["payment_status"], "status": "done" if rank >= 9 else ("current" if rank == 8 else "pending")},
+        ]
 
     return render(
         request,
@@ -224,12 +431,13 @@ def status_detail(request):
         {
             "farmer": request.user,
             "profile": profile,
-            "active_produce": active_produce,
-            "procurement": procurement_data,
+            "active_produce": produce_list.filter(id=active_crop["id"]).first() if active_crop else None,
+            "procurement": active_crop,
             "timeline": timeline_items,
-            "selected_stage": selected_stage,
+            "all_farmer_crops": all_farmer_crops,
         },
     )
+
 
 
 # ==============================================================================
@@ -239,15 +447,11 @@ def status_detail(request):
 def _get_officer_records(center):
     if center:
         return ProcurementRecord.objects.filter(
-            models.Q(
-                models.Q(center=center),
-                models.Q(center__district__iexact=center.district),
-                models.Q(produce__district__iexact=center.district),
-                models.Q(center__isnull=True),
-                _connector=models.Q.OR,
-            )
+            models.Q(center=center) |
+            models.Q(center__isnull=True, produce__district__iexact=center.district)
         ).distinct()
     return ProcurementRecord.objects.all()
+
 
 
 @login_required
@@ -266,6 +470,12 @@ def officer_appointments(request):
             if rec.current_stage == "REGISTRATION":
                 rec.current_stage = "APPOINTMENT"
             rec.save()
+
+            if hasattr(rec, "appointment") and rec.appointment:
+                appt = rec.appointment
+                appt.status = "CONFIRMED"
+                appt.save()
+
             messages.success(request, f"Successfully updated appointment slot for {rec.farmer.get_full_name() or rec.farmer.username} to '{appointment_date}'.")
             return redirect("procurement:officer_appointments")
 
@@ -374,6 +584,25 @@ def officer_queue(request):
         "payment_initiated": base_records.filter(current_stage="PAYMENT_INITIATED").count(),
     }
 
+    from tokens.models import Token
+    from django.utils import timezone
+    today = timezone.now().date()
+
+    current_called_token = None
+    waiting_tokens = []
+    if center:
+        current_called_token = Token.objects.filter(
+            procurement_center=center,
+            date=today,
+            status="CALLED",
+        ).select_related("farmer", "produce", "procurement_record").first()
+
+        waiting_tokens = Token.objects.filter(
+            procurement_center=center,
+            date=today,
+            status="WAITING",
+        ).select_related("farmer", "produce").order_by("sequence_number")
+
     return render(
         request,
         "procurement/officer_queue.html",
@@ -383,6 +612,9 @@ def officer_queue(request):
             "center": center,
             "active_records": active_records,
             "queue_counts": queue_counts,
+            "current_called_token": current_called_token,
+            "waiting_tokens": waiting_tokens,
+            "waiting_count": len(waiting_tokens),
         },
     )
 

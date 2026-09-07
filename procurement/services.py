@@ -92,6 +92,12 @@ def transition_procurement_stage(actor, record, target_stage, details=""):
         record.current_stage = target_stage
         record.save()
 
+        try:
+            from tokens.services import sync_token_stage
+            sync_token_stage(record, target_stage)
+        except Exception:
+            pass
+
         create_audit_log(
             actor=actor,
             action=f"STAGE_TRANSITION: {current_stage} -> {target_stage}",
@@ -126,6 +132,30 @@ def perform_gate_entry(officer, record, vehicle_number="", notes=""):
             target_stage="GATE_ENTRY",
             details=details_msg,
         )
+
+        try:
+            from notifications.services import notify_farmer, notify_officer
+            notify_farmer(
+                farmer_user=record.farmer,
+                title="🚜 Gate Entry Recorded",
+                message=f"Your arrival at {record.center_name or 'Procurement Center'} has been recorded.",
+                notification_type="PROCUREMENT",
+                target_url="/procurement/status/",
+                related_object=record,
+                event_key=f"gate_entry_{record.id}",
+            )
+            notify_officer(
+                officer_user=officer,
+                title="🚜 Farmer Arrived",
+                message=f"Farmer {record.farmer.get_full_name() or record.farmer.username} has completed gate entry for {record.crop_name}.",
+                notification_type="PROCUREMENT",
+                target_url=f"/procurement/officer/quality-check/?record_id={record.id}",
+                related_object=record,
+                event_key=f"officer_gate_{record.id}",
+            )
+        except Exception:
+            pass
+
         return record
 
 
@@ -165,6 +195,31 @@ def perform_quality_check(
         record.quality_status = "Passed" if result == "PASSED" else "Rejected"
         record.officer_remarks = remarks
         record.save()
+
+        try:
+            from notifications.services import notify_farmer
+            if result == "REJECTED":
+                notify_farmer(
+                    farmer_user=record.farmer,
+                    title="⚠️ Quality Check Failed",
+                    message=f"Your {record.crop_name} produce did not pass quality inspection. Reason: {rejection_reason or 'Failed standards'}.",
+                    notification_type="QUALITY",
+                    target_url="/procurement/status/",
+                    related_object=record,
+                    event_key=f"quality_fail_{record.id}",
+                )
+            else:
+                notify_farmer(
+                    farmer_user=record.farmer,
+                    title="✅ Quality Check Passed",
+                    message=f"Your {record.crop_name} produce successfully passed quality inspection ({quality.get_quality_grade_display()}).",
+                    notification_type="QUALITY",
+                    target_url="/procurement/status/",
+                    related_object=record,
+                    event_key=f"quality_pass_{record.id}",
+                )
+        except Exception:
+            pass
 
         if result == "REJECTED":
             record.rejection_reason = rejection_reason
@@ -221,6 +276,21 @@ def perform_weighing(officer, record, gross_weight, tare_weight, remarks=""):
             target_stage="ACCEPTANCE",
             details=f"Weighing recorded: Gross={gross}, Tare={tare}, Net={net}",
         )
+
+        try:
+            from notifications.services import notify_farmer
+            notify_farmer(
+                farmer_user=record.farmer,
+                title="⚖️ Weighing Completed",
+                message=f"Your {record.crop_name} produce has been weighed. Final net quantity: {net} {record.unit}.",
+                notification_type="WEIGHING",
+                target_url="/procurement/status/",
+                related_object=record,
+                event_key=f"weighing_{record.id}",
+            )
+        except Exception:
+            pass
+
         return weighing
 
 
@@ -237,6 +307,19 @@ def perform_acceptance(officer, record, decision, rejection_reason=""):
                 target_stage="REJECTED",
                 details=f"Procurement rejected at acceptance: {rejection_reason}",
             )
+            try:
+                from notifications.services import notify_farmer
+                notify_farmer(
+                    farmer_user=record.farmer,
+                    title="❌ Produce Rejected",
+                    message=f"Your {record.crop_name} produce has been rejected. Reason: {rejection_reason}.",
+                    notification_type="PROCUREMENT",
+                    target_url="/procurement/status/",
+                    related_object=record,
+                    event_key=f"acceptance_reject_{record.id}",
+                )
+            except Exception:
+                pass
         else:
             if record.current_stage == "WEIGHING":
                 transition_procurement_stage(
@@ -245,6 +328,19 @@ def perform_acceptance(officer, record, decision, rejection_reason=""):
                     target_stage="ACCEPTANCE",
                     details=f"Procurement accepted by {officer.username}",
                 )
+            try:
+                from notifications.services import notify_farmer
+                notify_farmer(
+                    farmer_user=record.farmer,
+                    title="✅ Produce Accepted",
+                    message=f"Your {record.crop_name} produce has been accepted for procurement.",
+                    notification_type="PROCUREMENT",
+                    target_url="/procurement/status/",
+                    related_object=record,
+                    event_key=f"acceptance_accept_{record.id}",
+                )
+            except Exception:
+                pass
         return record
 
 
@@ -291,6 +387,21 @@ def perform_bill_generation(officer, record, rate_per_quintal=2275.00, deduction
             target_stage="BILL_GENERATED",
             details=f"Bill #{bill_no} generated for ₹{net_amt}",
         )
+
+        try:
+            from notifications.services import notify_farmer
+            notify_farmer(
+                farmer_user=record.farmer,
+                title="🧾 Procurement Bill Generated",
+                message=f"Your procurement bill #{bill_no} has been generated. Total Amount: ₹{net_amt:,.2f}.",
+                notification_type="BILL",
+                target_url="/payments/",
+                related_object=bill,
+                event_key=f"bill_gen_{bill.id}",
+            )
+        except Exception:
+            pass
+
         return bill
 
 
@@ -322,6 +433,22 @@ def perform_payment_initiation(officer, record, transaction_reference=""):
             target_stage="PAYMENT_INITIATED",
             details=f"Payment initiated. Txn Ref: {ref_no}",
         )
+
+        try:
+            from notifications.services import notify_farmer
+            amt = float(record.total_amount or 0)
+            notify_farmer(
+                farmer_user=record.farmer,
+                title="💰 Payment Initiated",
+                message=f"Payment of ₹{amt:,.2f} has been initiated for your procurement.",
+                notification_type="PAYMENT",
+                target_url="/payments/",
+                related_object=record,
+                event_key=f"pay_init_{record.id}",
+            )
+        except Exception:
+            pass
+
         return payment
 
 
@@ -355,5 +482,29 @@ def perform_payment_received(officer, record):
         if record.produce:
             record.produce.status = "PROCURED"
             record.produce.save()
+
+        try:
+            from notifications.services import notify_farmer
+            amt = float(record.total_amount or 0)
+            notify_farmer(
+                farmer_user=record.farmer,
+                title="💰 Payment Received",
+                message=f"Payment of ₹{amt:,.2f} has been successfully processed.",
+                notification_type="PAYMENT",
+                target_url="/payments/",
+                related_object=record,
+                event_key=f"pay_recv_{record.id}",
+            )
+            notify_farmer(
+                farmer_user=record.farmer,
+                title="🎉 Procurement Completed",
+                message=f"Your {record.crop_name} procurement has been completed successfully.",
+                notification_type="PROCUREMENT",
+                target_url="/procurement/status/",
+                related_object=record,
+                event_key=f"proc_completed_{record.id}",
+            )
+        except Exception:
+            pass
 
         return payment

@@ -210,18 +210,31 @@
                     {% endif %}
                 </section>
 
-                {% if active_produce %}
+                {% if all_active_tokens and all_active_tokens.count > 1 %}
+                <div style="background: var(--white); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                    <strong style="font-size: 14px; font-family: Arial;">🎫 Your Active Queue Tokens ({{ all_active_tokens.count }}):</strong>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        {% for tok in all_active_tokens %}
+                        <a href="?token_id={{ tok.id }}" class="state-toggle-link" style="{% if active_token and active_token.id == tok.id %}background: var(--green); color: white; border-color: var(--deep-green);{% endif %}">
+                            🌾 {{ tok.produce.crop_name }} &bull; #{{ tok.token_number }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if active_produce and token_number %}
 
                 {% if is_your_turn %}
                 <!-- 🚨 PHASE 9: IT'S YOUR TURN! STATE CARD -->
                 <section class="your-turn-card" aria-label="It's Your Turn State">
-                    <h2 class="your-turn-title">IT'S YOUR TURN!</h2>
-                    <div class="your-turn-token">{{ token_number|default:"A-104" }}</div>
-                    <div class="your-turn-instruction">Please proceed to</div>
-                    <div class="your-turn-counter-badge">COUNTER 2</div>
-                    <div class="your-turn-location">Lucknow Procurement Hub</div>
+                    <h2 class="your-turn-title">🚨 IT'S YOUR TURN!</h2>
+                    <div class="your-turn-token">{{ token_number }}</div>
+                    <div class="your-turn-instruction">Please proceed directly to</div>
+                    <div class="your-turn-counter-badge">{{ queue.counter_number|default:"COUNTER 1" }}</div>
+                    <div class="your-turn-location">{{ queue.center_name|default:"Procurement Center Gate" }}</div>
                     <div>
-                        <button type="button" class="btn-link danger-btn" onclick="scrollToQr(event)">View QR Code</button>
+                        <a href="{{ queue.qr_verify_url }}" target="_blank" class="btn-link danger-btn" style="text-decoration:none;">Show Gate Verification QR</a>
                     </div>
                 </section>
                 {% endif %}
@@ -230,65 +243,63 @@
                 <section class="card active-token-card" aria-label="Your Active Token">
                     <div class="card-eyebrow">🎟️ YOUR ACTIVE TOKEN</div>
 
-                    <div class="token-hero-number">{{ token_number|default:"A-104" }}</div>
-                    <div class="token-hero-label">YOUR TOKEN</div>
+                    <div class="token-hero-number">{{ token_number }}</div>
+                    <div class="token-hero-label">YOUR TOKEN NUMBER</div>
 
                     <div class="token-meta-list">
                         <span class="meta-item">🌾 <strong>{{ active_produce.crop_name }} • {{ active_produce.quantity }} {{ active_produce.get_unit_display }}</strong></span>
-                        <span class="meta-item">📍 <strong>Lucknow Procurement Hub</strong></span>
-                        <span class="meta-item">📅 <strong>12 September • 10:30 AM</strong></span>
+                        <span class="meta-item">📍 <strong>{{ queue.center_name }}</strong></span>
+                        <span class="meta-item">📅 <strong>{{ active_token.date|date:"d M Y" }} • {{ active_token.appointment.time_slot|default:"Scheduled" }}</strong></span>
                     </div>
 
                     <div class="qr-wrapper" id="qr-section">
-                        <div class="qr-placeholder-box" id="qrBox" role="img" aria-label="QR Code placeholder">
+                        <div class="qr-placeholder-box" id="qrBox" role="img" aria-label="QR Code placeholder" style="padding:4px;background:#fff;border-radius:8px;border:2px solid var(--ink)">
+                            {% if queue.qr_verify_url %}
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ queue.qr_verify_url|urlencode }}" alt="Token Verification QR Code" style="width:130px;height:130px;display:block;border-radius:4px;" />
+                            {% else %}
                             <div class="qr-pattern">QR CODE</div>
+                            {% endif %}
                         </div>
+                        <small style="color:var(--muted);font-family:Arial;font-size:11px;">Token UUID: {{ active_token.secure_qr_uuid|stringformat:".8s" }}...</small>
                     </div>
 
                     <div>
-                        <span class="active-pill">🟢 ACTIVE</span>
+                        <span class="active-pill">🟢 ACTIVE - STATUS: {{ active_token.get_status_display|upper }}</span>
                     </div>
                 </section>
 
                 <!-- 2. Twin Stat Cards: Current Token & Your Position -->
                 <section class="twin-cards-grid" aria-label="Queue positions">
                     <div class="stat-hero-card left">
-                        <div class="stat-hero-title">CURRENT TOKEN</div>
+                        <div class="stat-hero-title">NOW SERVING</div>
                         <div class="stat-hero-number">{{ queue.current_token }}</div>
-                        <div class="stat-hero-sub">Serving now at Counter 2</div>
+                        <div class="stat-hero-sub">Serving at {{ queue.counter_number|default:"Counter 1" }}</div>
                     </div>
                     <div class="stat-hero-card right">
                         <div class="stat-hero-title">YOUR POSITION</div>
                         <div class="stat-hero-number">#{{ queue.your_position }}</div>
-                        <div class="stat-hero-sub"><strong>{{ queue.farmers_ahead }} farmers</strong> ahead</div>
+                        <div class="stat-hero-sub"><strong>{{ queue.farmers_ahead }} farmer{{ queue.farmers_ahead|pluralize }}</strong> ahead of you</div>
                     </div>
                 </section>
 
                 <!-- 3. Live Queue Panel -->
                 <section class="card live-queue-card" aria-label="Live Queue Status">
-                    <h2 class="live-queue-title">📊 LIVE QUEUE</h2>
+                    <h2 class="live-queue-title">📊 LIVE QUEUE STATUS</h2>
 
                     <!-- Flow Sequence -->
                     <div class="token-flow-wrap">
                         <div class="token-flow">
                             <div class="flow-line"></div>
-                            <div class="flow-line-fill"></div>
 
-                            <div class="flow-step">
-                                <div class="flow-node">A-080</div>
-                            </div>
                             <div class="flow-step current">
-                                <div class="flow-node">A-092</div>
+                                <div class="flow-node">{{ queue.current_token }}</div>
                                 <div class="flow-arrow">↑</div>
-                                <div class="flow-label">Current</div>
+                                <div class="flow-label">Serving</div>
                             </div>
                             <div class="flow-step you">
-                                <div class="flow-node">{{ token_number|default:"A-104" }}</div>
+                                <div class="flow-node">{{ token_number }}</div>
                                 <div class="flow-arrow">↑</div>
-                                <div class="flow-label">You</div>
-                            </div>
-                            <div class="flow-step">
-                                <div class="flow-node">A-110</div>
+                                <div class="flow-label">Your Token</div>
                             </div>
                         </div>
                     </div>
@@ -296,14 +307,14 @@
                     <!-- Progress Bar -->
                     <div class="progress-bar-wrap">
                         <div class="progress-bar-track">
-                            <div class="progress-bar-fill"></div>
+                            <div class="progress-bar-fill" style="width: {% if is_your_turn %}100%{% elif queue.your_position <= 1 %}80%{% else %}45%{% endif %};"></div>
                         </div>
                     </div>
 
                     <!-- Queue Details -->
                     <div class="queue-meta-row">
-                        <div class="wait-time">Estimated waiting time: <strong>{{ queue.estimated_wait }}</strong></div>
-                        <div class="moving-status">🟢 Queue is moving normally</div>
+                        <div class="wait-time">Estimated wait time: <strong>{{ queue.estimated_wait }}</strong></div>
+                        <div class="moving-status">🟢 Queue status: Active</div>
                     </div>
                 </section>
 
@@ -314,59 +325,59 @@
                         <div>
                             <h3>📍 PROCUREMENT CENTER</h3>
                             
-                            <p style="font-size: 17px; font-weight: bold; color: var(--ink); margin-bottom: 12px; font-family: Georgia, serif;">Lucknow Procurement Hub</p>
+                            <p style="font-size: 17px; font-weight: bold; color: var(--ink); margin-bottom: 12px; font-family: Georgia, serif;">{{ queue.center_name }}</p>
                             
                             <div class="center-details-list">
                                 <div class="center-detail-row">
-                                    <span>📍</span> <strong>8.4 km away</strong>
+                                    <span>📍</span> <strong>{{ active_token.procurement_center.district }} District</strong>
                                 </div>
                                 <div class="center-detail-row">
-                                    <span>🏢</span> <strong>Counter 2</strong>
+                                    <span>🏢</span> <strong>{{ queue.counter_number|default:"Counter 1" }}</strong>
                                 </div>
                                 <div class="center-detail-row">
-                                    <span>🕐</span> <strong>Open until 6:00 PM</strong>
+                                    <span>🕐</span> <strong>Operating Hours: 08:00 AM - 06:00 PM</strong>
                                 </div>
                             </div>
                         </div>
 
                         <div class="bottom-actions">
-                            <a href="https://maps.google.com" target="_blank" rel="noopener" class="btn-link">Get Directions</a>
+                            <a href="{% url 'procurement:centers' %}" class="btn-link">View Center Details</a>
                         </div>
                     </div>
 
                     <!-- QUEUE NOTIFICATIONS CARD -->
                     <div class="bottom-card">
                         <div>
-                            <h3>🔔 QUEUE NOTIFICATIONS</h3>
+                            <h3>🔔 QUEUE TRACKING</h3>
                             
                             <div class="notif-checklist">
                                 <div class="notif-item done">
                                     <span class="notif-icon-done">✓</span>
-                                    <span>Token generated</span>
+                                    <span>Token #{{ token_number }} Generated</span>
                                 </div>
                                 <div class="notif-item done">
                                     <span class="notif-icon-done">✓</span>
-                                    <span>Queue started</span>
+                                    <span>Queue Position Assigned (#{{ queue.your_position }})</span>
+                                </div>
+                                <div class="notif-item {% if queue.farmers_ahead <= 2 %}done{% else %}pending{% endif %}">
+                                    <span class="{% if queue.farmers_ahead <= 2 %}notif-icon-done{% else %}notif-icon-pending{% endif %}">{% if queue.farmers_ahead <= 2 %}✓{% else %}○{% endif %}</span>
+                                    <span>Approaching Turn ({{ queue.farmers_ahead }} Ahead)</span>
                                 </div>
                                 <div class="notif-item {% if is_your_turn %}done{% else %}pending{% endif %}">
                                     <span class="{% if is_your_turn %}notif-icon-done{% else %}notif-icon-pending{% endif %}">{% if is_your_turn %}✓{% else %}○{% endif %}</span>
-                                    <span>Your turn is approaching</span>
-                                </div>
-                                <div class="notif-item {% if is_your_turn %}done{% else %}pending{% endif %}">
-                                    <span class="{% if is_your_turn %}notif-icon-done{% else %}notif-icon-pending{% endif %}">{% if is_your_turn %}✓{% else %}○{% endif %}</span>
-                                    <span>Your turn</span>
+                                    <span>Gate Entry Called</span>
                                 </div>
                             </div>
 
                             <div class="notif-preview-box">
-                                💬 <em>{% if is_your_turn %}"It's your turn! Please proceed to Counter 2."{% else %}"Your token {{ token_number|default:'A-104' }} is coming up. Please proceed to Counter 2."{% endif %}</em>
+                                💬 <em>{% if is_your_turn %}"It's your turn! Please proceed immediately to {{ queue.counter_number|default:'Counter 1' }}."{% else %}"Your token {{ token_number }} is in queue. Estimated wait: {{ queue.estimated_wait }}."{% endif %}</em>
                             </div>
                         </div>
                         
                         <div class="bottom-actions">
-                            <button id="notifyBtn" type="button" class="btn-link" onclick="toggleNotifications()">
-                                Notify Me
-                            </button>
+                            <a href="{{ queue.qr_verify_url }}" target="_blank" class="btn-link active-notif" style="text-decoration:none;">
+                                🔍 Verification Page
+                            </a>
                         </div>
                     </div>
                 </section>

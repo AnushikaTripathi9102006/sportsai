@@ -55,6 +55,17 @@ def add_produce(request):
             produce.farmer = request.user
             produce.save()
 
+            from notifications.services import notify_farmer
+            notify_farmer(
+                farmer_user=request.user,
+                title="🌾 Produce Registered",
+                message=f"Your {produce.crop_name} produce ({produce.quantity} {produce.get_unit_display()}) has been registered successfully.",
+                notification_type="PRODUCE",
+                target_url="/produce/my-produce/",
+                related_object=produce,
+                event_key=f"produce_reg_{produce.id}",
+            )
+
             return redirect("produce:my_produce")
 
     else:
@@ -149,13 +160,24 @@ def request_procurement(request, pk):
     produce.save()
 
     from procurement.services import sync_all_farmer_procurements
+    from notifications.services import notify_farmer
     from django.contrib import messages
 
     sync_all_farmer_procurements()
+
+    notify_farmer(
+        farmer_user=request.user,
+        title="📦 Procurement Request Submitted",
+        message=f"Your procurement request for {produce.crop_name} ({produce.quantity} {produce.get_unit_display()}) has been submitted successfully.",
+        notification_type="PROCUREMENT",
+        target_url="/procurement/status/",
+        related_object=produce,
+        event_key=f"proc_req_{produce.id}",
+    )
 
     messages.success(
         request,
         f"Procurement request submitted for {produce.crop_name} ({produce.quantity} {produce.get_unit_display()}). Center assignment is managed by the Procurement Officer for {produce.district} district.",
     )
 
-    return redirect("produce:my_produce")
+    return redirect(f"/procurement/centers/?produce_id={produce.id}")

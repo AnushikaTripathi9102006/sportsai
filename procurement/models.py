@@ -145,6 +145,18 @@ class ProcurementRecord(models.Model):
             return self.center.name
         return self.center_name or "Procurement Center"
 
+    @property
+    def appointment(self):
+        if hasattr(self, "appointments"):
+            return self.appointments.filter(status="CONFIRMED").first() or self.appointments.first()
+        return None
+
+    @property
+    def token_obj(self):
+        if hasattr(self, "tokens"):
+            return self.tokens.filter(status__in=["WAITING", "CALLED", "IN_PROGRESS", "COMPLETED"]).first() or self.tokens.first()
+        return None
+
 
 
 class QualityAssessment(models.Model):

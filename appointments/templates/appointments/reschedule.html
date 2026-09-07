@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Book Appointment | KisanFlow</title>
+    <title>Reschedule Appointment | KisanFlow</title>
     <style>
         :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --amber: #d88424; --red: #dc2626; }
         * { box-sizing: border-box; }
@@ -28,9 +28,9 @@
         .profile-text { text-align: right; line-height: 1.5; }
         .profile-text strong { display: block; color: var(--ink); }
         .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
-        .content { max-width: 1050px; margin: 0 auto; padding: 35px clamp(20px, 4vw, 50px) 60px; }
+        .content { max-width: 1080px; margin: 0 auto; padding: 35px clamp(20px, 4vw, 50px) 60px; }
         .back-link { display: inline-block; margin-bottom: 25px; color: var(--green); font: bold 13px Arial, sans-serif; text-decoration: none; }
-        .eyebrow { margin: 0 0 8px; color: var(--green); font: bold 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+        .eyebrow { margin: 0 0 8px; color: var(--amber); font: bold 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
         h1 { margin: 0 0 9px; font-size: clamp(28px, 4vw, 40px); }
         .intro { margin: 0 0 27px; color: var(--muted); font: 15px Arial, sans-serif; }
         .booking-card { padding: 26px; background: white; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); }
@@ -38,8 +38,15 @@
         .step:first-child { padding-top: 0; }
         .step:last-child { border-bottom: 0; padding-bottom: 0; }
         .step h2 { margin: 0 0 13px; font-size: 17px; }
-        .selection { display: flex; justify-content: space-between; align-items: center; gap: 15px; padding: 14px; border: 1px solid var(--green); border-radius: 6px; background: var(--mint); font: 14px Arial, sans-serif; }
-        .selection span { color: var(--green); font-weight: bold; }
+        .current-appt-box { background: #fffdfa; border: 1px solid var(--amber); padding: 16px; border-radius: 6px; margin-bottom: 20px; font: 14px Arial, sans-serif; }
+        .current-appt-box strong { color: var(--amber); }
+        .center-choice-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 10px; }
+        .center-option-card { padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: white; cursor: pointer; transition: all 0.2s; position: relative; }
+        .center-option-card:hover, .center-option-card.selected { border-color: var(--green); background: #f4fbf6; }
+        .center-badge { position: absolute; top: 12px; right: 12px; padding: 4px 8px; border-radius: 12px; background: var(--mint); color: var(--green); font: bold 10px Arial, sans-serif; }
+        .center-option-card h3 { margin: 0 0 6px; font-size: 16px; color: var(--ink); padding-right: 70px; }
+        .center-option-card p { margin: 0 0 8px; color: var(--muted); font-size: 12px; }
+        .reasons-list { margin: 6px 0 0; padding-left: 16px; font-size: 11px; color: var(--muted); line-height: 1.5; }
         .date-options { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
         .time-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .slot-btn { border: 1px solid var(--line); border-radius: 6px; background: white; color: var(--ink); padding: 12px 8px; cursor: pointer; text-align: center; font: 13px Arial, sans-serif; transition: all 0.2s; width: 100%; }
@@ -52,7 +59,7 @@
         .badge-avail { color: var(--green); font-weight: bold; }
         .badge-full { color: var(--red); font-weight: bold; }
         .confirm-row { display: flex; justify-content: flex-end; margin-top: 24px; }
-        .button { display: inline-block; padding: 12px 20px; border-radius: 5px; background: var(--green); color: white; font: bold 14px Arial, sans-serif; text-decoration: none; border: 0; cursor: pointer; }
+        .button { display: inline-block; padding: 12px 20px; border-radius: 5px; background: var(--amber); color: white; font: bold 14px Arial, sans-serif; text-decoration: none; border: 0; cursor: pointer; }
         .alert { padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; font: 14px Arial, sans-serif; }
         .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
         @media (max-width: 800px) { .date-options { grid-template-columns: repeat(4, 1fr); } .time-options { grid-template-columns: 1fr 1fr; } }
@@ -85,7 +92,7 @@
             <header class="topbar">
                 <div style="display:flex;align-items:center;gap:13px">
                     <button class="menu-button" type="button" onclick="toggleSidebar()">☰</button>
-                    <div class="crumb"><strong>Book Appointment</strong> &nbsp;/&nbsp; Appointments</div>
+                    <div class="crumb"><strong>Reschedule Appointment</strong> &nbsp;/&nbsp; {{ old_appointment.appointment_code }}</div>
                 </div>
                 <div class="profile">
                     <div class="profile-text">
@@ -97,89 +104,56 @@
             </header>
 
             <main class="content">
-                <a class="back-link" href="{% url 'appointments:appointments' %}">← Back to Appointments</a>
-                <p class="eyebrow">PLAN YOUR VISIT</p>
-                <h1>📅 Book Procurement Appointment</h1>
-                <p class="intro">Select your produce batch, choose a date, and pick an available time slot at your assigned center.</p>
+                <a class="back-link" href="{% url 'appointments:appointment_detail' pk=old_appointment.pk %}">← Back to Appointment Details</a>
+                <p class="eyebrow">RESCHEDULE SCHEDULE &amp; CENTER</p>
+                <h1>🔄 Reschedule Procurement Appointment</h1>
+                <p class="intro">You can change your procurement center and appointment time slot. Recommendations have been dynamically recalculated.</p>
 
-                {% if form.non_field_errors %}
-                    <div class="alert alert-error">
-                        {% for err in form.non_field_errors %}
-                            <div>⚠️ {{ err }}</div>
-                        {% endfor %}
-                    </div>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-error">⚠️ {{ message }}</div>
+                    {% endfor %}
                 {% endif %}
 
-                {% if not eligible_produces %}
-                <section class="booking-card" style="border-left: 5px solid var(--amber);">
-                    <h2>⚠️ No Produce Ready for Appointment</h2>
-                    <p style="color: var(--muted); margin-bottom: 20px;">
-                        You have no produce batches with status <strong>"Procurement Requested"</strong> that require an appointment.
-                    </p>
-                    <a class="button" href="{% url 'produce:my_produce' %}">Go to My Produce to Request Procurement →</a>
-                </section>
-                {% else %}
+                <div class="current-appt-box">
+                    <strong>📌 Current Appointment:</strong> {{ old_appointment.appointment_date|date:"d M Y" }} ({{ old_appointment.appointment_time_slot }})
+                    at <strong>{{ old_appointment.procurement_center.name }}</strong> &bull; Crop: <strong>{{ produce.crop_name }}</strong> (Token: #{{ old_appointment.token_number }})
+                </div>
 
-                <form method="post" id="appointmentForm">
+                <form method="post" id="rescheduleForm">
                     {% csrf_token %}
-                    <input type="hidden" name="action" value="review">
-                    <input type="hidden" name="produce_id" value="{{ selected_produce.id }}">
+                    <input type="hidden" name="center_id" id="selectedCenterInput" value="{{ selected_center.id }}">
                     <input type="hidden" name="appointment_date" id="selectedDateInput" value="{{ selected_date|date:'Y-m-d' }}">
                     <input type="hidden" name="appointment_time_slot" id="selectedSlotInput" value="">
 
                     <section class="booking-card">
-                        <!-- Step 1: Select Produce -->
+                        <!-- Step 1: Select/Switch Center -->
                         <div class="step">
-                            <h2>Step 1 — Select Produce Batch</h2>
-                            {% if eligible_produces.count > 1 %}
-                                <select onchange="window.location.href='?produce_id=' + this.value + '&date={{ selected_date|date:'Y-m-d' }}'" style="width:100%;padding:12px;border:1px solid var(--line);border-radius:6px;font:14px Arial,sans-serif;">
-                                    {% for p in eligible_produces %}
-                                        <option value="{{ p.id }}" {% if p.id == selected_produce.id %}selected{% endif %}>
-                                            🌾 {{ p.crop_name }} — {{ p.quantity }} {{ p.get_unit_display }} (District: {{ p.district }})
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            {% else %}
-                                <div class="selection">
-                                    <div>
-                                        <strong>🌾 {{ selected_produce.crop_name }}</strong> — {{ selected_produce.quantity }} {{ selected_produce.get_unit_display }}
-                                        <div style="font-size:12px;color:var(--muted);margin-top:2px;">District: {{ selected_produce.district }} &bull; Harvest Date: {{ selected_produce.harvest_date|date:"d M Y" }}</div>
-                                    </div>
-                                    <span>Selected ✓</span>
+                            <h2>Step 1 — Choose Procurement Center (Recommendations Recalculated)</h2>
+                            <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">You can keep your current center or switch to another recommended center accepting {{ produce.crop_name }}.</p>
+                            
+                            <div class="center-choice-grid">
+                                {% for center in ranked_centers %}
+                                <div class="center-option-card {% if center.id == selected_center.id %}selected{% endif %}" onclick="window.location.href='?center_id={{ center.id }}&date={{ selected_date|date:'Y-m-d' }}'">
+                                    <span class="center-badge">{{ center.recommendation_badge }}</span>
+                                    <h3>🏢 {{ center.name }}</h3>
+                                    <p>📍 {{ center.district }} &bull; ~{{ center.distance_km }} km away</p>
+                                    <ul class="reasons-list">
+                                        {% for reason in center.reasons|slice:":3" %}
+                                        <li>{{ reason }}</li>
+                                        {% endfor %}
+                                    </ul>
                                 </div>
-                            {% endif %}
+                                {% endfor %}
+                            </div>
                         </div>
 
-                        <!-- Step 2: Center Info -->
+                        <!-- Step 2: Select New Date -->
                         <div class="step">
-                            <h2>Step 2 — Assigned Procurement Center</h2>
-                            {% if center %}
-                                <div class="selection" style="background:#f4fbf6;border-color:var(--green);">
-                                    <div>
-                                        <strong>📍 {{ center.name }}</strong>
-                                        <div style="font-size:12px;color:var(--muted);margin-top:2px;">
-                                            District: <strong>{{ center.district }}</strong> &bull; Address: {{ center.address }}<br>
-                                            Operating Hours: {{ center.operating_hours }} &bull; Contact: {{ center.contact_number }}
-                                        </div>
-                                    </div>
-                                    <span style="color:var(--green)">District Match ✓</span>
-                                </div>
-                            {% else %}
-                                <div class="selection" style="background:#fff8f0;border-color:var(--amber);">
-                                    <div>
-                                        <strong style="color:var(--amber)">⚠️ Center Pending Assignment</strong>
-                                        <div style="font-size:12px;color:var(--muted);margin-top:2px;">Procurement Officer for {{ selected_produce.district }} is auto-assigning center.</div>
-                                    </div>
-                                </div>
-                            {% endif %}
-                        </div>
-
-                        <!-- Step 3: Select Date -->
-                        <div class="step">
-                            <h2>Step 3 — Select Appointment Date (Next 7 Days)</h2>
+                            <h2>Step 2 — Select New Appointment Date at {{ selected_center.name }}</h2>
                             <div class="date-options" role="group" aria-label="Select date">
                                 {% for dt in available_dates %}
-                                    <button type="button" class="slot-btn {% if dt == selected_date %}selected{% endif %}" onclick="window.location.href='?produce_id={{ selected_produce.id }}&date={{ dt|date:'Y-m-d' }}'">
+                                    <button type="button" class="slot-btn {% if dt == selected_date %}selected{% endif %}" onclick="window.location.href='?center_id={{ selected_center.id }}&date={{ dt|date:'Y-m-d' }}'">
                                         <strong>{{ dt|date:"d M" }}</strong>
                                         <small>{{ dt|date:"D" }}</small>
                                     </button>
@@ -187,9 +161,9 @@
                             </div>
                         </div>
 
-                        <!-- Step 4: Select Time Slot -->
+                        <!-- Step 3: Select Time Slot -->
                         <div class="step">
-                            <h2>Step 4 — Select Available Time Slot on {{ selected_date|date:"l, d M Y" }}</h2>
+                            <h2>Step 3 — Select Time Slot on {{ selected_date|date:"l, d M Y" }}</h2>
                             <div class="time-options" role="group" aria-label="Select time slot">
                                 {% for slot in slots_availability %}
                                     <button type="button" class="slot-btn slot-choice-btn {% if not slot.is_available %}disabled{% endif %}" data-slot="{{ slot.code }}" {% if not slot.is_available %}disabled{% endif %}>
@@ -205,11 +179,10 @@
                         </div>
 
                         <div class="confirm-row">
-                            <button type="submit" class="button" id="submitBtn" disabled style="opacity:0.6;">Continue to Confirmation →</button>
+                            <button type="submit" class="button" id="submitBtn" disabled style="opacity:0.6;">Confirm Rescheduling →</button>
                         </div>
                     </section>
                 </form>
-                {% endif %}
             </main>
         </div>
     </div>

@@ -79,6 +79,36 @@
                     Real-time view of all active farmer batches currently inside <strong>{{ center.name }}</strong>.
                 </p>
 
+                <!-- Officer Call Next Token Control Card -->
+                <div style="background: var(--white); border: 2px solid var(--green); border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                    <div>
+                        <div style="font: bold 11px Arial, sans-serif; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">CURRENTLY CALLED TOKEN</div>
+                        {% if current_called_token %}
+                        <div style="font-size: 32px; font-weight: 900; color: #b71c1c; font-family: Arial, sans-serif;">
+                            #{{ current_called_token.token_number }}
+                            <span style="font-size: 16px; color: var(--ink); font-weight: normal;">({{ current_called_token.farmer.get_full_name|default:current_called_token.farmer.username }} - {{ current_called_token.produce.crop_name }})</span>
+                        </div>
+                        <div style="font-size: 12px; color: var(--muted); margin-top: 2px;">Called at {{ current_called_token.called_at|date:"h:i A" }} • Proceeding to Gate Entry</div>
+                        {% else %}
+                        <div style="font-size: 24px; font-weight: bold; color: var(--muted); font-family: Arial, sans-serif;">No Token Currently Called</div>
+                        <div style="font-size: 12px; color: var(--muted); margin-top: 2px;">Click 'Call Next Token' to notify the next waiting farmer in line.</div>
+                        {% endif %}
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div style="text-align: right;">
+                            <div style="font-size: 20px; font-weight: bold; color: var(--ink);">{{ waiting_count }}</div>
+                            <div style="font: 11px Arial, sans-serif; color: var(--muted); text-transform: uppercase;">Farmers Waiting</div>
+                        </div>
+                        <form method="POST" action="{% url 'tokens:call_next_token' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn" style="background: #1f6b45; font-size: 14px; padding: 12px 24px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                                📢 CALL NEXT TOKEN
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
                 <div class="summary-bar">
                     <div class="summary-chip">
                         <div class="num">{{ queue_counts.gate_entry|default:0 }}</div>
@@ -153,15 +183,15 @@
                                 </td>
                                 <td>
                                     {% if rec.stage == 'GATE_ENTRY' %}
-                                        <a href="{% url 'procurement:officer_quality_check' %}?record_id={{ rec.id }}" class="btn">Test Quality</a>
+                                        <a href="{% url 'procurement:officer_quality_check_action' rec.id %}" class="btn">Test Quality</a>
                                     {% elif rec.stage == 'QUALITY_CHECK' %}
-                                        <a href="{% url 'procurement:officer_weighing' %}?record_id={{ rec.id }}" class="btn">Scale Weighing</a>
+                                        <a href="{% url 'procurement:officer_weighing_action' rec.id %}" class="btn">Scale Weighing</a>
                                     {% elif rec.stage == 'WEIGHING' %}
-                                        <a href="{% url 'procurement:officer_acceptance' %}?record_id={{ rec.id }}" class="btn">Final Accept</a>
+                                        <a href="{% url 'procurement:officer_acceptance_action' rec.id %}" class="btn">Final Accept</a>
                                     {% elif rec.stage == 'ACCEPTANCE' %}
-                                        <a href="{% url 'procurement:officer_bills' %}?record_id={{ rec.id }}" class="btn">Generate Bill</a>
+                                        <a href="{% url 'procurement:officer_bills_action' rec.id %}" class="btn">Generate Bill</a>
                                     {% elif rec.stage == 'BILL_GENERATED' or rec.stage == 'PAYMENT_INITIATED' %}
-                                        <a href="{% url 'procurement:officer_payments' %}?record_id={{ rec.id }}" class="btn">Process Payment</a>
+                                        <a href="{% url 'procurement:officer_payments_action' rec.id %}" class="btn">Process Payment</a>
                                     {% endif %}
                                 </td>
                             </tr>

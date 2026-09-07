@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Verification | KisanFlow</title>
+    <style>
+        :root {
+            --green: #1f6b45;
+            --deep-green: #174b35;
+            --mint: #e6f2e9;
+            --ink: #19352a;
+            --muted: #6b7c72;
+            --line: #dfe9e1;
+            --paper: #f6faf7;
+            --white: #ffffff;
+            --amber: #d88424;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; display: grid; place-items: center; min-height: 100vh; padding: 20px; }
+        .verify-card { background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 40px 32px; max-width: 520px; width: 100%; box-shadow: 0 8px 30px rgba(23, 75, 53, 0.08); text-align: center; }
+        .badge-verified { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 20px; background: #e8f7ec; color: #1b6b3e; font: bold 13px Arial, sans-serif; border: 1px solid #c2ebd0; margin-bottom: 24px; }
+        .token-num { font-family: Arial, sans-serif; font-size: 56px; font-weight: 900; color: var(--deep-green); letter-spacing: 2px; line-height: 1; margin: 0 0 8px; }
+        .token-subtitle { color: var(--muted); font: bold 12px Arial, sans-serif; letter-spacing: .15em; text-transform: uppercase; margin-bottom: 28px; }
+        .detail-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; text-align: left; font: 14px Arial, sans-serif; }
+        .detail-table td { padding: 12px 14px; border-bottom: 1px solid var(--line); }
+        .detail-table td:first-child { color: var(--muted); width: 40%; font-size: 13px; }
+        .detail-table td:last-child { color: var(--ink); font-weight: bold; }
+        .btn-action { display: inline-block; padding: 12px 28px; border-radius: 8px; background: var(--green); color: white; font: bold 14px Arial, sans-serif; text-decoration: none; border: none; cursor: pointer; }
+        .btn-action:hover { background: var(--deep-green); }
+    </style>
+</head>
+<body>
+    <div class="verify-card">
+        <div class="badge-verified">✓ AUTHENTIC KISANFLOW TOKEN</div>
+
+        <div class="token-num">#{{ token.token_number }}</div>
+        <div class="token-subtitle">STATUS: {{ token.get_status_display|upper }}</div>
+
+        <table class="detail-table">
+            <tr>
+                <td>Farmer Name</td>
+                <td>{{ token.farmer.get_full_name|default:token.farmer.username }}</td>
+            </tr>
+            <tr>
+                <td>Farmer ID</td>
+                <td>{{ token.farmer.profile.farmer_id|default:"FAR-N/A" }}</td>
+            </tr>
+            <tr>
+                <td>Crop & Quantity</td>
+                <td>{{ token.produce.crop_name }} ({{ token.produce.quantity }} {{ token.produce.get_unit_display }})</td>
+            </tr>
+            <tr>
+                <td>Procurement Center</td>
+                <td>{{ token.procurement_center.name }}</td>
+            </tr>
+            <tr>
+                <td>Appointment Date</td>
+                <td>{{ token.date|date:"d M Y" }}</td>
+            </tr>
+            <tr>
+                <td>Counter / Slot</td>
+                <td>{{ token.counter_number }} • {{ token.appointment.time_slot|default:"Morning" }}</td>
+            </tr>
+            <tr>
+                <td>Security Token UUID</td>
+                <td style="font-family: monospace; font-size: 11px; word-break: break-all; color: var(--muted);">{{ token.secure_qr_uuid }}</td>
+            </tr>
+        </table>
+
+        {% if user.is_authenticated and user.profile.role == "OFFICER" %}
+            <a href="{% url 'procurement:officer_gate_entry' %}?record_id={{ record.id }}" class="btn-action">🚪 Perform Officer Gate Entry</a>
+        {% else %}
+            <a href="{% url 'tokens:token_queue' %}" class="btn-action">View Token Queue</a>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -162,145 +162,211 @@
                     </div>
                 </section>
 
-                {% if active_produce %}
+                {% if all_farmer_crops %}
 
-                <!-- State Switcher Preview Bar -->
-                <div class="stage-switcher">
-                    <span class="switcher-label">Preview Procurement Stage:</span>
-                    <a href="?stage=verification" class="stage-pill {% if selected_stage == 'verification' %}active{% endif %}">1. Verification</a>
-                    <a href="?stage=quality" class="stage-pill {% if selected_stage == 'quality' %}active{% endif %}">2. Quality Check</a>
-                    <a href="?stage=weighing" class="stage-pill {% if selected_stage == 'weighing' %}active{% endif %}">3. Weighing</a>
-                    <a href="?stage=completed" class="stage-pill {% if selected_stage == 'completed' %}active{% endif %}">4. Procurement Completed</a>
-                </div>
+                <!-- 1. All Registered Crops Status Overview Table -->
+                <section class="card" aria-label="All Registered Crops Procurement Status" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+                        <div>
+                            <h2 style="margin: 0; font-size: 22px;">🌾 All Registered Crops Status</h2>
+                            <span style="color: var(--muted); font: 13px Arial, sans-serif;">Showing real-time procurement status for all {{ total_crops_count }} crop(s) registered by you.</span>
+                        </div>
+                        <a href="{% url 'produce:add_produce' %}" class="btn-link" style="padding: 7px 14px; font-size: 12px;">＋ Register New Crop</a>
+                    </div>
 
-                <!-- 1. Active Procurement Hero Section -->
+                    <div class="history-table-wrap">
+                        <table class="history-table" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Crop Name</th>
+                                    <th>Registered Qty</th>
+                                    <th>Assigned Center</th>
+                                    <th>Appointment Slot</th>
+                                    <th>Token #</th>
+                                    <th>Procurement Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for crop in all_farmer_crops %}
+                                <tr style="{% if active_crop and active_crop.id == crop.id %}background: #f0f7f2;{% endif %}">
+                                    <td>
+                                        <strong style="font-size: 15px; color: var(--ink);">🌾 {{ crop.crop_name }}</strong><br>
+                                        <small style="color: var(--muted);">Registered: {{ crop.harvest_date|date:"d M Y" }}</small>
+                                    </td>
+                                    <td>
+                                        <strong>{{ crop.registered_qty }}</strong> {{ crop.unit }}
+                                        {% if crop.actual_qty %}
+                                            <br><small style="color: var(--green); font-weight: bold;">(Net: {{ crop.actual_qty }} {{ crop.unit }})</small>
+                                        {% endif %}
+                                    </td>
+                                    <td><strong>{{ crop.center_name }}</strong></td>
+                                    <td>
+                                        {% if crop.appointment_time != '--' %}
+                                            <span style="color: var(--green); font-weight: bold;">📅 {{ crop.appointment_time }}</span>
+                                        {% else %}
+                                            <span style="color: var(--muted);">--</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if crop.token_number != '--' %}
+                                            <strong>{{ crop.token_number }}</strong>
+                                        {% else %}
+                                            <span style="color: var(--muted);">--</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="status-pill {% if crop.stage == 'COMPLETED' %}completed{% endif %}">
+                                            {{ crop.overall_status }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if crop.stage == 'AVAILABLE' %}
+                                            <a href="{% url 'procurement:centers' %}?produce_id={{ crop.id }}" class="btn-link" style="padding: 5px 10px; font-size: 11px; background: var(--green);">Request Procurement →</a>
+                                        {% elif crop.stage == 'REQUESTED' %}
+                                            <a href="{% url 'procurement:centers' %}?produce_id={{ crop.id }}" class="btn-link" style="padding: 5px 10px; font-size: 11px; background: var(--amber);">Select Center →</a>
+                                        {% else %}
+                                            <a href="?produce_id={{ crop.id }}" class="btn-link {% if active_crop and active_crop.id == crop.id %}btn-secondary{% endif %}" style="padding: 5px 10px; font-size: 11px;">
+                                                {% if active_crop and active_crop.id == crop.id %}Viewing Tracker ✓{% else %}Track Progress →{% endif %}
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                {% if active_crop %}
+                <!-- 2. Active Selected Crop Hero Section -->
                 <section class="card hero-card" aria-label="Active Procurement Summary">
                     <div class="hero-header">
                         <div>
-                            <h2 class="hero-title">🌾 {{ procurement.crop_name }}</h2>
-                            <span class="description">{{ procurement.registered_qty }} {{ procurement.unit }} registered for procurement</span>
+                            <h2 class="hero-title">🌾 {{ active_crop.crop_name }}</h2>
+                            <span class="description">{{ active_crop.registered_qty }} {{ active_crop.unit }} registered for procurement</span>
                         </div>
-                        <span class="status-pill {% if selected_stage == 'completed' %}completed{% endif %}">
-                            {{ procurement.overall_status }}
+                        <span class="status-pill {% if active_crop.stage == 'COMPLETED' %}completed{% endif %}">
+                            {{ active_crop.overall_status }}
                         </span>
                     </div>
 
                     <div class="hero-grid">
                         <div class="hero-stat">
                             <div class="label">Procurement Center</div>
-                            <div class="val">{{ procurement.center_name }}</div>
+                            <div class="val">{{ active_crop.center_name }}</div>
                         </div>
                         <div class="hero-stat">
                             <div class="label">Token Number</div>
-                            <div class="val">{{ procurement.token_number }}</div>
+                            <div class="val">{{ active_crop.token_number }}</div>
                         </div>
                         <div class="hero-stat">
                             <div class="label">Current Stage</div>
-                            <div class="val" style="color: var(--green);">{{ procurement.stage_title }}</div>
+                            <div class="val" style="color: var(--green);">{{ active_crop.stage_title }}</div>
                         </div>
                         <div class="hero-stat">
                             <div class="label">Appointment</div>
-                            <div class="val">{{ procurement.appointment_time }}</div>
+                            <div class="val">{{ active_crop.appointment_time }}</div>
                         </div>
                     </div>
 
                     <div>
-                        <a href="{% url 'procurement:status_detail' %}?stage={{ selected_stage }}" class="btn-link">View Full Details →</a>
+                        <a href="{% url 'procurement:status_detail' %}?produce_id={{ active_crop.id }}" class="btn-link">View Full Timeline Details →</a>
                     </div>
                 </section>
 
-                <!-- 2. Procurement Progress Tracker -->
+                <!-- 3. Procurement Progress Tracker -->
                 <section class="card progress-card" aria-label="Procurement Progress Tracker">
-                    <h2>Procurement Progress Tracker</h2>
+                    <h2>Procurement Progress Tracker ({{ active_crop.crop_name }})</h2>
                     <div class="progress-flow">
-                        <!-- Step 1 -->
-                        <div class="progress-step-item done">
-                            <div class="step-icon-bubble">✓</div>
+                        <!-- Step 1: Registered -->
+                        <div class="progress-step-item {% if active_crop.stage_rank >= 1 %}done{% else %}current{% endif %}">
+                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 1 %}✓{% else %}●{% endif %}</div>
                             <div class="step-content">
                                 <div class="step-title">1. Produce Registered</div>
-                                <div class="step-desc">{{ procurement.crop_name }} — {{ procurement.registered_qty }} {{ procurement.unit }} registered successfully.</div>
+                                <div class="step-desc">{{ active_crop.crop_name }} — {{ active_crop.registered_qty }} {{ active_crop.unit }} registered successfully.</div>
                             </div>
                         </div>
-                        <!-- Step 2 -->
-                        <div class="progress-step-item done">
-                            <div class="step-icon-bubble">✓</div>
+                        <!-- Step 2: Appointment Confirmed -->
+                        <div class="progress-step-item {% if active_crop.stage_rank >= 2 %}done{% elif active_crop.stage_rank == 1 %}current{% endif %}">
+                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 2 %}✓{% elif active_crop.stage_rank == 1 %}●{% else %}○{% endif %}</div>
                             <div class="step-content">
-                                <div class="step-title">2. Appointment Confirmed</div>
-                                <div class="step-desc">Scheduled for {{ procurement.appointment_time }} at {{ procurement.center_name }}.</div>
+                                <div class="step-title">2. Appointment & Center Confirmed</div>
+                                <div class="step-desc">{% if active_crop.appointment_time != '--' %}Scheduled for {{ active_crop.appointment_time }} at {{ active_crop.center_name }}.{% else %}Awaiting procurement center selection.{% endif %}</div>
                             </div>
                         </div>
-                        <!-- Step 3 -->
-                        <div class="progress-step-item done">
-                            <div class="step-icon-bubble">✓</div>
+                        <!-- Step 3: Gate Entry -->
+                        <div class="progress-step-item {% if active_crop.stage_rank >= 3 %}done{% elif active_crop.stage_rank == 2 %}current{% endif %}">
+                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 3 %}✓{% elif active_crop.stage_rank == 2 %}●{% else %}○{% endif %}</div>
                             <div class="step-content">
-                                <div class="step-title">3. Farmer Arrived</div>
-                                <div class="step-desc">Token {{ procurement.token_number }} verified at entry gate.</div>
+                                <div class="step-title">3. Farmer Arrived & Gate Entry</div>
+                                <div class="step-desc">{% if active_crop.token_number != '--' %}Token {{ active_crop.token_number }} verified at entry gate.{% else %}Arrival pending at center gate.{% endif %}</div>
                             </div>
                         </div>
                         <!-- Step 4: Verification -->
-                        <div class="progress-step-item {% if selected_stage != 'verification' %}done{% else %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if selected_stage != 'verification' %}✓{% else %}●{% endif %}</div>
+                        <div class="progress-step-item {% if active_crop.stage_rank >= 4 %}done{% elif active_crop.stage_rank == 3 %}current{% endif %}">
+                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 4 %}✓{% elif active_crop.stage_rank == 3 %}●{% else %}○{% endif %}</div>
                             <div class="step-content">
                                 <div class="step-title">4. Verification</div>
-                                <div class="step-desc">Farmer identity and produce ownership verified by {{ procurement.verified_by }}.</div>
+                                <div class="step-desc">Farmer identity and produce ownership verified by {{ active_crop.verified_by }}.</div>
                             </div>
                         </div>
                         <!-- Step 5: Quality Check -->
-                        <div class="progress-step-item {% if selected_stage in 'weighing completed' %}done{% elif selected_stage == 'quality' %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if selected_stage in 'weighing completed' %}✓{% elif selected_stage == 'quality' %}●{% else %}○{% endif %}</div>
+                        <div class="progress-step-item {% if active_crop.stage_rank >= 5 %}done{% elif active_crop.stage_rank == 4 %}current{% endif %}">
+                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 5 %}✓{% elif active_crop.stage_rank == 4 %}●{% else %}○{% endif %}</div>
                             <div class="step-content">
                                 <div class="step-title">5. Quality Check</div>
-                                <div class="step-desc">Inspection grade: {{ procurement.quality_grade }} | Moisture: {{ procurement.moisture_content }}.</div>
+                                <div class="step-desc">Inspection grade: {{ active_crop.quality_grade }} | Moisture: {{ active_crop.moisture_content }}.</div>
                             </div>
                         </div>
                         <!-- Step 6: Weighing -->
-                        <div class="progress-step-item {% if selected_stage == 'completed' %}done{% elif selected_stage == 'weighing' %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if selected_stage == 'completed' %}✓{% elif selected_stage == 'weighing' %}●{% else %}○{% endif %}</div>
+                        <div class="progress-step-item {% if active_crop.stage_rank >= 6 %}done{% elif active_crop.stage_rank == 5 %}current{% endif %}">
+                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 6 %}✓{% elif active_crop.stage_rank == 5 %}●{% else %}○{% endif %}</div>
                             <div class="step-content">
-                                <div class="step-title">6. Weighing</div>
-                                <div class="step-desc">{% if procurement.actual_qty %}Actual Recorded Weight: {{ procurement.actual_qty }} {{ procurement.unit }}.{% else %}Weighing in progress at Counter 2.{% endif %}</div>
+                                <div class="step-title">6. Weighing Scale</div>
+                                <div class="step-desc">{% if active_crop.actual_qty %}Actual Recorded Weight: {{ active_crop.actual_qty }} {{ active_crop.unit }}.{% else %}Weighing scale measurement in progress.{% endif %}</div>
                             </div>
                         </div>
-                        <!-- Step 7: Procurement Confirmed -->
-                        <div class="progress-step-item {% if selected_stage == 'completed' %}done{% endif %}">
-                            <div class="step-icon-bubble">{% if selected_stage == 'completed' %}✓{% else %}○{% endif %}</div>
+                        <!-- Step 7: Acceptance & Bill -->
+                        <div class="progress-step-item {% if active_crop.stage_rank >= 8 %}done{% elif active_crop.stage_rank in '6 7' %}current{% endif %}">
+                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 8 %}✓{% elif active_crop.stage_rank in '6 7' %}●{% else %}○{% endif %}</div>
                             <div class="step-content">
-                                <div class="step-title">7. Procurement Confirmed</div>
-                                <div class="step-desc">Procurement slip generated and approved by center officer.</div>
+                                <div class="step-title">7. Batch Acceptance & Bill Generation</div>
+                                <div class="step-desc">Official MSP procurement bill generated for ₹{{ active_crop.total_amount }}.</div>
                             </div>
                         </div>
                         <!-- Step 8: Payment Processing -->
-                        <div class="progress-step-item {% if selected_stage == 'completed' %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if selected_stage == 'completed' %}●{% else %}○{% endif %}</div>
+                        <div class="progress-step-item {% if active_crop.stage_rank >= 9 %}done{% elif active_crop.stage_rank == 8 %}current{% endif %}">
+                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 9 %}✓{% elif active_crop.stage_rank == 8 %}●{% else %}○{% endif %}</div>
                             <div class="step-content">
-                                <div class="step-title">8. Payment Processing</div>
-                                <div class="step-desc">Amount ₹{{ procurement.total_amount }} submitted to direct bank transfer queue.</div>
+                                <div class="step-title">8. Payment Disbursement</div>
+                                <div class="step-desc">Amount ₹{{ active_crop.total_amount }} submitted to direct bank transfer queue.</div>
                             </div>
                         </div>
                         <!-- Step 9: Payment Completed -->
-                        <div class="progress-step-item">
-                            <div class="step-icon-bubble">○</div>
+                        <div class="progress-step-item {% if active_crop.stage_rank >= 10 %}done{% endif %}">
+                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 10 %}✓{% else %}○{% endif %}</div>
                             <div class="step-content">
                                 <div class="step-title">9. Payment Completed</div>
-                                <div class="step-desc">Final payment credited to farmer account.</div>
+                                <div class="step-desc">Final MSP payout credited to farmer account.</div>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- 3. Twin Grid: Verification & Quality Check -->
+                <!-- 4. Twin Grid: Verification & Quality Check -->
                 <section class="twin-grid" aria-label="Verification and Quality">
                     <!-- Verification Card -->
                     <div class="card detail-card">
                         <h3>
                             <span>🔍 Verification</span>
-                            <span class="status-pill">🟢 {{ procurement.verification_status }}</span>
+                            <span class="status-pill">🟢 {{ active_crop.verification_status }}</span>
                         </h3>
                         <div class="kv-list">
-                            <div class="kv-row"><span>Farmer Identity</span><strong>Verified ✓</strong></div>
-                            <div class="kv-row"><span>Produce Ownership</span><strong>Verified ✓</strong></div>
-                            <div class="kv-row"><span>Procurement Request</span><strong>Verified ✓</strong></div>
-                            <div class="kv-row"><span>Verified By</span><strong>{{ procurement.verified_by }}</strong></div>
+                            <div class="kv-row"><span>Farmer Identity</span><strong>{% if active_crop.stage_rank >= 3 %}Verified ✓{% else %}Pending{% endif %}</strong></div>
+                            <div class="kv-row"><span>Produce Ownership</span><strong>{% if active_crop.stage_rank >= 3 %}Verified ✓{% else %}Pending{% endif %}</strong></div>
+                            <div class="kv-row"><span>Procurement Request</span><strong>{% if active_crop.stage_rank >= 1 %}Verified ✓{% else %}Not Requested{% endif %}</strong></div>
+                            <div class="kv-row"><span>Verified By</span><strong>{{ active_crop.verified_by }}</strong></div>
                         </div>
                     </div>
 
@@ -308,30 +374,30 @@
                     <div class="card detail-card">
                         <h3>
                             <span>🧪 Quality Check</span>
-                            <span class="status-pill">🟢 {{ procurement.quality_status }}</span>
+                            <span class="status-pill">🟢 {{ active_crop.quality_status }}</span>
                         </h3>
                         <div class="kv-list">
-                            <div class="kv-row"><span>Quality Grade</span><strong>{{ procurement.quality_grade }}</strong></div>
-                            <div class="kv-row"><span>Moisture Level</span><strong>{{ procurement.moisture_content }}</strong></div>
-                            <div class="kv-row"><span>Quality Assessment</span><strong>Passed</strong></div>
-                            <div class="kv-row"><span>Officer Remarks</span><strong>{{ procurement.officer_remarks }}</strong></div>
+                            <div class="kv-row"><span>Quality Grade</span><strong>{{ active_crop.quality_grade }}</strong></div>
+                            <div class="kv-row"><span>Moisture Level</span><strong>{{ active_crop.moisture_content }}</strong></div>
+                            <div class="kv-row"><span>Quality Assessment</span><strong>{{ active_crop.quality_status }}</strong></div>
+                            <div class="kv-row"><span>Officer Remarks</span><strong>{{ active_crop.officer_remarks }}</strong></div>
                         </div>
                     </div>
                 </section>
 
-                <!-- 4. Twin Grid: Weighing & Procurement Summary -->
+                <!-- 5. Twin Grid: Weighing & Procurement Summary -->
                 <section class="twin-grid" aria-label="Weighing and Financial Summary">
                     <!-- Weighing Card -->
                     <div class="card detail-card">
                         <h3>
                             <span>⚖️ Weighing Details</span>
-                            <span class="status-pill">{% if procurement.actual_qty %}🟢 Recorded{% else %}🟡 Pending{% endif %}</span>
+                            <span class="status-pill">{% if active_crop.actual_qty %}🟢 Recorded{% else %}🟡 Pending{% endif %}</span>
                         </h3>
                         <div class="kv-list">
-                            <div class="kv-row"><span>Expected Quantity</span><strong>{{ procurement.registered_qty }} Quintals</strong></div>
-                            <div class="kv-row"><span>Actual Recorded Weight</span><strong>{% if procurement.actual_qty %}{{ procurement.actual_qty }} Quintals{% else %}--{% endif %}</strong></div>
-                            <div class="kv-row"><span>Net Difference</span><strong>{% if procurement.diff_qty %}{{ procurement.diff_qty }} Quintals{% else %}--{% endif %}</strong></div>
-                            <div class="kv-row"><span>Weighing Counter</span><strong>{{ procurement.counter_number }}</strong></div>
+                            <div class="kv-row"><span>Expected Quantity</span><strong>{{ active_crop.registered_qty }} Quintals</strong></div>
+                            <div class="kv-row"><span>Actual Recorded Weight</span><strong>{% if active_crop.actual_qty %}{{ active_crop.actual_qty }} Quintals{% else %}--{% endif %}</strong></div>
+                            <div class="kv-row"><span>Net Difference</span><strong>{% if active_crop.diff_qty %}{{ active_crop.diff_qty }} Quintals{% else %}--{% endif %}</strong></div>
+                            <div class="kv-row"><span>Weighing Counter</span><strong>{{ active_crop.counter_number }}</strong></div>
                         </div>
                     </div>
 
@@ -339,20 +405,21 @@
                     <div class="card detail-card summary-card">
                         <h3>
                             <span>💰 Procurement Summary</span>
-                            <span class="status-pill">🟡 {{ procurement.payment_status }}</span>
+                            <span class="status-pill">🟡 {{ active_crop.payment_status }}</span>
                         </h3>
                         <div>
                             <div style="font-size: 13px; color: var(--muted);">Calculated Total Payment Amount</div>
-                            <div class="total-amount-display">₹{{ procurement.total_amount }}</div>
+                            <div class="total-amount-display">₹{{ active_crop.total_amount }}</div>
                         </div>
                         <div class="kv-list">
-                            <div class="kv-row"><span>Procured Quantity</span><strong>{% if procurement.actual_qty %}{{ procurement.actual_qty }}{% else %}{{ procurement.registered_qty }}{% endif %} Quintals</strong></div>
-                            <div class="kv-row"><span>Govt MSP Rate</span><strong>₹{{ procurement.rate_per_quintal }} / Q</strong></div>
+                            <div class="kv-row"><span>Procured Quantity</span><strong>{% if active_crop.actual_qty %}{{ active_crop.actual_qty }}{% else %}{{ active_crop.registered_qty }}{% endif %} Quintals</strong></div>
+                            <div class="kv-row"><span>Govt MSP Rate</span><strong>₹{{ active_crop.rate_per_quintal }} / Q</strong></div>
                         </div>
                     </div>
                 </section>
+                {% endif %}
 
-                <!-- 5. Procurement History Table -->
+                <!-- 6. Procurement History Table -->
                 <section class="card" aria-label="Recent Procurement History">
                     <h2 style="margin: 0 0 16px; font-size: 20px;">📜 Recent Procurement History</h2>
                     <div class="history-table-wrap">
@@ -377,7 +444,13 @@
                                     <td>{{ item.center }}</td>
                                     <td><strong>{{ item.amount }}</strong></td>
                                     <td><span class="badge-done">✓ {{ item.status }}</span></td>
-                                    <td><a href="{% url 'procurement:status_detail' %}" style="color: var(--green); font-weight: bold; text-decoration: none;">View →</a></td>
+                                    <td><a href="{% url 'procurement:status_detail' %}?produce_id={{ item.id }}" style="color: var(--green); font-weight: bold; text-decoration: none;">View →</a></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" style="text-align: center; color: var(--muted); padding: 30px;">
+                                        No completed procurement history yet.
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -388,7 +461,7 @@
                 {% else %}
                 <!-- Empty Procurement State -->
                 <section class="empty-token-card">
-                    <h3>No Active Procurement Found</h3>
+                    <h3>No Produce Registered Yet</h3>
                     <p>Register your harvested crop to begin your procurement tracking journey.</p>
                     <a href="{% url 'produce:add_produce' %}" class="btn-link" style="margin-top: 14px;">＋ Register Produce</a>
                 </section>

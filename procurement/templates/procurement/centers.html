@@ -102,40 +102,55 @@
                 {% if recommended_center %}
                     {% if active_produce %}
                     <section class="recommendation-card" aria-labelledby="recommendation-heading">
-                        <p class="recommendation-label">🎯 Assigned District Center For Your Produce</p>
-                        <h2 class="recommendation-title" id="recommendation-heading">🌾 {{ active_produce.crop_name }}</h2>
-                        <p class="recommendation-quantity">{{ active_produce.quantity }} {{ active_produce.get_unit_display }} &bull; 📍 District: <strong>{{ selected_district }}</strong></p>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <p class="recommendation-label" style="margin:0;">🤖 Dynamic Intelligent Recommendation</p>
+                            <span class="stat" style="background:#fff2d9;color:#9c5d13;font-size:12px;">{{ recommended_center.recommendation_badge|default:"🥇 BEST MATCH" }}</span>
+                        </div>
+
+                        <h2 class="recommendation-title" id="recommendation-heading">🌾 {{ active_produce.crop_name }} Procurement</h2>
+                        <p class="recommendation-quantity">{{ active_produce.quantity }} {{ active_produce.get_unit_display }} &bull; 📍 Farmer District: <strong>{{ selected_district }}</strong></p>
 
                         <h3 class="center-name"><span>🏢</span> {{ recommended_center.name }}</h3>
 
                         <div class="recommendation-stats">
-                            <span class="stat">📍 {{ recommended_center.district }} ({{ recommended_center.tehsil_block|default:"Sadar" }})</span>
+                            <span class="stat">📍 {{ recommended_center.district }} ({% if recommended_center.tehsil_block %}{{ recommended_center.tehsil_block }}{% else %}Sadar{% endif %})</span>
                             <span class="stat">⚡ ~{{ recommended_center.distance_km }} km away</span>
                             <span class="stat">{% if recommended_center.queue_status == "LOW" %}🟢 Low Queue{% elif recommended_center.queue_status == "MEDIUM" %}🟡 Medium Queue{% else %}🔴 High Queue{% endif %}</span>
-                            <span class="stat">📞 {{ recommended_center.contact_number }}</span>
+                            <span class="stat">📅 {{ recommended_center.open_slots_count|default:"35" }} slots open (7 days)</span>
                         </div>
 
-                        <p class="match-score">⭐ Best District Match</p>
+                        <p class="match-score">⭐ Compatibility Score: {{ recommended_center.recommendation_score|default:"100.0" }} pts</p>
                         <p class="description">Address: <strong>{{ recommended_center.address }}</strong></p>
                         <ul class="reasons">
-                            <li>Nearest government facility in {{ recommended_center.district }} district</li>
-                            <li>Equipped for {{ recommended_center.crops_handled }}</li>
-                            <li>Operating Hours: {{ recommended_center.operating_hours }}</li>
+                            {% for reason in recommended_center.reasons %}
+                            <li>{{ reason }}</li>
+                            {% empty %}
+                            <li>Accepts {{ active_produce.crop_name }} procurement</li>
+                            <li>Located in {{ recommended_center.district }} district</li>
+                            <li>Appointment slots available over next 7 days</li>
+                            {% endfor %}
                         </ul>
 
                         <div class="recommendation-actions">
+                            <form method="post" action="{% url 'procurement:select_center' %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="produce_id" value="{{ active_produce.id }}">
+                                <input type="hidden" name="center_id" value="{{ recommended_center.id }}">
+                                <button type="submit" class="recommendation-button" style="border:none;cursor:pointer;">
+                                    ✓ Select This Center &amp; Book Appointment
+                                </button>
+                            </form>
                             <a class="recommendation-button secondary" href="{% url 'procurement:center_detail' %}">View Center Details</a>
-                            <span class="recommendation-button" style="background:#e2e8f0;color:#334155;cursor:default;">🔒 Auto-Assigned by District & Officer</span>
                         </div>
                     </section>
                     {% else %}
                     <section class="recommendation-card" style="border-left-color: #d88424; background: #fffdfa;" aria-labelledby="recommendation-heading">
                         <p class="recommendation-label" style="color: #b45309;">⚠️ No Registered Produce Found</p>
-                        <h2 class="recommendation-title" id="recommendation-heading" style="font-size: 22px;">Register Your Crop Produce to Enable Auto-Assignment</h2>
+                        <h2 class="recommendation-title" id="recommendation-heading" style="font-size: 22px;">Register Produce Batch to Enable Center Recommendations</h2>
                         <p class="recommendation-quantity">You currently have no active produce registered for MSP procurement. &bull; 📍 Active District: <strong>{{ selected_district }}</strong></p>
 
                         <p class="description" style="margin-top: 12px; color: var(--muted);">
-                            Registering your produce batch enables automated matching with government procurement centers in <strong>{{ selected_district }}</strong> (e.g. 🏢 {{ recommended_center.name }}).
+                            Registering your crop batch enables intelligent matching with government procurement centers in <strong>{{ selected_district }}</strong> (e.g. 🏢 {{ recommended_center.name }}).
                         </p>
 
                         <div class="recommendation-actions" style="margin-top: 18px;">
@@ -146,9 +161,12 @@
                     {% endif %}
                 {% endif %}
 
-                <h2 class="nearby-heading">Browse Procurement Centers by District</h2>
+                <h2 class="nearby-heading">Eligible Procurement Centers in Uttar Pradesh</h2>
 
                 <form class="filters" method="get" aria-label="Filter procurement centers">
+                    {% if active_produce %}
+                    <input type="hidden" name="produce_id" value="{{ active_produce.id }}">
+                    {% endif %}
                     <input type="search" name="search" value="{{ search_query }}" placeholder="Search center by name..." aria-label="Search centers">
 
                     <select name="district" onchange="this.form.submit()" aria-label="District filter">
@@ -173,18 +191,45 @@
                         {% if nearby_centers %}
                             {% for center in nearby_centers %}
                             <article class="center-card{% if center.district|lower == selected_district|lower %} district-match{% endif %}">
-                                <h3>🏢 {{ center.name }}</h3>
-                                <p class="center-distance">📍 {{ center.district }} district &bull; {{ center.tehsil_block }} &bull; ~{{ center.distance_km }} km</p>
+                                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+                                    <h3>🏢 {{ center.name }}</h3>
+                                    <span class="center-tag" style="background:#fff2d9;color:#9c5d13;font-size:10px;">
+                                        {{ center.recommendation_badge|default:"🟢 AVAILABLE" }}
+                                    </span>
+                                </div>
+                                <p class="center-distance">📍 {{ center.district }} district &bull; {{ center.tehsil_block|default:"Sadar" }} &bull; ~{{ center.distance_km }} km</p>
                                 <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">{{ center.address }}</p>
+
                                 <div class="center-tags">
                                     <span class="center-tag {% if center.queue_status == 'MEDIUM' %}medium{% endif %}">
                                         {% if center.queue_status == 'LOW' %}🟢 Low Queue{% elif center.queue_status == 'MEDIUM' %}🟡 Medium Queue{% else %}🔴 High Queue{% endif %}
                                     </span>
                                     <span class="center-tag">🌾 {{ center.crops_handled|truncatechars:30 }}</span>
+                                    {% if center.open_slots_count %}
+                                    <span class="center-tag" style="background:#e6f2e9;color:#1f6b45;">📅 {{ center.open_slots_count }} slots open</span>
+                                    {% endif %}
                                 </div>
+
+                                {% if center.reasons %}
+                                <ul style="margin:10px 0 0;padding-left:16px;font-size:11px;color:var(--muted);">
+                                    {% for reason in center.reasons|slice:":2" %}
+                                    <li>{{ reason }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+
                                 <div style="margin-top:14px;display:flex;gap:8px;align-items:center;">
-                                    <a class="recommendation-button secondary" href="{% url 'procurement:center_detail' %}">View Details</a>
-                                    <span style="font-size:12px;color:var(--muted);">Managed by Officer</span>
+                                    {% if active_produce %}
+                                    <form method="post" action="{% url 'procurement:select_center' %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="produce_id" value="{{ active_produce.id }}">
+                                        <input type="hidden" name="center_id" value="{{ center.id }}">
+                                        <button type="submit" class="recommendation-button" style="border:none;cursor:pointer;padding:8px 12px;font-size:11px;">
+                                            Select This Center
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    <a class="recommendation-button secondary" href="{% url 'procurement:center_detail' %}" style="padding:8px 12px;font-size:11px;">View Details</a>
                                 </div>
                             </article>
                             {% endfor %}

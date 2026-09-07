@@ -818,7 +818,7 @@
                                 </a>
                                 {% else %}
                                 <a
-                                    href="{% url 'procurement:centers' %}"
+                                    href="{% url 'procurement:centers' %}?produce_id={{ produce.id }}"
                                     class="btn btn-primary"
                                 >
                                     View Center
