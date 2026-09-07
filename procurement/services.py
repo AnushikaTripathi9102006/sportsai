@@ -321,11 +321,11 @@ def perform_acceptance(officer, record, decision, rejection_reason=""):
             except Exception:
                 pass
         else:
-            if record.current_stage == "WEIGHING":
+            if record.current_stage in ["WEIGHING", "ACCEPTANCE"]:
                 transition_procurement_stage(
                     actor=officer,
                     record=record,
-                    target_stage="ACCEPTANCE",
+                    target_stage="BILL_GENERATED",
                     details=f"Procurement accepted by {officer.username}",
                 )
             try:

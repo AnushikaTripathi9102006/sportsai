@@ -5,11 +5,15 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .models import Notification
+from .services import sync_farmer_notifications
 
 
 @login_required
 def notifications(request):
     profile = getattr(request.user, "profile", None)
+
+    # Automatically sync notifications for all procurement steps
+    sync_farmer_notifications(request.user)
 
     # Fetch user notifications
     user_notifications = Notification.objects.filter(user=request.user).order_by("-created_at")
@@ -44,6 +48,20 @@ def notifications(request):
     action_count = user_notifications.filter(notification_type__in=action_required_types, is_read=False).count()
     smart_count = user_notifications.filter(notification_type__in=["PRODUCE", "PROCUREMENT", "PAYMENT"]).count()
 
+    category_counts = {
+        "all": all_count,
+        "unread": unread_count,
+        "produce": user_notifications.filter(notification_type="PRODUCE").count(),
+        "appointment": user_notifications.filter(notification_type="APPOINTMENT").count(),
+        "token": user_notifications.filter(notification_type="TOKEN").count(),
+        "quality": user_notifications.filter(notification_type="QUALITY").count(),
+        "weighing": user_notifications.filter(notification_type="WEIGHING").count(),
+        "procurement": user_notifications.filter(notification_type="PROCUREMENT").count(),
+        "bill": user_notifications.filter(notification_type="BILL").count(),
+        "payment": user_notifications.filter(notification_type="PAYMENT").count(),
+        "system": user_notifications.filter(notification_type="SYSTEM").count(),
+    }
+
     return render(
         request,
         "notifications/notifications.html",
@@ -55,10 +73,12 @@ def notifications(request):
             "all_count": all_count,
             "action_count": action_count,
             "smart_count": smart_count,
+            "category_counts": category_counts,
             "selected_category": selected_category,
             "selected_tab": selected_tab,
         },
     )
+
 
 
 @login_required

@@ -650,12 +650,14 @@ def officer_quality_check(request, pk=None):
                     remarks=remarks,
                 )
                 messages.success(request, f"Quality Assessment ({result}) saved for Farmer {record.farmer.get_full_name() or record.farmer.username}.")
+                if result == "PASSED":
+                    return redirect(f"/procurement/officer/weighing/?record_id={record.id}")
             except Exception as e:
                 messages.error(request, str(e))
             return redirect("procurement:officer_quality_check")
 
     base_records = _get_officer_records(center)
-    pending_records = base_records.filter(current_stage="GATE_ENTRY")
+    pending_records = base_records.filter(current_stage__in=["GATE_ENTRY", "QUALITY_CHECK"])
     selected_record = base_records.filter(pk=target_pk).first() if target_pk else pending_records.first()
 
     form = QualityCheckForm()
@@ -693,12 +695,13 @@ def officer_weighing(request, pk=None):
             try:
                 perform_weighing(request.user, record, gross_weight=float(gross), tare_weight=float(tare), remarks=remarks)
                 messages.success(request, f"Weighing scale recorded for {record.farmer.username}. Net Weight: {record.actual_quantity} Quintals.")
+                return redirect(f"/procurement/officer/acceptance/?record_id={record.id}")
             except Exception as e:
                 messages.error(request, str(e))
             return redirect("procurement:officer_weighing")
 
     base_records = _get_officer_records(center)
-    pending_records = base_records.filter(current_stage="QUALITY_CHECK")
+    pending_records = base_records.filter(current_stage="WEIGHING")
     selected_record = base_records.filter(pk=target_pk).first() if target_pk else pending_records.first()
 
     form = WeighingForm()
@@ -736,7 +739,7 @@ def officer_acceptance(request, pk=None):
                 perform_acceptance(request.user, record, decision=decision, rejection_reason=remarks)
                 if decision == "ACCEPT":
                     messages.success(request, f"Procurement ACCEPTED for Farmer {record.farmer.get_full_name() or record.farmer.username}. Moving to Billing section.")
-                    return redirect("procurement:officer_bills")
+                    return redirect(f"/procurement/officer/bills/?record_id={record.id}")
                 else:
                     messages.warning(request, f"Procurement REJECTED for Farmer {record.farmer.get_full_name() or record.farmer.username}.")
             except Exception as e:
@@ -744,7 +747,7 @@ def officer_acceptance(request, pk=None):
             return redirect("procurement:officer_acceptance")
 
     base_records = _get_officer_records(center)
-    pending_records = base_records.filter(current_stage="WEIGHING")
+    pending_records = base_records.filter(current_stage="ACCEPTANCE")
     selected_record = base_records.filter(pk=target_pk).first() if target_pk else pending_records.first()
 
     form = AcceptanceForm()
@@ -782,12 +785,13 @@ def officer_bills(request, pk=None):
             try:
                 bill = perform_bill_generation(request.user, record, rate_per_quintal=float(rate), deductions=float(deductions))
                 messages.success(request, f"Bill #{bill.bill_number} generated successfully for ₹{bill.net_amount}.")
+                return redirect(f"/procurement/officer/payments/?record_id={record.id}")
             except Exception as e:
                 messages.error(request, str(e))
             return redirect("procurement:officer_bills")
 
     base_records = _get_officer_records(center)
-    pending_records = base_records.filter(current_stage="ACCEPTANCE")
+    pending_records = base_records.filter(current_stage="BILL_GENERATED")
     selected_record = base_records.filter(pk=target_pk).first() if target_pk else pending_records.first()
 
     form = BillGenerationForm(initial={"rate_per_quintal": 2275.00, "deductions": 0.00})

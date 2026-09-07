@@ -63,7 +63,7 @@
                 </div>
 
                 {% if eligible_produces.count > 1 %}
-                    <select onchange="window.location.href='?produce_id=' + this.value + '&date={{ selected_date|date:'Y-m-d' }}'" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-semibold bg-slate-50 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all">
+                    <select onchange="changeProduce(this.value)" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-semibold bg-slate-50 focus:outline-none focus:border-emerald-500 focus:bg-white transition-all">
                         {% for p in eligible_produces %}
                             <option value="{{ p.id }}" {% if p.id == selected_produce.id %}selected{% endif %}>
                                 🌾 {{ p.crop_name }} — {{ p.quantity }} {{ p.get_unit_display }} (District: {{ p.district }})
@@ -124,7 +124,7 @@
 
                 <div class="grid grid-cols-3 sm:grid-cols-7 gap-2.5">
                     {% for dt in available_dates %}
-                        <button type="button" onclick="window.location.href='?produce_id={{ selected_produce.id }}&date={{ dt|date:'Y-m-d' }}'" class="p-3.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center {% if dt == selected_date %}border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}border-slate-200 bg-slate-50 text-slate-800 hover:bg-slate-100 hover:border-slate-300{% endif %}">
+                        <button type="button" data-date="{{ dt|date:'Y-m-d' }}" onclick="selectDate(this.dataset.date)" class="p-3.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center {% if dt == selected_date %}border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}border-slate-200 bg-slate-50 text-slate-800 hover:bg-slate-100 hover:border-slate-300{% endif %}">
                             <span class="text-sm font-black">{{ dt|date:"d M" }}</span>
                             <span class="text-[11px] font-semibold uppercase tracking-wider opacity-80">{{ dt|date:"D" }}</span>
                         </button>
@@ -178,6 +178,18 @@
 
 {% block extra_js %}
 <script>
+    function changeProduce(produceId) {
+        var url = new URL(window.location.href);
+        url.searchParams.set('produce_id', produceId);
+        window.location.href = url.toString();
+    }
+
+    function selectDate(dateStr) {
+        var url = new URL(window.location.href);
+        url.searchParams.set('date', dateStr);
+        window.location.href = url.toString();
+    }
+
     document.querySelectorAll('.slot-choice-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
             if (btn.disabled || btn.classList.contains('opacity-50')) return;

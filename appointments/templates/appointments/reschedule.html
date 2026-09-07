@@ -51,7 +51,7 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {% for center in ranked_centers %}
-                    <div onclick="window.location.href='?center_id={{ center.id }}&date={{ selected_date|date:'Y-m-d' }}'" class="p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between {% if center.id == selected_center.id %}border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-500/20 shadow-xs{% else %}border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60{% endif %}">
+                    <div data-url="?center_id={{ center.id }}&date={{ selected_date|date:'Y-m-d' }}" onclick="window.location.href=this.dataset.url" class="p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between {% if center.id == selected_center.id %}border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-500/20 shadow-xs{% else %}border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60{% endif %}">
                         <div>
                             <div class="flex justify-between items-start gap-2 mb-2">
                                 <h3 class="font-bold text-slate-900 text-sm">🏢 {{ center.name }}</h3>
@@ -82,7 +82,7 @@
 
             <div class="grid grid-cols-3 sm:grid-cols-7 gap-2.5">
                 {% for dt in available_dates %}
-                    <button type="button" onclick="window.location.href='?center_id={{ selected_center.id }}&date={{ dt|date:'Y-m-d' }}'" class="p-3.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center {% if dt == selected_date %}border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}border-slate-200 bg-slate-50 text-slate-800 hover:bg-slate-100 hover:border-slate-300{% endif %}">
+                    <button type="button" data-url="?center_id={{ selected_center.id }}&date={{ dt|date:'Y-m-d' }}" onclick="window.location.href=this.dataset.url" class="p-3.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center {% if dt == selected_date %}border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}border-slate-200 bg-slate-50 text-slate-800 hover:bg-slate-100 hover:border-slate-300{% endif %}">
                         <span class="text-sm font-black">{{ dt|date:"d M" }}</span>
                         <span class="text-[11px] font-semibold uppercase tracking-wider opacity-80">{{ dt|date:"D" }}</span>
                     </button>
