@@ -1,30 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Account Pending Approval</title>
-</head>
+{% extends 'base.html' %}
 
-<body>
+{% block title %}Account Pending Approval - KisanFlow{% endblock %}
 
-    <div>
-        <h1>Account Pending Approval</h1>
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center py-12 px-4">
+    <div class="max-w-md w-full bg-white rounded-3xl border border-slate-200 shadow-xl p-8 sm:p-10 text-center space-y-6 relative overflow-hidden">
+        <!-- Accent Glow -->
+        <div class="absolute -right-16 -top-16 w-48 h-48 bg-amber-100 rounded-full blur-3xl opacity-70 pointer-events-none"></div>
 
-        <p>
-            Your Officer account has been created successfully.
-        </p>
+        <div class="w-16 h-16 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto text-3xl shadow-xs">
+            ⏳
+        </div>
 
-        <p>
-            Your account is currently waiting for administrator approval.
-            You will be able to access the Officer dashboard once your
-            account has been approved.
-        </p>
+        <div class="space-y-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                Officer Verification In Progress
+            </span>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Account Pending Approval</h1>
+            <p class="text-sm text-slate-500">
+                Your Officer credentials have been registered successfully.
+            </p>
+        </div>
 
-        <a href="{% url 'login' %}">
-            Back to Login
-        </a>
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-xs text-slate-600 text-left space-y-2">
+            <div class="flex items-start gap-2">
+                <span class="text-emerald-600 font-bold">✓</span>
+                <span>Your profile has been forwarded to the District Mandi Administrator.</span>
+            </div>
+            <div class="flex items-start gap-2">
+                <span class="text-emerald-600 font-bold">✓</span>
+                <span>You will gain full access to the Officer Procurement Workstation once verified.</span>
+            </div>
+        </div>
+
+        <div class="pt-2 flex flex-col gap-3">
+            <a href="{% url 'login' %}" class="w-full py-3 px-4 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-colors shadow-xs">
+                Back to Login
+            </a>
+            <a href="{% url 'logout' %}" class="w-full py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 transition-colors">
+                Sign Out
+            </a>
+        </div>
     </div>
-
-</body>
-</html>
+</div>
+{% endblock %}

@@ -1,239 +1,185 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Appointments | KisanFlow</title>
-    <style>
-        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --amber: #d88424; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, "Times New Roman", serif; }
-        a { color: inherit; }
-        .app-shell { display: flex; min-height: 100vh; }
-        .sidebar { width: 248px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .brand { padding: 0 14px 30px; font-size: 25px; font-weight: bold; }
-        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
-        .nav-list { display: grid; gap: 3px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
-        .nav-item:hover, .nav-item.active { background: #286c4a; color: white; }
-        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
-        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
-        .main-area { min-width: 0; flex: 1; }
-        .topbar { min-height: 82px; background: white; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
-        .menu-button { display: none; border: 0; background: var(--mint); color: var(--deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
-        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
-        .crumb strong { color: var(--ink); }
-        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
-        .profile-text { text-align: right; line-height: 1.5; }
-        .profile-text strong { display: block; color: var(--ink); }
-        .profile-id { color: var(--muted); font-size: 11px; }
-        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
-        .content { max-width: 1360px; margin: 0 auto; padding: 38px clamp(20px, 4vw, 50px) 60px; }
-        .page-header { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 28px; }
-        .eyebrow { margin: 0 0 8px; color: var(--green); font: bold 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
-        h1 { margin: 0 0 8px; font-size: clamp(28px, 4vw, 42px); line-height: 1.08; }
-        .description { margin: 0; color: var(--muted); font: 15px Arial, sans-serif; }
-        .button { display: inline-block; padding: 11px 15px; border-radius: 5px; background: var(--green); color: white; font: bold 13px Arial, sans-serif; text-decoration: none; white-space: nowrap; border: 0; cursor: pointer; }
-        .button.secondary { background: #edf3ee; color: var(--green); }
-        .button.danger { background: #fee2e2; color: #991b1b; }
-        .alert { padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font: 14px Arial, sans-serif; }
-        .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-        .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-        .section-heading { margin: 32px 0 13px; color: var(--ink); font-size: 20px; }
-        .upcoming-card { padding: 25px; background: white; border: 1px solid var(--line); border-left: 5px solid var(--green); border-radius: 8px; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); }
-        .card-heading { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 18px; }
-        .card-heading h2 { margin: 0; font-size: 20px; }
-        .confirmed-pill { padding: 6px 12px; border-radius: 16px; background: var(--mint); color: var(--green); font: bold 11px Arial, sans-serif; text-transform: uppercase; }
-        .appointment-date-display { color: var(--green); font: bold 24px Arial, sans-serif; margin-bottom: 15px; }
-        .appointment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; font: 14px Arial, sans-serif; }
-        .info-box { background: var(--paper); padding: 12px 15px; border-radius: 6px; border: 1px solid var(--line); }
-        .info-box span { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; margin-bottom: 4px; }
-        .info-box strong { color: var(--ink); font-size: 15px; }
-        .token-badge { display: inline-block; padding: 6px 10px; border-radius: 4px; background: #fff2d9; color: #9c5d13; font-weight: bold; font-family: Arial, sans-serif; }
-        .upcoming-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-        .history-card { padding: 25px; background: white; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); }
-        .history-table-wrap { overflow-x: auto; }
-        .history-table { width: 100%; border-collapse: collapse; font: 14px Arial, sans-serif; text-align: left; }
-        .history-table th { padding: 11px 12px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; letter-spacing: .07em; text-transform: uppercase; background: var(--paper); }
-        .history-table td { padding: 14px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
-        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; font-family: Arial, sans-serif; text-transform: uppercase; }
-        .status-confirmed { background: var(--mint); color: var(--green); }
-        .status-completed { background: #dbeafe; color: #1e40af; }
-        .status-cancelled { background: #fee2e2; color: #991b1b; }
-        @media (max-width: 900px) { .appointment-grid { grid-template-columns: 1fr; } }
-        @media (max-width: 700px) { .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 5; transform: translateX(-100%); transition: transform .2s ease; } .sidebar.open { transform: translateX(0); } .menu-button { display: block; } .topbar { min-height: 68px; } .profile-text { display: none; } .content { padding-top: 27px; } .page-header { display: block; } .button { margin-top: 16px; } }
-    </style>
-</head>
-<body>
-    <div class="app-shell">
-        <aside class="sidebar" id="sidebar">
-            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
-            <div class="nav-label">Main menu</div>
-            <nav class="nav-list" aria-label="Farmer navigation">
-                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
-                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
-                <a class="nav-item" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
-                <a class="nav-item active" href="{% url 'appointments:appointments' %}"><span class="nav-icon">▣</span> Appointments</a>
-                <a class="nav-item" href="{% url 'tokens:token_queue' %}"><span class="nav-icon">▤</span> My Token</a>
-                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
-                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
-                <a class="nav-item" href="{% url 'notifications:notifications' %}"><span class="nav-icon">🔔</span> Notifications</a>
-            </nav>
-            <div class="sidebar-bottom nav-list">
-                <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Settings</a>
-                <a class="nav-item" href="#"><span class="nav-icon">?</span> Help &amp; Support</a>
-                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
-            </div>
-        </aside>
+{% extends 'base.html' %}
 
-        <div class="main-area">
-            <header class="topbar">
-                <div style="display:flex;align-items:center;gap:13px">
-                    <button class="menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" onclick="toggleSidebar()">☰</button>
-                    <div class="crumb"><strong>Appointments</strong> &nbsp;/&nbsp; Farmer space</div>
+{% block title %}My Appointments | KisanFlow{% endblock %}
+{% block breadcrumb %}Appointments{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Page Header & Action -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div>
+            <span class="text-xs font-bold uppercase tracking-widest text-emerald-600">Procurement Schedule</span>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">📅 My Appointments</h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">Manage your upcoming and past government MSP procurement center slot appointments.</p>
+        </div>
+        {% if eligible_produces %}
+            <a href="{% url 'appointments:book_appointment' %}" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition-all flex-shrink-0">
+                <span>＋ Book Appointment Slot</span>
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Alert Messages -->
+    {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+                <div class="p-4 rounded-2xl {% if message.tags == 'error' %}bg-red-50 text-red-900 border-red-200{% else %}bg-emerald-50 text-emerald-900 border-emerald-200{% endif %} border text-sm font-medium flex items-center gap-3">
+                    <span>{% if message.tags == 'error' %}⚠️{% else %}✓{% endif %}</span>
+                    <span>{{ message }}</span>
                 </div>
-                <div class="profile">
-                    <span aria-label="Notifications" style="font-size:22px;color:var(--green)">♢</span>
-                    <div class="profile-text">
-                        <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
-                        <span class="profile-id">Farmer account</span>
-                    </div>
-                    <div class="avatar">{{ request.user.first_name|default:request.user.username|first|upper }}</div>
-                </div>
-            </header>
+            {% endfor %}
+        </div>
+    {% endif %}
 
-            <main class="content">
-                <section class="page-header">
-                    <div>
-                        <p class="eyebrow">PROCUREMENT SCHEDULE</p>
-                        <h1>📅 My Appointments</h1>
-                        <p class="description">Manage your upcoming and past government MSP procurement appointments.</p>
-                    </div>
-                    {% if eligible_produces %}
-                    <a class="button" href="{% url 'appointments:book_appointment' %}">＋ Book Appointment</a>
-                    {% endif %}
-                </section>
+    <!-- Upcoming Active Appointments -->
+    <div class="space-y-4">
+        <h2 class="text-lg font-bold text-slate-900">📌 Active Upcoming Appointments</h2>
 
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-
-                {% if upcoming_appointments %}
-                <h2 class="section-heading">📌 Active Upcoming Appointments ({{ upcoming_appointments.count }})</h2>
-                <div style="display: grid; gap: 20px;">
-                    {% for appt in upcoming_appointments %}
-                    <section class="upcoming-card" aria-labelledby="upcoming-appointment-heading-{{ appt.pk }}" style="border-left-color: {% if active_appointment and active_appointment.pk == appt.pk %}var(--green){% else %}#358257{% endif %};">
-                        <div class="card-heading">
-                            <h2 id="upcoming-appointment-heading-{{ appt.pk }}">🌾 <strong>{{ appt.produce.crop_name }}</strong> &bull; Code: <strong>{{ appt.appointment_code }}</strong></h2>
-                            <span class="confirmed-pill">🟢 {{ appt.get_status_display }}</span>
-                        </div>
-
-                        <div class="appointment-date-display">
-                            📅 {{ appt.appointment_date|date:"l, d F Y" }}
-                            <span style="display:block;font-size:16px;color:var(--ink);margin-top:4px;">🕒 Slot: <strong>{{ appt.appointment_time_slot }}</strong></span>
-                        </div>
-
-                        <div class="appointment-grid">
-                            <div class="info-box">
-                                <span>🌾 Produce Batch</span>
-                                <strong>{{ appt.produce.crop_name }}</strong> ({{ appt.produce.quantity }} {{ appt.produce.get_unit_display }})
+        {% if upcoming_appointments %}
+            <div class="space-y-4">
+                {% for appt in upcoming_appointments %}
+                    <div class="bg-white rounded-3xl p-6 border-2 border-emerald-500/80 shadow-xs space-y-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-900">🌾 {{ appt.produce.crop_name }}</h3>
+                                <p class="text-xs text-slate-500">Appointment Code: <strong class="text-slate-800 font-mono">{{ appt.appointment_code }}</strong></p>
                             </div>
-                            <div class="info-box">
-                                <span>📍 Procurement Center</span>
-                                <strong>{{ appt.procurement_center.name }}</strong> ({{ appt.procurement_center.district }})
+                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                🟢 {{ appt.get_status_display }}
+                            </span>
+                        </div>
+
+                        <!-- Date Hero Display -->
+                        <div class="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <span class="text-xs font-bold uppercase tracking-wider text-emerald-800">Scheduled Date</span>
+                                <div class="text-2xl font-extrabold text-emerald-950 mt-0.5">
+                                    📅 {{ appt.appointment_date|date:"l, d F Y" }}
+                                </div>
+                                <span class="text-xs font-semibold text-emerald-800 mt-1 block">
+                                    🕒 Time Slot: <strong>{{ appt.appointment_time_slot }}</strong>
+                                </span>
                             </div>
-                            <div class="info-box">
-                                <span>🎟️ Token Assigned</span>
-                                <span class="token-badge">#{{ appt.token_number|default:'Pending' }}</span>
+                            <div class="bg-white px-4 py-3 rounded-xl border border-emerald-200 text-right">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Assigned Token</span>
+                                <span class="text-lg font-black text-amber-600 font-mono">#{{ appt.token_number|default:'Pending' }}</span>
                             </div>
                         </div>
 
-                        <div class="upcoming-actions">
-                            <a class="button" href="{% url 'appointments:appointment_detail' pk=appt.pk %}">View Details &amp; Progress →</a>
+                        <!-- Info Grid -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <span class="text-slate-400 block uppercase font-bold text-[10px]">Crop Batch</span>
+                                <strong class="text-slate-900 text-sm font-bold">{{ appt.produce.crop_name }}</strong> ({{ appt.produce.quantity }} {{ appt.produce.get_unit_display }})
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <span class="text-slate-400 block uppercase font-bold text-[10px]">Procurement Center</span>
+                                <strong class="text-slate-900 text-sm font-bold">🏢 {{ appt.procurement_center.name }}</strong> ({{ appt.procurement_center.district }})
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100">
+                            <a href="{% url 'appointments:appointment_detail' pk=appt.pk %}" class="px-4 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold text-xs hover:bg-emerald-700 shadow-xs transition-colors">
+                                View Details &amp; Progress &rarr;
+                            </a>
+
                             {% if appt.can_be_cancelled %}
-                            <a class="button" style="background:#d88424;color:white;" href="{% url 'appointments:reschedule_appointment' pk=appt.pk %}">🔄 Reschedule {{ appt.produce.crop_name }}</a>
-                            <a class="button danger" href="{% url 'appointments:cancel_appointment' pk=appt.pk %}">Cancel Appointment</a>
+                                <a href="{% url 'appointments:reschedule_appointment' pk=appt.pk %}" class="px-4 py-2.5 rounded-xl bg-amber-500 text-white font-semibold text-xs hover:bg-amber-600 transition-colors">
+                                    🔄 Reschedule
+                                </a>
+                                <a href="{% url 'appointments:cancel_appointment' pk=appt.pk %}" class="px-4 py-2.5 rounded-xl bg-red-50 text-red-600 font-semibold text-xs hover:bg-red-100 border border-red-200 transition-colors">
+                                    Cancel
+                                </a>
                             {% endif %}
-                            <a class="button secondary" href="{% url 'tokens:token_queue' %}?produce_id={{ appt.produce.id }}">View Live Token Queue</a>
+
+                            <a href="{% url 'tokens:token_queue' %}?produce_id={{ appt.produce.id }}" class="ml-auto px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 transition-colors">
+                                Live Token Queue
+                            </a>
                         </div>
-                    </section>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <section class="upcoming-card" style="border-left-color: var(--amber);">
-                    <div class="card-heading">
-                        <h2>⚠️ No Active Upcoming Appointment</h2>
                     </div>
-                    {% if eligible_produces %}
-                    <p style="color: var(--muted); margin-bottom: 18px;">
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="bg-white rounded-3xl p-8 border border-slate-200/80 text-center space-y-3">
+                <div class="text-3xl">⚠️</div>
+                <h3 class="text-lg font-bold text-slate-900">No Active Upcoming Appointments</h3>
+                {% if eligible_produces %}
+                    <p class="text-xs text-slate-500 max-w-md mx-auto">
                         You have <strong>{{ eligible_produces.count }}</strong> requested produce batch(es) awaiting appointment slot booking.
                     </p>
-                    <a class="button" href="{% url 'appointments:book_appointment' %}">📅 Book Appointment Now</a>
-                    {% else %}
-                    <p style="color: var(--muted); margin-bottom: 18px;">
+                    <a href="{% url 'appointments:book_appointment' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold text-xs hover:bg-emerald-700 shadow-xs transition-colors">
+                        <span>📅 Book Appointment Now</span>
+                    </a>
+                {% else %}
+                    <p class="text-xs text-slate-500 max-w-md mx-auto">
                         You currently have no produce batches waiting for appointment booking. Register your crop produce to begin procurement.
                     </p>
-                    <a class="button" href="{% url 'produce:add_produce' %}">➕ Register Produce Batch</a>
-                    {% endif %}
-                </section>
+                    <a href="{% url 'produce:add_produce' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold text-xs hover:bg-emerald-700 shadow-xs transition-colors">
+                        <span>＋ Register Produce Batch</span>
+                    </a>
                 {% endif %}
+            </div>
+        {% endif %}
+    </div>
 
-                <h2 class="section-heading">📜 Appointment History &amp; Records</h2>
-                <section class="history-card" aria-labelledby="appointment-history-heading">
-                    <div class="history-table-wrap">
-                        <table class="history-table">
-                            <thead>
-                                <tr>
-                                    <th>Appt ID</th>
-                                    <th>Token</th>
-                                    <th>Scheduled Date &amp; Time</th>
-                                    <th>Crop &amp; Quantity</th>
-                                    <th>Center</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for appt in all_appointments %}
-                                <tr>
-                                    <td><strong>{{ appt.appointment_code }}</strong></td>
-                                    <td><span class="token-badge">#{{ appt.token_number }}</span></td>
-                                    <td>
-                                        <strong>{{ appt.appointment_date|date:"d M Y" }}</strong><br>
-                                        <small style="color:var(--muted)">{{ appt.appointment_time_slot }}</small>
-                                    </td>
-                                    <td>{{ appt.produce.crop_name }} ({{ appt.produce.quantity }} {{ appt.produce.get_unit_display }})</td>
-                                    <td>{{ appt.procurement_center.name }}</td>
-                                    <td>
-                                        <span class="status-badge {% if appt.status == 'CONFIRMED' %}status-confirmed{% elif appt.status == 'COMPLETED' %}status-completed{% else %}status-cancelled{% endif %}">
-                                            {{ appt.get_status_display }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'appointments:appointment_detail' pk=appt.pk %}" style="color:var(--green);font-weight:bold;">Details →</a>
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="7" style="text-align: center; color: var(--muted); padding: 25px;">
-                                        No appointment records found in database.
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            </main>
+    <!-- Appointment History Table -->
+    <div class="space-y-4">
+        <h2 class="text-lg font-bold text-slate-900">📜 Appointment History &amp; Records</h2>
+
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs overflow-x-auto">
+            <table class="w-full text-left text-xs">
+                <thead>
+                    <tr class="border-b border-slate-200/80 text-slate-400 uppercase tracking-wider font-bold">
+                        <th class="pb-3 px-2">Appt Code</th>
+                        <th class="pb-3 px-2">Token</th>
+                        <th class="pb-3 px-2">Scheduled Slot</th>
+                        <th class="pb-3 px-2">Crop &amp; Qty</th>
+                        <th class="pb-3 px-2">Center</th>
+                        <th class="pb-3 px-2">Status</th>
+                        <th class="pb-3 px-2">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for appt in all_appointments %}
+                        <tr class="hover:bg-slate-50/80">
+                            <td class="py-3 px-2 font-mono font-bold text-slate-900">{{ appt.appointment_code }}</td>
+                            <td class="py-3 px-2">
+                                <span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-bold font-mono text-[11px]">
+                                    #{{ appt.token_number }}
+                                </span>
+                            </td>
+                            <td class="py-3 px-2">
+                                <strong class="text-slate-900 block font-semibold">{{ appt.appointment_date|date:"d M Y" }}</strong>
+                                <span class="text-slate-400 text-[11px]">{{ appt.appointment_time_slot }}</span>
+                            </td>
+                            <td class="py-3 px-2 text-slate-700">
+                                🌾 <strong>{{ appt.produce.crop_name }}</strong> ({{ appt.produce.quantity }} {{ appt.produce.get_unit_display }})
+                            </td>
+                            <td class="py-3 px-2 font-medium text-slate-900">{{ appt.procurement_center.name }}</td>
+                            <td class="py-3 px-2">
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {% if appt.status == 'CONFIRMED' %}bg-emerald-100 text-emerald-800{% elif appt.status == 'COMPLETED' %}bg-blue-100 text-blue-800{% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ appt.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="py-3 px-2">
+                                <a href="{% url 'appointments:appointment_detail' pk=appt.pk %}" class="font-bold text-emerald-600 hover:text-emerald-700">
+                                    Details &rarr;
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="py-8 text-center text-slate-400 font-medium">
+                                No appointment records found in database.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
-    <script>
-        function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }
-    </script>
-</body>
-</html>
+
+</div>
+{% endblock %}

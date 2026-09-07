@@ -1,41 +1,1163 @@
 {% extends "base.html" %}
 
 {% block title %}
-    Home
+    KisanFlow — Smart Agricultural Procurement Platform
 {% endblock %}
 
 {% block content %}
+<div id="top" class="overflow-hidden">
 
-<div class="text-center py-20">
+    <!-- ==================================================
+         3 & 4. HERO SECTION WITH HERO VISUAL
+         ================================================== -->
+    <section class="relative bg-gradient-to-b from-emerald-50/80 via-white to-slate-50 pt-12 pb-20 lg:pt-20 lg:pb-28 border-b border-emerald-100/60">
+        <!-- Decorative subtle grid background pattern -->
+        <div class="absolute inset-0 bg-[radial-gradient(#16a34a_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.04] pointer-events-none"></div>
 
-    <h1 class="text-5xl font-bold text-gray-900">
-        Welcome to MyWebsite
-    </h1>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+                
+                <!-- Left: Hero Text & Main CTAs -->
+                <div class="lg:col-span-7 space-y-8 text-center lg:text-left">
+                    
+                    <!-- Value pill badges -->
+                    <div class="inline-flex flex-wrap items-center justify-center lg:justify-start gap-2 bg-emerald-100/80 backdrop-blur-sm border border-emerald-200/80 px-4 py-2 rounded-full text-xs font-bold text-emerald-900 shadow-sm">
+                        <span class="flex items-center gap-1">🌾 Simple</span>
+                        <span class="text-emerald-400">•</span>
+                        <span class="flex items-center gap-1">🤖 Smart</span>
+                        <span class="text-emerald-400">•</span>
+                        <span class="flex items-center gap-1">📍 Location-Aware</span>
+                        <span class="text-emerald-400">•</span>
+                        <span class="flex items-center gap-1">📅 Appointments</span>
+                        <span class="text-emerald-400">•</span>
+                        <span class="flex items-center gap-1">🎫 Tokens</span>
+                    </div>
 
-    <p class="mt-6 text-lg text-gray-600">
-        Build something amazing with Django.
-    </p>
+                    <!-- Main Heading -->
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.15]">
+                        Smart Agricultural Procurement, <br class="hidden sm:inline" />
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 via-green-600 to-emerald-800">
+                            Made Simple.
+                        </span>
+                    </h1>
 
-    <div class="mt-8">
+                    <!-- Supporting Paragraph -->
+                    <p class="text-lg sm:text-xl text-slate-600 leading-relaxed max-w-2xl mx-auto lg:mx-0 font-normal">
+                        KisanFlow connects farmers and procurement officers through a transparent, digital procurement journey — from produce registration to payment.
+                    </p>
 
-        {% if user.is_authenticated %}
+                    <!-- Primary & Secondary CTAs -->
+                    <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+                        <a href="{% url 'signup' %}" class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-emerald-600 text-white font-bold text-base hover:bg-emerald-700 shadow-lg shadow-emerald-600/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                            <span>🌾 Get Started</span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </a>
+                        <a href="#how-it-works" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white border border-slate-200 text-slate-800 font-semibold text-base hover:bg-slate-50 hover:border-emerald-300 shadow-sm transition-all">
+                            <span>See How It Works</span>
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </a>
+                    </div>
 
-            <a href="{% url 'dashboard' %}"
-               class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-                Go to Dashboard
-            </a>
+                    <!-- Visual Workflow Summary Bar -->
+                    <div class="pt-6 border-t border-slate-200/80">
+                        <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 text-center lg:text-left">
+                            End-to-End Digital Workflow
+                        </p>
+                        <div class="flex flex-wrap items-center justify-center lg:justify-start gap-2 sm:gap-3 text-xs font-semibold text-slate-700">
+                            <span class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 shadow-2xs">🌾 Register Produce</span>
+                            <span class="text-emerald-500 font-bold">→</span>
+                            <span class="px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">🤖 Recommendation</span>
+                            <span class="text-emerald-500 font-bold">→</span>
+                            <span class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 shadow-2xs">📅 Appointment</span>
+                            <span class="text-emerald-500 font-bold">→</span>
+                            <span class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 shadow-2xs">🎫 Digital Token</span>
+                            <span class="text-emerald-500 font-bold">→</span>
+                            <span class="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 shadow-2xs">⚖️ Weighing</span>
+                            <span class="text-emerald-500 font-bold">→</span>
+                            <span class="px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white font-bold shadow-2xs">💰 Payment</span>
+                        </div>
+                    </div>
 
-        {% else %}
+                </div>
 
-            <a href="{% url 'signup' %}"
-               class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-                Get Started
-            </a>
+                <!-- Right: Hero Visual Illustration (Digital Procurement Ecosystem) -->
+                <div class="lg:col-span-5 relative">
+                    <!-- Subtle ambient glow background -->
+                    <div class="absolute -top-10 -right-10 w-72 h-72 bg-emerald-300/30 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute -bottom-10 -left-10 w-72 h-72 bg-amber-300/20 rounded-full blur-3xl pointer-events-none"></div>
 
-        {% endif %}
+                    <!-- Main Ecosystem Illustration Card -->
+                    <div class="relative bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6">
+                        
+                        <!-- Header badge on card -->
+                        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 text-xl font-bold">
+                                    🌾
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-slate-900">Digital Procurement Ecosystem</h3>
+                                    <p class="text-xs text-slate-500">Live Synchronized System</p>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold text-[11px]">
+                                Active Node
+                            </span>
+                        </div>
 
-    </div>
+                        <!-- Graphic Cards Grid inside Visual -->
+                        <div class="grid grid-cols-2 gap-3.5">
+                            
+                            <!-- Card 1: Farmer & Produce -->
+                            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3 shadow-2xs">
+                                <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-lg shrink-0">
+                                    👨‍🌾
+                                </div>
+                                <div class="overflow-hidden">
+                                    <p class="text-xs font-bold text-slate-800 truncate">Rajesh Kumar</p>
+                                    <p class="text-[11px] text-amber-700 font-medium truncate">20 Quintals Wheat</p>
+                                </div>
+                            </div>
+
+                            <!-- Card 2: AI Recommendation -->
+                            <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center gap-3 shadow-2xs">
+                                <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-base shrink-0">
+                                    🤖
+                                </div>
+                                <div class="overflow-hidden">
+                                    <p class="text-xs font-bold text-emerald-950 truncate">Center #2</p>
+                                    <p class="text-[11px] text-emerald-700 font-semibold truncate">5 km • Min Queue</p>
+                                </div>
+                            </div>
+
+                            <!-- Card 3: Digital Token QR -->
+                            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3 shadow-2xs">
+                                <div class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center text-xs font-mono font-bold shrink-0">
+                                    QR
+                                </div>
+                                <div class="overflow-hidden">
+                                    <p class="text-xs font-bold text-slate-800 truncate">Token #A-104</p>
+                                    <p class="text-[11px] text-slate-500 font-medium truncate">Check-in Ready</p>
+                                </div>
+                            </div>
+
+                            <!-- Card 4: Verified Payout -->
+                            <div class="p-3.5 rounded-2xl bg-green-50 border border-green-200 flex items-center gap-3 shadow-2xs">
+                                <div class="w-9 h-9 rounded-xl bg-green-600 text-white flex items-center justify-center text-base shrink-0">
+                                    💰
+                                </div>
+                                <div class="overflow-hidden">
+                                    <p class="text-xs font-bold text-green-950 truncate">₹46,410 Payout</p>
+                                    <p class="text-[11px] text-green-700 font-bold truncate">DBT Verified</p>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Interactive Step Card Mock -->
+                        <div class="p-4 rounded-2xl bg-gradient-to-r from-emerald-800 to-green-900 text-white shadow-md space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="text-emerald-300 font-bold uppercase tracking-wider text-[10px]">Real-Time Status</span>
+                                <span class="px-2 py-0.5 rounded bg-emerald-700/80 text-emerald-100 text-[10px]">Stage 7 / 7</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-bold text-white">Weighing & Quality Inspection</p>
+                                    <p class="text-xs text-emerald-200">Grade A • Net Weight 20.4 Q</p>
+                                </div>
+                                <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-sm">
+                                    ✓
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ==================================================
+         5. TRUST / VALUE STRIP
+         ================================================== -->
+    <section class="bg-white py-8 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 lg:gap-6 text-center">
+                
+                <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 flex flex-col items-center justify-center space-y-1">
+                    <span class="text-2xl">🌾</span>
+                    <h4 class="text-sm font-bold text-slate-800">Farmer Friendly</h4>
+                    <p class="text-xs text-slate-500">Simple mobile interface</p>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 flex flex-col items-center justify-center space-y-1">
+                    <span class="text-2xl">📍</span>
+                    <h4 class="text-sm font-bold text-slate-800">Smart Recommendation</h4>
+                    <p class="text-xs text-slate-500">Distance & capacity match</p>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 flex flex-col items-center justify-center space-y-1">
+                    <span class="text-2xl">📅</span>
+                    <h4 class="text-sm font-bold text-slate-800">Easy Appointments</h4>
+                    <p class="text-xs text-slate-500">No waiting blindly</p>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 flex flex-col items-center justify-center space-y-1">
+                    <span class="text-2xl">🎫</span>
+                    <h4 class="text-sm font-bold text-slate-800">Digital Token Queue</h4>
+                    <p class="text-xs text-slate-500">Real-time status updates</p>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 flex flex-col items-center justify-center space-y-1 col-span-2 md:col-span-1">
+                    <span class="text-2xl">💰</span>
+                    <h4 class="text-sm font-bold text-slate-800">Transparent Payments</h4>
+                    <p class="text-xs text-slate-500">Verified bank transfers</p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ==================================================
+         6. THE PROBLEM SECTION
+         ================================================== -->
+    <section class="py-20 bg-slate-50 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto space-y-4 mb-16">
+                <span class="px-3.5 py-1.5 rounded-full bg-red-100 text-red-800 text-xs font-bold uppercase tracking-wider">
+                    Challenges in Legacy Procurement
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Traditional Procurement Can Be Difficult
+                </h2>
+                <p class="text-base sm:text-lg text-slate-600">
+                    Conventional procurement centers often suffer from severe operational bottlenecks, causing stress and loss for farmers.
+                </p>
+            </div>
+
+            <!-- Problem Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
+                
+                <div class="bg-white p-6 rounded-2xl border border-red-100 shadow-sm space-y-3 hover:shadow-md transition-shadow">
+                    <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-lg font-bold">
+                        ❌
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900">Long Waiting Times</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Farmers spend hours or even days standing in unmanaged physical queues.
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-red-100 shadow-sm space-y-3 hover:shadow-md transition-shadow">
+                    <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-lg font-bold">
+                        ❌
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900">Manual Processes</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Handwritten logs and paper receipts lead to clerical errors and discrepancies.
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-red-100 shadow-sm space-y-3 hover:shadow-md transition-shadow">
+                    <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-lg font-bold">
+                        ❌
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900">Unclear Status</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Zero visibility into current queue length or center processing capacity.
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-red-100 shadow-sm space-y-3 hover:shadow-md transition-shadow">
+                    <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-lg font-bold">
+                        ❌
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900">Multiple Visits</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Traveling to distant centers without knowing if they accept your specific crop.
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl border border-red-100 shadow-sm space-y-3 hover:shadow-md transition-shadow sm:col-span-2 lg:col-span-1">
+                    <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-lg font-bold">
+                        ❌
+                    </div>
+                    <h3 class="text-base font-bold text-slate-900">Payment Uncertainty</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Lack of real-time tracking on net weight calculations and payout timelines.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Transition Solution Banner -->
+            <div class="bg-gradient-to-r from-emerald-800 via-green-800 to-emerald-900 text-white rounded-3xl p-8 text-center shadow-xl space-y-3">
+                <span class="text-2xl">✨</span>
+                <h3 class="text-2xl sm:text-3xl font-bold">
+                    KisanFlow brings everything into one digital journey.
+                </h3>
+                <p class="text-emerald-100 max-w-2xl mx-auto text-sm sm:text-base">
+                    From your smartphone, track recommendations, book guaranteed slots, get digital tokens, and verify payments transparently.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ==================================================
+         7. HOW KISANFLOW WORKS (7-STEP TIMELINE)
+         ================================================== -->
+    <section id="how-it-works" class="py-20 bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto space-y-4 mb-16">
+                <span class="px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">
+                    7-Step Digital Journey
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    From Harvest to Payment — One Simple Journey
+                </h2>
+                <p class="text-base sm:text-lg text-slate-600">
+                    A streamlined digital process designed to eliminate waiting, confusion, and manual paperwork.
+                </p>
+            </div>
+
+            <!-- Steps Grid / Timeline Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+                
+                <!-- Step 1 -->
+                <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200/80 shadow-xs relative space-y-4 hover:border-emerald-400 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <span class="w-8 h-8 rounded-full bg-emerald-600 text-white font-extrabold text-sm flex items-center justify-center">1</span>
+                        <span class="text-2xl">🌾</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Register Produce</h3>
+                        <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                            Farmer inputs crop type, estimated quantity, and harvest location.
+                        </p>
+                    </div>
+                    <div class="text-[11px] font-semibold text-emerald-700 bg-emerald-100/60 px-2.5 py-1 rounded-md w-fit">
+                        Input: Crop & Quantity
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="bg-emerald-50/70 rounded-2xl p-6 border border-emerald-200 shadow-xs relative space-y-4 hover:border-emerald-500 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <span class="w-8 h-8 rounded-full bg-emerald-600 text-white font-extrabold text-sm flex items-center justify-center">2</span>
+                        <span class="text-2xl">🤖</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-emerald-950">Smart Recommendation</h3>
+                        <p class="text-xs text-emerald-900 mt-1 leading-relaxed">
+                            AI analyzes location, crop support, center capacity, and live queues.
+                        </p>
+                    </div>
+                    <div class="text-[11px] font-semibold text-emerald-800 bg-emerald-200/80 px-2.5 py-1 rounded-md w-fit">
+                        Matches Optimal Center
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200/80 shadow-xs relative space-y-4 hover:border-emerald-400 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <span class="w-8 h-8 rounded-full bg-emerald-600 text-white font-extrabold text-sm flex items-center justify-center">3</span>
+                        <span class="text-2xl">📅</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Book Appointment</h3>
+                        <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                            Select date and convenient time slot to avoid overcrowding.
+                        </p>
+                    </div>
+                    <div class="text-[11px] font-semibold text-emerald-700 bg-emerald-100/60 px-2.5 py-1 rounded-md w-fit">
+                        Guaranteed Time Slot
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200/80 shadow-xs relative space-y-4 hover:border-emerald-400 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <span class="w-8 h-8 rounded-full bg-emerald-600 text-white font-extrabold text-sm flex items-center justify-center">4</span>
+                        <span class="text-2xl">🎫</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Get Digital Token</h3>
+                        <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                            Receive digital token & QR code with live queue tracking.
+                        </p>
+                    </div>
+                    <div class="text-[11px] font-semibold text-emerald-700 bg-emerald-100/60 px-2.5 py-1 rounded-md w-fit">
+                        Live Queue Sequence
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200/80 shadow-xs relative space-y-4 hover:border-emerald-400 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <span class="w-8 h-8 rounded-full bg-emerald-600 text-white font-extrabold text-sm flex items-center justify-center">5</span>
+                        <span class="text-2xl">⚖️</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Weighing & Quality</h3>
+                        <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                            Officer checks quality grade and logs actual scale weight.
+                        </p>
+                    </div>
+                    <div class="text-[11px] font-semibold text-emerald-700 bg-emerald-100/60 px-2.5 py-1 rounded-md w-fit">
+                        Digital Entry Log
+                    </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="bg-slate-50 rounded-2xl p-6 border border-slate-200/80 shadow-xs relative space-y-4 hover:border-emerald-400 transition-colors">
+                    <div class="flex items-center justify-between">
+                        <span class="w-8 h-8 rounded-full bg-emerald-600 text-white font-extrabold text-sm flex items-center justify-center">6</span>
+                        <span class="text-2xl">🌾</span>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Procurement</h3>
+                        <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                            Produce is officially accepted into state inventory with receipt.
+                        </p>
+                    </div>
+                    <div class="text-[11px] font-semibold text-emerald-700 bg-emerald-100/60 px-2.5 py-1 rounded-md w-fit">
+                        Instant Receipt
+                    </div>
+                </div>
+
+                <!-- Step 7 -->
+                <div class="bg-gradient-to-br from-emerald-600 to-green-700 text-white rounded-2xl p-6 shadow-md relative space-y-4 md:col-span-2 lg:col-span-2">
+                    <div class="flex items-center justify-between">
+                        <span class="w-8 h-8 rounded-full bg-white text-emerald-800 font-extrabold text-sm flex items-center justify-center">7</span>
+                        <span class="text-3xl">💰</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold">Direct Digital Payment</h3>
+                        <p class="text-xs text-emerald-100 mt-1 leading-relaxed max-w-md">
+                            Bill is automatically calculated based on verified weight & MSP rate. Track your bank payout status transparently.
+                        </p>
+                    </div>
+                    <div class="text-[11px] font-bold text-emerald-950 bg-white px-3 py-1 rounded-md w-fit">
+                        ✓ Transparent DBT Transfer
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ==================================================
+         8. SMART RECOMMENDATION SECTION (SPOTLIGHT DEMO)
+         ================================================== -->
+    <section id="smart-assistant" class="py-20 bg-slate-900 text-white relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto space-y-4 mb-16">
+                <span class="px-3.5 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
+                    Core Differentiator
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                    Your Smart Procurement Assistant
+                </h2>
+                <p class="text-base sm:text-lg text-slate-300">
+                    KisanFlow analyzes real-time procurement conditions to recommend the most suitable procurement center and appointment for the farmer.
+                </p>
+            </div>
+
+            <!-- Demo Container Box -->
+            <div class="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-sm max-w-5xl mx-auto">
+                
+                <div class="flex items-center justify-between pb-6 border-b border-slate-700 mb-8">
+                    <div class="flex items-center gap-2 text-xs font-semibold text-emerald-400">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>Interactive Recommendation Engine Demo</span>
+                    </div>
+                    <span class="text-[11px] text-slate-400 bg-slate-900/60 px-3 py-1 rounded-full border border-slate-700">
+                        Illustrative Demo Scenario
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                    
+                    <!-- Left: Farmer Input Form Demo -->
+                    <div class="lg:col-span-5 bg-slate-900/80 p-6 rounded-2xl border border-slate-700 space-y-4">
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800 pb-2">
+                            Farmer Produce Input
+                        </h4>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-[11px] text-slate-400 font-semibold block mb-1">Farmer Location</label>
+                                <div class="px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm font-semibold text-white flex items-center justify-between">
+                                    <span>📍 Lucknow (District East)</span>
+                                    <span class="text-xs text-emerald-400 font-mono">GPS Verified</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-[11px] text-slate-400 font-semibold block mb-1">Crop Type</label>
+                                <div class="px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm font-semibold text-amber-400">
+                                    🌾 Wheat (Grade A)
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="text-[11px] text-slate-400 font-semibold block mb-1">Estimated Quantity</label>
+                                <div class="px-3.5 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-sm font-semibold text-white">
+                                    📦 20 Quintals
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Center Arrow indicator -->
+                    <div class="hidden lg:flex lg:col-span-2 items-center justify-center">
+                        <div class="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xl font-bold shadow-lg shadow-emerald-500/20">
+                            ➔
+                        </div>
+                    </div>
+
+                    <!-- Right: Recommendation Result Card -->
+                    <div class="lg:col-span-5 bg-gradient-to-br from-emerald-950/90 to-slate-900 p-6 rounded-2xl border border-emerald-500/40 space-y-4">
+                        <div class="flex items-center justify-between border-b border-emerald-900/60 pb-2">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                                🤖 AI Recommended Center
+                            </h4>
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">
+                                98% Match Score
+                            </span>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div>
+                                <p class="text-lg font-bold text-white">Lucknow Procurement Center #2</p>
+                                <p class="text-xs text-emerald-300">Station Road Hub • Capacity Available</p>
+                            </div>
+
+                            <!-- Why list -->
+                            <div class="space-y-1.5 pt-2 text-xs">
+                                <p class="font-semibold text-slate-400">Why recommended?</p>
+                                <div class="flex items-center gap-2 text-emerald-200">
+                                    <span class="text-emerald-400 font-bold">✓</span>
+                                    <span><strong>5 km away</strong> (Shortest distance)</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-emerald-200">
+                                    <span class="text-emerald-400 font-bold">✓</span>
+                                    <span><strong>Wheat accepted</strong> (Active MSP procurement)</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-emerald-200">
+                                    <span class="text-emerald-400 font-bold">✓</span>
+                                    <span><strong>Capacity available</strong> (Warehouse 42% full)</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-emerald-200">
+                                    <span class="text-emerald-400 font-bold">✓</span>
+                                    <span><strong>Shorter queue</strong> (~15 min expected wait)</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-emerald-200">
+                                    <span class="text-emerald-400 font-bold">✓</span>
+                                    <span><strong>Slot open:</strong> Today at 10:30 AM</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Callout footer inside dark box -->
+                <div class="mt-8 text-center pt-6 border-t border-slate-700/80">
+                    <p class="text-xs sm:text-sm text-slate-300 font-medium">
+                        💡 <strong class="text-emerald-400">Smart recommendations</strong> help reduce unnecessary travel, fuel cost, and waiting times for all farmers.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ==================================================
+         9. FOR FARMERS SECTION
+         ================================================== -->
+    <section id="for-farmers" class="py-20 bg-emerald-50/40 border-b border-emerald-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <div class="lg:col-span-5 space-y-6">
+                    <span class="px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">
+                        Farmer Empowerment
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                        Built Around the Farmer
+                    </h2>
+                    <p class="text-base text-slate-600 leading-relaxed">
+                        KisanFlow puts farmers in complete control of their produce sales. No more middleman uncertainty or waiting at congested centers overnight.
+                    </p>
+                    <div class="pt-2">
+                        <a href="{% url 'signup' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition-all">
+                            <span>🌾 Register as Farmer</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    
+                    <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-xs space-y-2">
+                        <span class="text-2xl">🌾</span>
+                        <h3 class="text-base font-bold text-slate-900">Register Multiple Crops</h3>
+                        <p class="text-xs text-slate-600">
+                            Manage wheat, paddy, mustard, or maize all within one farmer profile.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-xs space-y-2">
+                        <span class="text-2xl">📍</span>
+                        <h3 class="text-base font-bold text-slate-900">Find the Right Center</h3>
+                        <p class="text-xs text-slate-600">
+                            Get intelligent procurement-center recommendations based on distance & queue.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-xs space-y-2">
+                        <span class="text-2xl">📅</span>
+                        <h3 class="text-base font-bold text-slate-900">Plan Your Visit</h3>
+                        <p class="text-xs text-slate-600">
+                            Book guaranteed appointment time slots instead of waiting blindly.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-xs space-y-2">
+                        <span class="text-2xl">🎫</span>
+                        <h3 class="text-base font-bold text-slate-900">Digital Token</h3>
+                        <p class="text-xs text-slate-600">
+                            Know your exact live queue position directly on your smartphone screen.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-xs space-y-2">
+                        <span class="text-2xl">⚖️</span>
+                        <h3 class="text-base font-bold text-slate-900">Track Procurement</h3>
+                        <p class="text-xs text-slate-600">
+                            See every stage from gate check-in to quality verification & weighing.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-xs space-y-2">
+                        <span class="text-2xl">💰</span>
+                        <h3 class="text-base font-bold text-slate-900">Track Payment</h3>
+                        <p class="text-xs text-slate-600">
+                            Full transparency on payment net amounts, receipts, and bank status.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ==================================================
+         10. MULTIPLE CROP SUPPORT SECTION
+         ================================================== -->
+    <section class="py-20 bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto space-y-4 mb-16">
+                <span class="px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">
+                    Multi-Crop Workflow
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Manage All Your Produce in One Place
+                </h2>
+                <p class="text-base text-slate-600">
+                    Different crops have individual procurement statuses while remaining seamlessly connected under a single farmer profile.
+                </p>
+            </div>
+
+            <!-- Visual Multi-Crop Card Graphic -->
+            <div class="max-w-4xl mx-auto bg-slate-50 border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                
+                <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold">
+                            👨‍🌾
+                        </div>
+                        <div>
+                            <h4 class="text-base font-bold text-slate-900">Farmer: Rajesh Kumar</h4>
+                            <p class="text-xs text-slate-500">Registered Farmer ID: #FRM-84920</p>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">
+                        3 Active Produce Batches
+                    </span>
+                </div>
+
+                <!-- Crop List -->
+                <div class="space-y-3">
+                    
+                    <!-- Crop 1 -->
+                    <div class="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-2xs">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🌾</span>
+                            <div>
+                                <h5 class="text-sm font-bold text-slate-900">Wheat — 20 Quintals</h5>
+                                <p class="text-xs text-slate-500">Center #2 • Slot Today 10:30 AM</p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold">
+                            🎫 Token Issued #A-104
+                        </span>
+                    </div>
+
+                    <!-- Crop 2 -->
+                    <div class="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-2xs">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🌾</span>
+                            <div>
+                                <h5 class="text-sm font-bold text-slate-900">Rice (Paddy) — 15 Quintals</h5>
+                                <p class="text-xs text-slate-500">Center #1 • Slot Tomorrow 11:00 AM</p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 rounded-lg bg-blue-100 text-blue-800 text-xs font-bold">
+                            📅 Appointment Confirmed
+                        </span>
+                    </div>
+
+                    <!-- Crop 3 -->
+                    <div class="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 shadow-2xs">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">🌽</span>
+                            <div>
+                                <h5 class="text-sm font-bold text-slate-900">Maize — 10 Quintals</h5>
+                                <p class="text-xs text-slate-500">Registered • Awaiting Recommendation</p>
+                            </div>
+                        </div>
+                        <span class="px-3 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-bold">
+                            🌾 Registered
+                        </span>
+                    </div>
+
+                </div>
+
+                <!-- Infographic Flow -->
+                <div class="pt-4 border-t border-slate-200 flex flex-wrap items-center justify-center gap-2 text-xs font-semibold text-slate-600">
+                    <span>Multiple Crops</span>
+                    <span>➔</span>
+                    <span>One Account</span>
+                    <span>➔</span>
+                    <span>Individual Appointments</span>
+                    <span>➔</span>
+                    <span>Independent Tracking</span>
+                    <span>➔</span>
+                    <span class="text-emerald-700 font-bold">Verified Payouts</span>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ==================================================
+         11. FOR OFFICERS SECTION
+         ================================================== -->
+    <section id="for-officers" class="py-20 bg-slate-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <div class="lg:col-span-6 space-y-6">
+                    <span class="px-3.5 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
+                        Procurement Operations
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+                        Powerful Tools for Procurement Officers
+                    </h2>
+                    <p class="text-base text-slate-300 leading-relaxed">
+                        Streamline center operations, eliminate queue bottlenecks, record certified scale weights, and initiate payments with automated audit trails.
+                    </p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                        <div class="flex items-center gap-2.5 text-xs text-slate-300">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span>📥 Manage Gate Entries & Requests</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-xs text-slate-300">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span>📅 Manage Appointment Capacity</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-xs text-slate-300">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span>🎫 Manage Live Token Queue</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-xs text-slate-300">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span>⚖️ Record Scale Weighing</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-xs text-slate-300">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span>🔍 Verify Quality & Moisture</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-xs text-slate-300">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            <span>💰 Automated Bill Generation</span>
+                        </div>
+                    </div>
+
+                    <div class="p-4 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-emerald-300">
+                        💡 <em>"Every action is recorded and synchronized across the procurement workflow."</em>
+                    </div>
+                </div>
+
+                <!-- Right: Mock Officer Dashboard Preview Card -->
+                <div class="lg:col-span-6 bg-slate-800 rounded-3xl p-6 border border-slate-700 shadow-2xl space-y-5">
+                    <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">
+                                👨‍💼
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-white">Officer Console #2</h4>
+                                <p class="text-[11px] text-slate-400">Lucknow Procurement Station</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 text-[11px] font-bold">
+                            Live Queue: 4 Waiting
+                        </span>
+                    </div>
+
+                    <!-- Action Queue Cards inside Mock Officer Dashboard -->
+                    <div class="space-y-3">
+                        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-3">
+                                <span class="px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded font-mono font-bold">#A-104</span>
+                                <div>
+                                    <p class="font-bold text-white">Rajesh Kumar • Wheat</p>
+                                    <p class="text-[11px] text-slate-400">Status: Ready for Weighing</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[11px]">
+                                Record Weight ➔
+                            </span>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-3">
+                                <span class="px-2 py-1 bg-slate-700 text-slate-300 rounded font-mono font-bold">#A-105</span>
+                                <div>
+                                    <p class="font-bold text-white">Suresh Verma • Paddy</p>
+                                    <p class="text-[11px] text-slate-400">Status: Gate Checked In</p>
+                                </div>
+                            </div>
+                            <span class="px-3 py-1 rounded-lg bg-slate-800 text-slate-300 font-semibold text-[11px]">
+                                Call Token
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ==================================================
+         12. TRANSPARENCY / HISTORY SECTION
+         ================================================== -->
+    <section id="audit-history" class="py-20 bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto space-y-4 mb-16">
+                <span class="px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">
+                    Full Transparency
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Every Step. One Transparent Record.
+                </h2>
+                <p class="text-base text-slate-600">
+                    End-to-end auditability ensures zero discrepancy between farmer, procurement officer, and bank payout.
+                </p>
+            </div>
+
+            <!-- Timeline Audit Trail Card -->
+            <div class="max-w-3xl mx-auto bg-slate-50 border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+                
+                <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Audit Log Reference: #PRC-2026-8812</span>
+                    <span class="px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-xs font-bold">
+                        Demonstration Record
+                    </span>
+                </div>
+
+                <!-- Timestamp list -->
+                <div class="relative pl-6 border-l-2 border-emerald-500 space-y-6">
+                    
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-emerald-600 border-2 border-white"></div>
+                        <p class="text-xs font-bold text-emerald-700">09:15 AM</p>
+                        <h4 class="text-sm font-bold text-slate-900">Request Registered</h4>
+                        <p class="text-xs text-slate-500">Wheat (20 Quintals) registered by Farmer Rajesh Kumar</p>
+                    </div>
+
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-emerald-600 border-2 border-white"></div>
+                        <p class="text-xs font-bold text-emerald-700">09:20 AM</p>
+                        <h4 class="text-sm font-bold text-slate-900">Appointment Confirmed</h4>
+                        <p class="text-xs text-slate-500">Assigned Lucknow Center #2 for 10:30 AM slot</p>
+                    </div>
+
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-emerald-600 border-2 border-white"></div>
+                        <p class="text-xs font-bold text-emerald-700">09:25 AM</p>
+                        <h4 class="text-sm font-bold text-slate-900">Token Generated</h4>
+                        <p class="text-xs text-slate-500">Token #A-104 issued with live position updates</p>
+                    </div>
+
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-emerald-600 border-2 border-white"></div>
+                        <p class="text-xs font-bold text-emerald-700">09:35 AM</p>
+                        <h4 class="text-sm font-bold text-slate-900">Farmer Gate Check-In</h4>
+                        <p class="text-xs text-slate-500">Gate entry verified by Officer at Station #2</p>
+                    </div>
+
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-emerald-600 border-2 border-white"></div>
+                        <p class="text-xs font-bold text-emerald-700">09:42 AM</p>
+                        <h4 class="text-sm font-bold text-slate-900">Quality Verified</h4>
+                        <p class="text-xs text-slate-500">Grade A Wheat • Moisture Level 11.2%</p>
+                    </div>
+
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-emerald-600 border-2 border-white"></div>
+                        <p class="text-xs font-bold text-emerald-700">09:48 AM</p>
+                        <h4 class="text-sm font-bold text-slate-900">Weighing Completed</h4>
+                        <p class="text-xs text-slate-500">Certified Weight Recorded: 20.40 Quintals</p>
+                    </div>
+
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-emerald-600 border-2 border-white"></div>
+                        <p class="text-xs font-bold text-emerald-700">09:52 AM</p>
+                        <h4 class="text-sm font-bold text-slate-900">Procurement & Bill Generation</h4>
+                        <p class="text-xs text-slate-500">Official receipt generated • Bill amount: ₹46,410.00</p>
+                    </div>
+
+                    <div class="relative">
+                        <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-green-600 border-2 border-white"></div>
+                        <p class="text-xs font-bold text-green-700">10:00 AM</p>
+                        <h4 class="text-sm font-bold text-green-950">Payment Initiated</h4>
+                        <p class="text-xs text-green-800 font-semibold">Direct Benefit Transfer (DBT) sent to bank account</p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ==================================================
+         13. KEY FEATURES SECTION
+         ================================================== -->
+    <section id="features" class="py-20 bg-slate-50 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto space-y-4 mb-16">
+                <span class="px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">
+                    Feature Suite
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Everything You Need for Modern Procurement
+                </h2>
+                <p class="text-base text-slate-600">
+                    Comprehensive digital tools built specifically for agricultural workflows.
+                </p>
+            </div>
+
+            <!-- 10 Feature Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
+                
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2 hover:border-emerald-400 transition-colors">
+                    <span class="text-2xl">🤖</span>
+                    <h4 class="text-sm font-bold text-slate-900">Smart Recommendations</h4>
+                    <p class="text-xs text-slate-500">AI matches distance, capacity, and queue.</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2 hover:border-emerald-400 transition-colors">
+                    <span class="text-2xl">📍</span>
+                    <h4 class="text-sm font-bold text-slate-900">Location-Based Centers</h4>
+                    <p class="text-xs text-slate-500">Geographic discovery of active centers.</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2 hover:border-emerald-400 transition-colors">
+                    <span class="text-2xl">📅</span>
+                    <h4 class="text-sm font-bold text-slate-900">Appointment Slots</h4>
+                    <p class="text-xs text-slate-500">Guaranteed time-slot booking system.</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2 hover:border-emerald-400 transition-colors">
+                    <span class="text-2xl">🎫</span>
+                    <h4 class="text-sm font-bold text-slate-900">Digital Token & QR</h4>
+                    <p class="text-xs text-slate-500">Instant QR tokens for gate check-ins.</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2 hover:border-emerald-400 transition-colors">
+                    <span class="text-2xl">⚖️</span>
+                    <h4 class="text-sm font-bold text-slate-900">Digital Weighing</h4>
+                    <p class="text-xs text-slate-500">Direct scale weight entry & logging.</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2 hover:border-emerald-400 transition-colors">
+                    <span class="text-2xl">🔍</span>
+                    <h4 class="text-sm font-bold text-slate-900">Quality Grading</h4>
+                    <p class="text-xs text-slate-500">Structured moisture & quality checks.</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2 hover:border-emerald-400 transition-colors">
+                    <span class="text-2xl">🌾</span>
+                    <h4 class="text-sm font-bold text-slate-900">Multi-Crop Support</h4>
+                    <p class="text-xs text-slate-500">Manage multiple produce items at once.</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2 hover:border-emerald-400 transition-colors">
+                    <span class="text-2xl">💰</span>
+                    <h4 class="text-sm font-bold text-slate-900">Payment Tracking</h4>
+                    <p class="text-xs text-slate-500">Track net payouts and bank transfers.</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2 hover:border-emerald-400 transition-colors">
+                    <span class="text-2xl">🔔</span>
+                    <h4 class="text-sm font-bold text-slate-900">Notifications</h4>
+                    <p class="text-xs text-slate-500">Instant updates on appointments & tokens.</p>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2 hover:border-emerald-400 transition-colors">
+                    <span class="text-2xl">📜</span>
+                    <h4 class="text-sm font-bold text-slate-900">Complete History</h4>
+                    <p class="text-xs text-slate-500">Permanent record logs for every batch.</p>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ==================================================
+         14. SECURITY / TRUST SECTION
+         ================================================== -->
+    <section id="about" class="py-20 bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto space-y-4 mb-16">
+                <span class="px-3.5 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">
+                    Trust & Protection
+                </span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Designed for Secure & Transparent Procurement
+                </h2>
+                <p class="text-base text-slate-600">
+                    Built with strict security principles to safeguard farmer data and ensure absolute system integrity.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                
+                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <span class="text-3xl">🔐</span>
+                    <h4 class="text-base font-bold text-slate-900">Secure Authentication</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Protected account sessions and token-based authentication.
+                    </p>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <span class="text-3xl">👥</span>
+                    <h4 class="text-base font-bold text-slate-900">Role-Based Access</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Strict separation of permissions between Farmers, Officers, and Admins.
+                    </p>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <span class="text-3xl">📜</span>
+                    <h4 class="text-base font-bold text-slate-900">Activity Tracking</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Immutable audit logs for every state transition and procurement record.
+                    </p>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <span class="text-3xl">🛡️</span>
+                    <h4 class="text-base font-bold text-slate-900">Protected Farmer Data</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Farmer details and records are kept confidential and secure.
+                    </p>
+                </div>
+
+                <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200 space-y-3 sm:col-span-2 lg:col-span-1">
+                    <span class="text-3xl">🏛️</span>
+                    <h4 class="text-base font-bold text-slate-900">Officer Verification</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Center officers undergo account verification before managing entries.
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <!-- ==================================================
+         15. CALL TO ACTION (CTA)
+         ================================================== -->
+    <section class="py-20 bg-gradient-to-r from-emerald-900 via-green-900 to-emerald-950 text-white relative">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-8 relative">
+            
+            <div class="w-16 h-16 rounded-2xl bg-emerald-600/40 border border-emerald-400/30 flex items-center justify-center text-3xl mx-auto shadow-xl">
+                🌾
+            </div>
+
+            <div class="space-y-4 max-w-3xl mx-auto">
+                <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+                    Ready to Make Procurement Simpler?
+                </h2>
+                <p class="text-base sm:text-lg text-emerald-100 font-normal">
+                    Join KisanFlow today and experience a smarter, more transparent agricultural procurement journey.
+                </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                <a href="{% url 'signup' %}" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-500 text-slate-950 font-bold text-base hover:bg-emerald-400 shadow-xl shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                    🌾 Register as Farmer
+                </a>
+                <a href="{% url 'login' %}" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white/10 border border-white/20 text-white font-semibold text-base hover:bg-white/20 backdrop-blur-sm transition-all">
+                    👨‍💼 Officer Login
+                </a>
+            </div>
+
+            <p class="text-xs text-emerald-300 pt-4">
+                Already have an account? <a href="{% url 'login' %}" class="underline font-bold text-white hover:text-emerald-200">Log in here →</a>
+            </p>
+
+        </div>
+    </section>
 
 </div>
-
 {% endblock %}

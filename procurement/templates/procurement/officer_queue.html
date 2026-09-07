@@ -1,212 +1,181 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Procurement Queue | KisanFlow</title>
-    <style>
-        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --white: #fff; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
-        a { color: inherit; text-decoration: none; }
-        .app-shell { display: flex; min-height: 100vh; }
-        .sidebar { width: 260px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .brand { padding: 0 14px 25px; font-size: 24px; font-weight: bold; border-bottom: 1px solid #2e6848; margin-bottom: 20px; }
-        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 11px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
-        .nav-list { display: grid; gap: 4px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; }
-        .nav-item:hover, .nav-item.active { background: #286c4a; color: var(--white); }
-        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
-        .main-area { min-width: 0; flex: 1; display: flex; flex-direction: column; }
-        .topbar { min-height: 70px; background: var(--white); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); }
-        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
-        .crumb strong { color: var(--ink); }
-        .content { max-width: 1360px; margin: 0 auto; padding: 30px clamp(20px, 4vw, 50px) 60px; width: 100%; }
+{% extends 'base.html' %}
 
-        .summary-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 24px; }
-        .summary-chip { background: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 14px; text-align: center; }
-        .summary-chip .num { font-size: 24px; font-weight: bold; color: var(--ink); }
-        .summary-chip .lbl { font: 11px Arial, sans-serif; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+{% block title %}Live Center Queue Desk | KisanFlow{% endblock %}
+{% block breadcrumb %}Live Queue Desk{% endblock %}
 
-        .table-card { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
-        .data-table { width: 100%; border-collapse: collapse; text-align: left; font: 14px Arial, sans-serif; }
-        .data-table th { background: var(--paper); padding: 12px 14px; color: var(--muted); font-size: 12px; text-transform: uppercase; border-bottom: 1px solid var(--line); }
-        .data-table td { padding: 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+{% block content %}
+<div class="space-y-6">
 
-        .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; font-family: Arial, sans-serif; text-transform: uppercase; }
-        .badge-gate { background: #dcfce7; color: #15803d; }
-        .badge-qual { background: #fae8ff; color: #86198f; }
-        .badge-weigh { background: #f3e8ff; color: #6b21a8; }
-        .badge-acc { background: #dbeafe; color: #1e40af; }
-        .badge-bill { background: #ccfbf1; color: #0f766e; }
-        .badge-pay { background: #fef9c3; color: #a16207; }
-
-        .btn { display: inline-block; padding: 6px 12px; background: var(--green); color: var(--white); font: 12px Arial, sans-serif; font-weight: bold; border-radius: 6px; text-align: center; }
-        .btn:hover { background: var(--deep-green); }
-    </style>
-</head>
-<body>
-    <div class="app-shell">
-        <aside class="sidebar">
-            <div class="brand">🌾 KisanFlow<small>Officer Portal</small></div>
-            <div class="nav-label">Navigation</div>
-            <nav class="nav-list">
-                <a href="{% url 'officer_dashboard' %}" class="nav-item"><span>📊 Dashboard</span></a>
-                <a href="{% url 'procurement:officer_appointments' %}" class="nav-item"><span>📅 Appointments</span></a>
-                <a href="{% url 'procurement:officer_gate_entry' %}" class="nav-item"><span>🚪 Gate Entry</span></a>
-                <a href="{% url 'procurement:officer_queue' %}" class="nav-item active"><span>🚦 Live Center Queue</span></a>
-                <a href="{% url 'procurement:officer_quality_check' %}" class="nav-item"><span>🔬 Quality Check</span></a>
-                <a href="{% url 'procurement:officer_weighing' %}" class="nav-item"><span>⚖️ Weighing Scale</span></a>
-                <a href="{% url 'procurement:officer_acceptance' %}" class="nav-item"><span>✅ Final Acceptance</span></a>
-                <a href="{% url 'procurement:officer_bills' %}" class="nav-item"><span>📄 Billing</span></a>
-                <a href="{% url 'procurement:officer_payments' %}" class="nav-item"><span>💳 Payments</span></a>
-                <a href="{% url 'procurement:officer_history' %}" class="nav-item"><span>📜 History Audit</span></a>
-            </nav>
-            <div class="sidebar-bottom">
-                <a href="{% url 'logout' %}" class="nav-item"><span>🚪 Sign Out</span></a>
+    <!-- Header / Title -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div class="space-y-1">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-bold uppercase tracking-wider">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Real-Time Floor Management</span>
             </div>
-        </aside>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                <span>🚦 Live Procurement Queue Desk</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 max-w-2xl">
+                Active tracking of all farmer batches progressing through stages at <strong>{{ center.name }}</strong>.
+            </p>
+        </div>
 
-        <main class="main-area">
-            <header class="topbar">
-                <div class="crumb">Officer Portal / <strong>Live Center Active Queue</strong></div>
-            </header>
+        <div class="flex items-center gap-3 self-start sm:self-auto">
+            <a href="{% url 'procurement:officer_gate_entry' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm transition-all">
+                <span>🚪 Gate Entry</span>
+            </a>
+            <a href="{% url 'procurement:officer_appointments' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors">
+                <span>📅 Appointments</span>
+            </a>
+        </div>
+    </div>
 
-            <div class="content">
-                <h1 style="font-size: 28px; margin-bottom: 8px;">🚦 Live Procurement Queue</h1>
-                <p style="color: var(--muted); margin-bottom: 24px; font: 14px Arial, sans-serif;">
-                    Real-time view of all active farmer batches currently inside <strong>{{ center.name }}</strong>.
-                </p>
-
-                <!-- Officer Call Next Token Control Card -->
-                <div style="background: var(--white); border: 2px solid var(--green); border-radius: 12px; padding: 20px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-                    <div>
-                        <div style="font: bold 11px Arial, sans-serif; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; margin-bottom: 4px;">CURRENTLY CALLED TOKEN</div>
-                        {% if current_called_token %}
-                        <div style="font-size: 32px; font-weight: 900; color: #b71c1c; font-family: Arial, sans-serif;">
-                            #{{ current_called_token.token_number }}
-                            <span style="font-size: 16px; color: var(--ink); font-weight: normal;">({{ current_called_token.farmer.get_full_name|default:current_called_token.farmer.username }} - {{ current_called_token.produce.crop_name }})</span>
-                        </div>
-                        <div style="font-size: 12px; color: var(--muted); margin-top: 2px;">Called at {{ current_called_token.called_at|date:"h:i A" }} • Proceeding to Gate Entry</div>
-                        {% else %}
-                        <div style="font-size: 24px; font-weight: bold; color: var(--muted); font-family: Arial, sans-serif;">No Token Currently Called</div>
-                        <div style="font-size: 12px; color: var(--muted); margin-top: 2px;">Click 'Call Next Token' to notify the next waiting farmer in line.</div>
-                        {% endif %}
-                    </div>
-
-                    <div style="display: flex; align-items: center; gap: 16px;">
-                        <div style="text-align: right;">
-                            <div style="font-size: 20px; font-weight: bold; color: var(--ink);">{{ waiting_count }}</div>
-                            <div style="font: 11px Arial, sans-serif; color: var(--muted); text-transform: uppercase;">Farmers Waiting</div>
-                        </div>
-                        <form method="POST" action="{% url 'tokens:call_next_token' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn" style="background: #1f6b45; font-size: 14px; padding: 12px 24px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                                📢 CALL NEXT TOKEN
-                            </button>
-                        </form>
-                    </div>
+    <!-- Officer Call Next Token Control Card -->
+    <div class="bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 rounded-3xl p-6 text-white border border-emerald-800/40 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div class="space-y-1.5">
+            <div class="text-[10px] font-bold text-emerald-400 tracking-widest uppercase flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Active Floor Token Call</span>
+            </div>
+            {% if current_called_token %}
+                <div class="flex items-baseline gap-3">
+                    <span class="text-3xl sm:text-4xl font-black text-emerald-400 font-mono">
+                        #{{ current_called_token.token_number }}
+                    </span>
+                    <span class="text-slate-200 text-base font-semibold">
+                        {{ current_called_token.farmer.get_full_name|default:current_called_token.farmer.username }} &bull; 🌾 {{ current_called_token.produce.crop_name }}
+                    </span>
                 </div>
-
-                <div class="summary-bar">
-                    <div class="summary-chip">
-                        <div class="num">{{ queue_counts.gate_entry|default:0 }}</div>
-                        <div class="lbl">Gate Entry</div>
-                    </div>
-                    <div class="summary-chip">
-                        <div class="num" style="color: #86198f;">{{ queue_counts.quality_check|default:0 }}</div>
-                        <div class="lbl">Lab Testing</div>
-                    </div>
-                    <div class="summary-chip">
-                        <div class="num" style="color: #6b21a8;">{{ queue_counts.weighing|default:0 }}</div>
-                        <div class="lbl">Weighing</div>
-                    </div>
-                    <div class="summary-chip">
-                        <div class="num" style="color: #1e40af;">{{ queue_counts.acceptance|default:0 }}</div>
-                        <div class="lbl">Acceptance</div>
-                    </div>
-                    <div class="summary-chip">
-                        <div class="num" style="color: #0f766e;">{{ queue_counts.bill_generated|default:0 }}</div>
-                        <div class="lbl">Billing</div>
-                    </div>
-                    <div class="summary-chip">
-                        <div class="num" style="color: #a16207;">{{ queue_counts.payment_initiated|default:0 }}</div>
-                        <div class="lbl">Payout</div>
-                    </div>
+                <div class="text-xs text-slate-400">
+                    Called at {{ current_called_token.called_at|date:"h:i A"|default:"Just now" }} &bull; Assigned to Counter / Gate
                 </div>
+            {% else %}
+                <div class="text-2xl font-bold text-slate-300">No Token Currently Called</div>
+                <div class="text-xs text-slate-400">Click "Call Next Token" to buzz the next waiting farmer in sequence.</div>
+            {% endif %}
+        </div>
 
-                <div class="table-card">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Token</th>
-                                <th>Farmer Name</th>
-                                <th>Crop & Quantity</th>
-                                <th>Vehicle No</th>
-                                <th>Current Pipeline Stage</th>
-                                <th>Next Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for rec in active_records %}
-                            <tr>
-                                <td><strong>#{{ rec.token_number }}</strong></td>
-                                <td>
-                                    <strong>{{ rec.farmer.get_full_name|default:rec.farmer.username }}</strong><br>
-                                    <small style="color: var(--muted);">
-                                        ID: <strong>{{ rec.farmer.profile.farmer_id|default:"FAR-N/A" }}</strong> | 📞 <strong>{{ rec.farmer.profile.phone|default:"N/A" }}</strong><br>
-                                        📍 {{ rec.district }}{% if rec.farmer.profile.village %}, {{ rec.farmer.profile.village }}{% endif %}
-                                    </small>
+        <div class="flex items-center gap-5 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 border-slate-800 pt-4 md:pt-0">
+            <div class="text-right">
+                <div class="text-2xl sm:text-3xl font-black text-white font-mono">{{ waiting_count|default:0 }}</div>
+                <div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Waiting in Queue</div>
+            </div>
+            <form method="POST" action="{% url 'tokens:call_next_token' %}">
+                {% csrf_token %}
+                <button type="submit" class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-sm shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                    <span>📢 CALL NEXT TOKEN</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pipeline Stage Count Chips -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs text-center">
+            <span class="text-2xl font-black text-slate-900 block font-mono">{{ queue_counts.gate_entry|default:0 }}</span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-1">1. Gate Entry</span>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs text-center">
+            <span class="text-2xl font-black text-purple-600 block font-mono">{{ queue_counts.quality_check|default:0 }}</span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-1">2. Lab Testing</span>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs text-center">
+            <span class="text-2xl font-black text-blue-600 block font-mono">{{ queue_counts.weighing|default:0 }}</span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-1">3. Weighbridge</span>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs text-center">
+            <span class="text-2xl font-black text-emerald-600 block font-mono">{{ queue_counts.acceptance|default:0 }}</span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-1">4. Acceptance</span>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs text-center">
+            <span class="text-2xl font-black text-teal-600 block font-mono">{{ queue_counts.bill_generated|default:0 }}</span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-1">5. Billing</span>
+        </div>
+        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs text-center">
+            <span class="text-2xl font-black text-amber-600 block font-mono">{{ queue_counts.payment_initiated|default:0 }}</span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-1">6. Payout</span>
+        </div>
+    </div>
+
+    <!-- Active Batches Live Table -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+            <h2 class="font-bold text-slate-900 text-base sm:text-lg">Active Farmer Batches in Center</h2>
+            <span class="text-xs text-slate-500">{{ active_records|length }} Active</span>
+        </div>
+
+        {% if active_records %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-100 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                            <th class="py-3 px-4">Token</th>
+                            <th class="py-3 px-4">Farmer Details</th>
+                            <th class="py-3 px-4">Crop &amp; Quantity</th>
+                            <th class="py-3 px-4">Vehicle</th>
+                            <th class="py-3 px-4">Current Stage</th>
+                            <th class="py-3 px-4 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 text-sm">
+                        {% for rec in active_records %}
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
+                                    #{{ rec.token_number }}
                                 </td>
-                                <td>
-                                    <strong>{{ rec.crop_name }}</strong><br>
-                                    <small style="color: var(--muted);">{{ rec.estimated_quantity_quintals }} Quintals</small>
+                                <td class="py-3.5 px-4">
+                                    <span class="font-bold text-slate-900 block">{{ rec.farmer.get_full_name|default:rec.farmer.username }}</span>
+                                    <span class="text-xs text-slate-500 block">ID: {{ rec.farmer.profile.farmer_id|default:"FAR-N/A" }} &bull; 📞 {{ rec.farmer.profile.phone|default:"N/A" }}</span>
                                 </td>
-                                <td>
-                                    {% if rec.vehicle_number %}
-                                        🚚 <strong>{{ rec.vehicle_number }}</strong>
-                                    {% else %}
-                                        <span style="color: var(--muted);">-</span>
-                                    {% endif %}
+                                <td class="py-3.5 px-4">
+                                    <span class="font-semibold text-slate-800">🌾 {{ rec.crop_name }}</span>
+                                    <span class="text-xs text-slate-500 block">{{ rec.actual_quantity_quintals|default:rec.estimated_quantity_quintals }} Quintals</span>
                                 </td>
-                                <td>
-                                    <span class="badge 
-                                        {% if rec.stage == 'GATE_ENTRY' %}badge-gate
-                                        {% elif rec.stage == 'QUALITY_CHECK' %}badge-qual
-                                        {% elif rec.stage == 'WEIGHING' %}badge-weigh
-                                        {% elif rec.stage == 'ACCEPTANCE' %}badge-acc
-                                        {% elif rec.stage == 'BILL_GENERATED' %}badge-bill
-                                        {% elif rec.stage == 'PAYMENT_INITIATED' %}badge-pay{% endif %}">
+                                <td class="py-3.5 px-4 text-xs font-medium text-slate-600">
+                                    {{ rec.vehicle_number|default:"-" }}
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    <span class="px-2.5 py-1 rounded-full text-[11px] font-bold {% if rec.stage == 'GATE_ENTRY' %}bg-slate-100 text-slate-800 border border-slate-200{% elif rec.stage == 'QUALITY_CHECK' %}bg-purple-100 text-purple-800 border border-purple-200{% elif rec.stage == 'WEIGHING' %}bg-blue-100 text-blue-800 border border-blue-200{% elif rec.stage == 'ACCEPTANCE' %}bg-emerald-100 text-emerald-800 border border-emerald-200{% elif rec.stage == 'BILL_GENERATED' %}bg-teal-100 text-teal-800 border border-teal-200{% else %}bg-amber-100 text-amber-800 border border-amber-200{% endif %}">
                                         {{ rec.get_stage_display }}
                                     </span>
                                 </td>
-                                <td>
+                                <td class="py-3.5 px-4 text-right">
                                     {% if rec.stage == 'GATE_ENTRY' %}
-                                        <a href="{% url 'procurement:officer_quality_check_action' rec.id %}" class="btn">Test Quality</a>
+                                        <a href="{% url 'procurement:officer_quality_check_action' rec.id %}" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold shadow-xs transition-colors">
+                                            Test Quality &rarr;
+                                        </a>
                                     {% elif rec.stage == 'QUALITY_CHECK' %}
-                                        <a href="{% url 'procurement:officer_weighing_action' rec.id %}" class="btn">Scale Weighing</a>
+                                        <a href="{% url 'procurement:officer_weighing_action' rec.id %}" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors">
+                                            Weigh Scale &rarr;
+                                        </a>
                                     {% elif rec.stage == 'WEIGHING' %}
-                                        <a href="{% url 'procurement:officer_acceptance_action' rec.id %}" class="btn">Final Accept</a>
+                                        <a href="{% url 'procurement:officer_acceptance_action' rec.id %}" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-colors">
+                                            Accept &rarr;
+                                        </a>
                                     {% elif rec.stage == 'ACCEPTANCE' %}
-                                        <a href="{% url 'procurement:officer_bills_action' rec.id %}" class="btn">Generate Bill</a>
+                                        <a href="{% url 'procurement:officer_bills_action' rec.id %}" class="px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold shadow-xs transition-colors">
+                                            Generate Bill &rarr;
+                                        </a>
                                     {% elif rec.stage == 'BILL_GENERATED' or rec.stage == 'PAYMENT_INITIATED' %}
-                                        <a href="{% url 'procurement:officer_payments_action' rec.id %}" class="btn">Process Payment</a>
+                                        <a href="{% url 'procurement:officer_payments_action' rec.id %}" class="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-xs transition-colors">
+                                            Process Payout &rarr;
+                                        </a>
                                     {% endif %}
                                 </td>
                             </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="6" style="text-align: center; color: var(--muted); padding: 40px;">
-                                    No active batches currently in the live queue.
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-        </main>
+        {% else %}
+            <div class="py-16 text-center text-slate-400">
+                <span class="text-4xl block mb-2">🚦</span>
+                <p class="font-semibold text-slate-600">No active batches currently in the queue</p>
+                <p class="text-xs text-slate-400 mt-1">Arrivals will populate this table automatically in real-time.</p>
+            </div>
+        {% endif %}
     </div>
-</body>
-</html>
+
+</div>
+{% endblock %}

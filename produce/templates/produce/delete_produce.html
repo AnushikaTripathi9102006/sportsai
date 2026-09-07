@@ -1,43 +1,42 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Delete Produce - KisanFlow</title>
-</head>
+{% extends 'base.html' %}
 
-<body>
+{% block title %}Delete Produce | KisanFlow{% endblock %}
+{% block breadcrumb %}Delete Produce{% endblock %}
 
-    <h1>Delete Produce</h1>
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
 
-    <p>
-        Are you sure you want to delete this produce?
-    </p>
+    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-red-200/80 shadow-xs space-y-4">
+        <div class="space-y-1">
+            <a href="{% url 'produce:my_produce' %}" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors mb-1">
+                <span>&larr; Back to My Produce</span>
+            </a>
+            <h1 class="text-2xl font-black text-red-700 tracking-tight flex items-center gap-2.5">
+                <span>⚠️ Delete {{ produce.crop_name }}?</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-600">
+                Are you sure you want to delete this produce record? This action cannot be undone.
+            </p>
+        </div>
 
-    <p>
-        <strong>Producer:</strong> {{ produce.farmer.username }}
-    </p>
+        <div class="p-5 rounded-2xl bg-red-50/50 border border-red-200/80 text-xs text-slate-700 space-y-2">
+            <div>🌾 Crop: <strong class="text-slate-900">{{ produce.crop_name }}</strong></div>
+            <div>📦 Quantity: <strong class="text-slate-900">{{ produce.quantity }} {{ produce.get_unit_display }}</strong></div>
+            <div>📅 Harvest Date: <strong class="text-slate-900">{{ produce.harvest_date|date:"d M Y"|default:"Recorded" }}</strong></div>
+        </div>
 
-    <p>
-        <strong>Quantity:</strong>
-        {{ produce.quantity }}
-        {{ produce.get_unit_display }}
-    </p>
+        <form method="post" class="pt-2">
+            {% csrf_token %}
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <a href="{% url 'produce:my_produce' %}" class="w-full sm:w-auto px-5 py-3 rounded-2xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs text-center transition-colors">
+                    Cancel
+                </a>
+                <button type="submit" class="w-full sm:w-auto flex-1 py-3 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-600/20 transition-all text-center">
+                    Yes, Delete Produce
+                </button>
+            </div>
+        </form>
+    </div>
 
-    <p>
-        <strong>Harvest Date:</strong>
-        {{ produce.harvest_date }}
-    </p>
-
-    <form method="post">
-        {% csrf_token %}
-
-        <button type="submit">
-            Yes, Delete
-        </button>
-
-        <a href="{% url 'produce:my_produce' %}">
-            Cancel
-        </a>
-    </form>
-
-</body>
-</html>
+</div>
+{% endblock %}

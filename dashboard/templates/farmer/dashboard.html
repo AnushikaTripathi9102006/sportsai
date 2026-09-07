@@ -1,438 +1,509 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Farmer Dashboard | KisanFlow</title>
-    
-    <style>
-        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --white: #fff; --amber: #d88424; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
-        a { color: inherit; }
-        .app-shell { display: flex; min-height: 100vh; }
-        .sidebar { width: 248px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .brand { padding: 0 14px 30px; font-size: 25px; font-weight: bold; letter-spacing: .02em; }
-        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
-        .nav-list { display: grid; gap: 3px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
-        .nav-item:hover, .nav-item.active { background: #286c4a; color: var(--white); }
-        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
-        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
-        .main-area { min-width: 0; flex: 1; }
-        .topbar { min-height: 82px; background: var(--white); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
-        .menu-button { display: none; border: 0; background: var(--mint); color: var(--deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
-        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
-        .crumb strong { color: var(--ink); }
-        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
-        .profile-text { text-align: right; line-height: 1.5; }
-        .profile-text strong { display: block; color: var(--ink); }
-        .profile-id { color: var(--muted); font-size: 11px; }
-        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
-        .content { max-width: 1360px; margin: 0 auto; padding: 38px clamp(20px, 4vw, 50px) 60px; }
-        .welcome { display: flex; justify-content: space-between; align-items: end; gap: 20px; margin-bottom: 28px; }
-        h1, h2, h3, p { margin-top: 0; }
-        h1 { margin-bottom: 8px; font-size: clamp(28px, 4vw, 42px); line-height: 1.08; }
-        .welcome p { color: var(--muted); margin-bottom: 0; font: 15px Arial, sans-serif; }
-        .farmer-badge { background: var(--mint); color: var(--green); padding: 10px 13px; border-radius: 5px; font: 12px Arial, sans-serif; white-space: nowrap; }
-        .section-heading { display: flex; justify-content: space-between; align-items: center; margin: 28px 0 13px; }
-        .section-heading h2 { margin: 0; font-size: 20px; }
-        .section-link { color: var(--green); font: bold 12px Arial, sans-serif; text-decoration: none; }
-        .actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; }
-        .action { background: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 18px; text-decoration: none; box-shadow: 0 4px 13px rgba(30, 75, 53, .05); }
-        .action:hover { border-color: #9cc3a7; transform: translateY(-2px); }
-        .action-icon { font-size: 22px; color: var(--green); }
-        .action strong { display: block; margin: 12px 0 5px; font-size: 15px; }
-        .action span { color: var(--muted); font: 12px Arial, sans-serif; line-height: 1.4; }
-        .panel { background: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 23px; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); }
-        .journey { border-left: 5px solid var(--green); }
-        .journey-head { display: flex; justify-content: space-between; gap: 18px; align-items: start; }
-        .eyebrow { color: var(--muted); font: 11px Arial, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
-        .journey h2 { margin: 6px 0; font-size: 24px; }
-        .journey-detail { color: var(--muted); font: 14px Arial, sans-serif; }
-        .status-pill { background: #fff2d9; color: #9c5d13; border-radius: 20px; padding: 8px 12px; font: bold 12px Arial, sans-serif; white-space: nowrap; }
-        .timeline { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0; margin-top: 28px; }
-        .stage { position: relative; color: #9ba9a0; font: 11px Arial, sans-serif; text-align: center; }
-        .stage:not(:last-child)::after { content: ''; position: absolute; height: 2px; background: var(--line); left: 50%; right: -50%; top: 8px; z-index: 0; }
-        .stage-dot { position: relative; z-index: 1; width: 17px; height: 17px; margin: 0 auto 9px; border: 3px solid var(--line); border-radius: 50%; background: var(--white); }
-        .stage.done { color: var(--green); font-weight: bold; }
-        .stage.done .stage-dot { border-color: var(--green); background: var(--green); }
-        .stage.done:not(:last-child)::after { background: var(--green); }
-        .stage.current { color: var(--amber); font-weight: bold; }
-        .stage.current .stage-dot { border-color: var(--amber); background: var(--amber); box-shadow: 0 0 0 3px #ffeec9; }
-        .dashboard-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 18px; }
-        .split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
-        .card-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-        .card-title h3 { margin: 0; font-size: 18px; }
-        .muted { color: var(--muted); font: 13px Arial, sans-serif; }
-        .appointment-main { display: flex; gap: 15px; align-items: center; margin-bottom: 17px; }
-        .date-box { background: var(--mint); color: var(--green); padding: 10px 13px; text-align: center; border-radius: 6px; font: bold 15px Arial, sans-serif; }
-        .date-box small { display: block; font-size: 10px; text-transform: uppercase; }
-        .appointment-main strong { display: block; margin-bottom: 4px; }
-        .detail-list { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 14px; }
-        .detail-row { display: flex; justify-content: space-between; gap: 12px; font: 13px Arial, sans-serif; }
-        .detail-row span:first-child { color: var(--muted); }
-        .button { display: inline-block; margin-top: 18px; border-radius: 5px; padding: 10px 13px; background: var(--green); color: var(--white); font: bold 12px Arial, sans-serif; text-decoration: none; }
-        .button.muted-button { background: #edf3ee; color: #799080; }
-        .produce-list { display: grid; gap: 0; }
-        .produce-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px solid var(--line); padding: 13px 0; font: 13px Arial, sans-serif; }
-        .produce-row strong { display: block; margin-bottom: 4px; }
-        .produce-status { color: var(--green); font-size: 11px; }
-        .empty { color: var(--muted); font: 13px Arial, sans-serif; line-height: 1.5; }
-        .recommendation { background: #eff7ef; }
-        .recommendation h3 { font-size: 20px; margin-bottom: 7px; }
-        .recommendation ul { padding-left: 18px; color: var(--muted); font: 13px Arial, sans-serif; line-height: 1.9; }
-        .payment-amount { color: var(--green); font-size: 29px; font-weight: bold; margin: 8px 0; }
-        .notification-row { display: flex; gap: 10px; border-bottom: 1px solid var(--line); padding: 11px 0; font: 13px Arial, sans-serif; }
-        .notification-row:last-child { border-bottom: 0; padding-bottom: 0; }
-        @media (max-width: 1000px) { .sidebar { width: 215px; } .actions { grid-template-columns: repeat(2, 1fr); } .dashboard-grid, .split-grid { grid-template-columns: 1fr; } }
-        @media (max-width: 700px) { .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 5; transform: translateX(-100%); transition: transform .2s ease; } .sidebar.open { transform: translateX(0); } .menu-button { display: block; } .topbar { min-height: 68px; } .profile-text { display: none; } .content { padding-top: 27px; } .welcome { display: block; } .farmer-badge { display: inline-block; margin-top: 15px; } .actions { grid-template-columns: 1fr; } .timeline { overflow-x: auto; grid-template-columns: repeat(7, minmax(92px, 1fr)); padding-bottom: 8px; } .journey-head { display: block; } .status-pill { display: inline-block; margin-top: 13px; } }
-    </style>
-</head>
-<body>
-    <div class="app-shell">
-        <aside class="sidebar" id="sidebar">
-            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
-            <div class="nav-label">Main menu</div>
-            <nav class="nav-list" aria-label="Farmer navigation">
-                <a class="nav-item active" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
-                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
-                <a class="nav-item" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
-                <a class="nav-item" href="{% url 'appointments:appointments' %}"><span class="nav-icon">▣</span> Appointments</a>
-                <a class="nav-item" href="{% url 'tokens:token_queue' %}"><span class="nav-icon">▤</span> My Token</a>
-                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
-                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
-                <a class="nav-item" href="{% url 'notifications:notifications' %}"><span class="nav-icon">🔔</span> Notifications</a>
-            </nav>
-            <div class="sidebar-bottom nav-list">
-                <a class="nav-item" href="#settings"><span class="nav-icon">⚙</span> Settings</a>
-                <a class="nav-item" href="#help"><span class="nav-icon">?</span> Help &amp; Support</a>
-                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
+{% extends 'base.html' %}
+
+{% block title %}Farmer Dashboard | KisanFlow{% endblock %}
+{% block breadcrumb %}Home{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Welcome Hero Section -->
+    <div class="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-slate-900 to-emerald-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-emerald-800/40">
+        <!-- Subtle Glow Background Effects -->
+        <div class="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-green-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div class="space-y-2">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Live Procurement Portal
+                </div>
+                <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
+                    Good day, {{ farmer.get_full_name|default:farmer.username }} 👋
+                </h1>
+                <p class="text-slate-300 text-sm sm:text-base max-w-2xl leading-relaxed">
+                    Welcome to your agricultural procurement dashboard. Here is your live crop journey, appointment slot, and payout tracker.
+                </p>
             </div>
-        </aside>
-        <div class="main-area">
-            <header class="topbar">
-                <div style="display:flex;align-items:center;gap:13px"><button class="menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" onclick="toggleSidebar()">☰</button><div class="crumb"><strong>Home</strong> &nbsp;/&nbsp; Farmer dashboard</div></div>
-                <div class="profile">
-                    <a href="{% url 'notifications:notifications' %}" title="Notifications" style="text-decoration:none;position:relative;display:inline-flex;align-items:center;margin-right:6px;">
-                        <span aria-label="Notifications" style="font-size:22px;color:var(--green)">🔔</span>
-                        {% if unread_notifications_count %}
-                        <span style="position:absolute;top:-4px;right:-8px;background:#b71c1c;color:#fff;font-size:10px;font-weight:bold;padding:1px 5px;border-radius:10px;font-family:Arial;">{{ unread_notifications_count }}</span>
-                        {% endif %}
-                    </a>
-                    <div class="profile-text"><strong>{{ farmer.get_full_name|default:farmer.username }}</strong><span class="profile-id">Farmer ID: {{ profile.farmer_id|default:'Not assigned' }}</span></div><div class="avatar">{{ farmer.first_name|default:farmer.username|first|upper }}</div><span aria-hidden="true">⌄</span></div>
-            </header>
-            <main class="content">
-                <section class="welcome">
-                    <div>
-                        <h1>Good morning, {{ farmer.get_full_name|default:farmer.username }} 👋</h1>
-                        <p>Here is the live procurement status for all your registered crops.</p>
-                    </div>
-                    <div class="farmer-badge">Farmer ID: <strong>{{ profile.farmer_id|default:'Not assigned' }}</strong></div>
-                </section>
-
-                <!-- Summary Metrics Bar -->
-                <div class="actions" style="margin-bottom: 24px;">
-                    <div class="action" style="cursor:default;">
-                        <span class="action-icon">🌾</span>
-                        <strong>{{ summary.total_produce }} Registered Crop{% if summary.total_produce != 1 %}s{% endif %}</strong>
-                        <span>Total produce batches in system.</span>
-                    </div>
-                    <div class="action" style="cursor:default;">
-                        <span class="action-icon">📦</span>
-                        <strong>{{ summary.requested_procurements }} Procurement Request{% if summary.requested_procurements != 1 %}s{% endif %}</strong>
-                        <span>Active MSP purchase requests.</span>
-                    </div>
-                    <div class="action" style="cursor:default;">
-                        <span class="action-icon">▣</span>
-                        <strong>{{ summary.active_appointments }} Active Appointment{% if summary.active_appointments != 1 %}s{% endif %}</strong>
-                        <span>Scheduled procurement center slots.</span>
-                    </div>
-                    <div class="action" style="cursor:default;">
-                        <span class="action-icon">🎫</span>
-                        <strong>{{ summary.active_tokens }} Queue Token{% if summary.active_tokens != 1 %}s{% endif %}</strong>
-                        <span>Active live queue tokens issued.</span>
-                    </div>
+            
+            <div class="bg-slate-800/80 backdrop-blur-md border border-slate-700/60 rounded-2xl p-4 text-right flex-shrink-0">
+                <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Farmer Account ID</div>
+                <div class="text-lg font-bold text-emerald-400 font-mono mt-0.5">
+                    {{ profile.farmer_id|default:'Not Assigned' }}
                 </div>
-
-                <div class="section-heading"><h2>Quick actions</h2></div>
-                <section class="actions">
-                    <a class="action" href="{% url 'produce:add_produce' %}"><span class="action-icon">＋</span><strong>Register Produce</strong><span>Register newly harvested crops.</span></a>
-                    <a class="action" href="{% url 'procurement:centers' %}{% if current_produce %}?produce_id={{ current_produce.id }}{% endif %}"><span class="action-icon">⌖</span><strong>Request Procurement</strong><span>Select procurement center &amp; request MSP purchase.</span></a>
-                    <a class="action" href="{% url 'appointments:appointments' %}"><span class="action-icon">▣</span><strong>Book Appointment</strong><span>Schedule a procurement visit.</span></a>
-                    <a class="action" href="{% url 'procurement:status' %}"><span class="action-icon">→</span><strong>Track Procurement</strong><span>Check your current progress.</span></a>
-                </section>
-
-                <!-- Procurement Journeys Section -->
-                <div class="section-heading" id="procurement"><h2>All Produce Procurement Journeys</h2></div>
-                
-                {% if produce_journeys %}
-                <!-- All Farmer Crops Overview Cards -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; margin-bottom: 20px;">
-                    {% for journey in produce_journeys %}
-                    <div class="panel" style="padding: 16px; border-left: 4px solid {% if journey.stage_num >= 10 %}var(--green){% elif journey.stage_num >= 2 %}var(--amber){% else %}var(--line){% endif %}; {% if active_journey and active_journey.id == journey.id %}box-shadow: 0 0 0 2px var(--green); background: #fbfefc;{% endif %}">
-                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
-                            <div>
-                                <h3 style="margin: 0; font-size: 18px;">🌾 {{ journey.crop_name }}</h3>
-                                <span class="muted" style="font-size: 12px;">{{ journey.quantity }} {{ journey.unit }}</span>
-                            </div>
-                            <span class="status-pill" style="font-size: 11px; padding: 4px 8px;">{{ journey.stage_display }}</span>
-                        </div>
-                        <div style="font-size: 12px; color: var(--muted); margin-bottom: 12px; line-height: 1.6;">
-                            🏢 Center: <strong>{{ journey.center_name }}</strong><br>
-                            📅 Appt: <strong>{{ journey.appointment_time }}</strong><br>
-                            🎫 Token: <strong>{{ journey.token_number }}</strong>
-                        </div>
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;">
-                            {% if journey.status == 'AVAILABLE' %}
-                                <a href="{% url 'procurement:centers' %}?produce_id={{ journey.id }}" class="button" style="padding: 5px 10px; font-size: 11px; margin-top: 0; background: var(--green);">Request Procurement →</a>
-                            {% else %}
-                                <a href="{% url 'farmer_dashboard' %}?produce_id={{ journey.id }}#procurement" class="button" style="padding: 5px 10px; font-size: 11px; margin-top: 0; background: {% if active_journey and active_journey.id == journey.id %}var(--deep-green){% else %}var(--green){% endif %};">View Timeline ↓</a>
-                                <a href="{% url 'procurement:status' %}?produce_id={{ journey.id }}" class="button muted-button" style="padding: 5px 10px; font-size: 11px; margin-top: 0;">Full Details →</a>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-                <!-- Detailed Timeline for Selected Active Crop -->
-                <section class="panel journey">
-                    <div class="journey-head">
-                        <div>
-                            <div class="eyebrow">Active Procurement Progress</div>
-                            {% if active_journey %}
-                                <h2>🌾 {{ active_journey.crop_name }}</h2>
-                                <div class="journey-detail">{{ active_journey.quantity }} {{ active_journey.unit }} &bull; Center: {{ active_journey.center_name }}</div>
-                            {% else %}
-                                <h2>No produce registered</h2>
-                                <div class="journey-detail">Register produce to begin your procurement journey.</div>
-                            {% endif %}
-                        </div>
-                        <div style="text-align: right;">
-                            <span class="status-pill">{% if active_journey %}{{ active_journey.stage_display }}{% else %}Waiting for produce{% endif %}</span>
-                            {% if active_journey and active_journey.status == 'AVAILABLE' %}
-                                <div style="margin-top: 10px;">
-                                    <a class="button" href="{% url 'procurement:centers' %}?produce_id={{ active_journey.id }}" style="background: var(--green); margin-top: 0;">Request Procurement →</a>
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="timeline" aria-label="Procurement progress">
-                        <div class="stage {% if procurement_stage_num >= 1 %}done{% endif %} {% if procurement_stage_num == 1 %}current{% endif %}"><div class="stage-dot"></div>Registered</div>
-                        <div class="stage {% if procurement_stage_num >= 2 %}done{% endif %} {% if procurement_stage_num == 2 %}current{% endif %}"><div class="stage-dot"></div>Appointment</div>
-                        <div class="stage {% if procurement_stage_num >= 3 %}done{% endif %} {% if procurement_stage_num == 3 %}current{% endif %}"><div class="stage-dot"></div>Gate Entry</div>
-                        <div class="stage {% if procurement_stage_num >= 4 %}done{% endif %} {% if procurement_stage_num == 4 %}current{% endif %}"><div class="stage-dot"></div>Quality Check</div>
-                        <div class="stage {% if procurement_stage_num >= 5 %}done{% endif %} {% if procurement_stage_num == 5 %}current{% endif %}"><div class="stage-dot"></div>Weighing</div>
-                        <div class="stage {% if procurement_stage_num >= 6 %}done{% endif %} {% if procurement_stage_num == 6 or procurement_stage_num == 7 %}current{% endif %}"><div class="stage-dot"></div>Accepted &amp; Billed</div>
-                        <div class="stage {% if procurement_stage_num >= 10 %}done{% endif %} {% if procurement_stage_num >= 8 and procurement_stage_num < 10 %}current{% endif %}"><div class="stage-dot"></div>Payment</div>
-                    </div>
-                </section>
-
-                <div class="split-grid" id="appointments">
-                    <!-- Upcoming Appointments Section -->
-                    <section class="panel">
-                        <div class="card-title">
-                            <h3>Upcoming Appointment Slots</h3>
-                            <span style="font-size:22px;color:var(--green)">▣</span>
-                        </div>
-
-                        {% if active_appointments %}
-                            <div style="display: grid; gap: 14px;">
-                                {% for appt in active_appointments %}
-                                <div class="appointment-main" style="border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 0;">
-                                    <div class="date-box" style="min-width: 120px;">
-                                        <small>Slot Date</small>
-                                        {{ appt.appointment_date|date:"d M Y" }}
-                                        <div style="font-size:10px;margin-top:2px;">{{ appt.appointment_time_slot }}</div>
-                                    </div>
-                                    <div>
-                                        <strong>🏢 {{ appt.procurement_center.name }}</strong>
-                                        <span class="muted" style="display: block; margin-top: 4px;">
-                                            Crop: <strong>🌾 {{ appt.produce.crop_name }}</strong> ({{ appt.produce.quantity }} {{ appt.produce.get_unit_display }})<br>
-                                            Appt: <strong>{{ appt.appointment_code }}</strong> &bull; Token: <strong>#{{ appt.token_number|default:'Pending' }}</strong><br>
-                                            Status: <strong style="color: var(--green);">{{ appt.get_status_display }}</strong>
-                                        </span>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="appointment-main">
-                                <div class="date-box" style="min-width: 120px;">
-                                    <small>Scheduled Slot</small>
-                                    Slot Pending
-                                </div>
-                                <div>
-                                    <strong>No Active Procurement Slot</strong>
-                                    <span class="muted" style="display: block; margin-top: 4px;">Register your harvested crop to schedule an assigned procurement appointment slot.</span>
-                                </div>
-                            </div>
-                        {% endif %}
-                        <a class="button" href="{% url 'appointments:appointments' %}">View Full Appointment Details →</a>
-                    </section>
-
-                    <!-- Active Tokens & Live Queue Section -->
-                    <section class="panel" id="token">
-                        <div class="card-title">
-                            <h3>My Active Tokens &amp; Live Queue</h3>
-                            <span style="font-size:22px;color:var(--green)">▤</span>
-                        </div>
-
-                        {% if active_tokens %}
-                            <div style="display: grid; gap: 14px;">
-                                {% for tok in active_tokens %}
-                                <div style="border-bottom: 1px solid var(--line); padding-bottom: 12px;">
-                                    {% if tok.is_your_turn %}
-                                    <div style="background:#fff5f5;border:2px solid #b71c1c;border-radius:8px;padding:10px;margin-bottom:10px;text-align:center;">
-                                        <strong style="color:#b71c1c;font-size:15px;">🚨 IT'S YOUR TURN!</strong>
-                                        <div style="font-size:12px;color:var(--ink);margin-top:2px;">Proceed to <strong>{{ tok.counter_number }}</strong> at {{ tok.procurement_center.name }}</div>
-                                    </div>
-                                    {% endif %}
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                        <strong>🌾 {{ tok.produce.crop_name }} &bull; Token #{{ tok.token_number }}</strong>
-                                        <span class="status-pill" style="font-size: 11px; padding: 2px 8px;">{{ tok.get_status_display }}</span>
-                                    </div>
-                                    <div class="detail-list" style="border-top: 0; padding-top: 0; gap: 6px;">
-                                        <div class="detail-row">
-                                            <span>Center</span>
-                                            <strong>{{ tok.procurement_center.name }}</strong>
-                                        </div>
-                                        <div class="detail-row">
-                                            <span>Queue Position</span>
-                                            <strong style="color:var(--green);">#{{ tok.get_queue_position }}</strong>
-                                        </div>
-                                        <div class="detail-row">
-                                            <span>Estimated Wait</span>
-                                            <strong>{{ tok.get_estimated_wait_display }}</strong>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="detail-list">
-                                <div class="detail-row">
-                                    <span>Token Status</span>
-                                    <strong>No Active Tokens</strong>
-                                </div>
-                                <div class="detail-row">
-                                    <span>Procurement Center</span>
-                                    <strong>{% if active_journey %}{{ active_journey.center_name }}{% else %}--{% endif %}</strong>
-                                </div>
-                                <div class="detail-row">
-                                    <span>Current Stage</span>
-                                    <strong style="color: var(--green);">{% if active_journey %}{{ active_journey.stage_display }}{% else %}--{% endif %}</strong>
-                                </div>
-                            </div>
-                        {% endif %}
-                        <a class="button" href="{% url 'tokens:token_queue' %}" style="margin-top:14px;">View Live Token Queue →</a>
-                    </section>
-                </div>
-
-                <div class="split-grid">
-                    <!-- My Produce Section -->
-                    <section class="panel">
-                        <div class="card-title">
-                            <h3>My produce</h3>
-                            <a class="section-link" href="{% url 'produce:my_produce' %}">View all →</a>
-                        </div>
-                        {% if produce_list %}
-                            <div class="produce-list">
-                                {% for produce in produce_list %}
-                                <div class="produce-row">
-                                    <div>
-                                        <strong>🌾 {{ produce.crop_name }}</strong>
-                                        <span class="muted">{{ produce.quantity }} {{ produce.get_unit_display }} &bull; {{ produce.district }}</span>
-                                    </div>
-                                    <div style="display:flex;align-items:center;gap:10px;">
-                                        <span class="produce-status">{{ produce.get_status_display }}</span>
-                                        {% if produce.status == 'AVAILABLE' %}
-                                            <a href="{% url 'procurement:centers' %}?produce_id={{ produce.id }}" class="button" style="padding:4px 10px;font-size:11px;margin-top:0;background:var(--green);">Request Procurement</a>
-                                        {% else %}
-                                            <a href="{% url 'procurement:status' %}?produce_id={{ produce.id }}" class="button muted-button" style="padding:4px 10px;font-size:11px;margin-top:0;">Track</a>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <p class="empty">You have not registered any produce yet.</p>
-                        {% endif %}
-                        <a class="button" href="{% url 'produce:add_produce' %}">＋ Register produce</a>
-                    </section>
-
-                    <!-- Recommended Center Section -->
-                    <section class="panel recommendation" id="centers">
-                        <div class="card-title">
-                            <h3>Recommended center</h3>
-                            <span style="font-size:22px;color:var(--green)">⌖</span>
-                        </div>
-                        <p class="empty">Find state government MSP centers matched to your district and crop.</p>
-                        <ul>
-                            <li>District matching</li>
-                            <li>Queue &amp; wait time</li>
-                            <li>Crop suitability</li>
-                        </ul>
-                        <a class="button" href="{% url 'procurement:centers' %}">Find Procurement Center →</a>
-                    </section>
-                </div>
-
-                <div class="split-grid">
-                    <!-- Payment Status Section -->
-                    <section class="panel" id="payments">
-                        <div class="card-title">
-                            <h3>Payment status</h3>
-                            <span style="font-size:22px;color:var(--green)">₹</span>
-                        </div>
-                        <p class="empty">Track your active procurement payouts and historical payment transfers.</p>
-                        <div class="payment-amount" style="font-size:24px;">₹{{ summary.payout_processing|floatformat:2 }} Processing</div>
-                        {% if summary.payout_completed > 0 %}
-                            <div style="font-size: 13px; color: var(--green); margin-bottom: 10px;">✓ ₹{{ summary.payout_completed|floatformat:2 }} Total Received</div>
-                        {% endif %}
-
-                        {% if payment_records %}
-                            <div class="detail-list" style="margin-top: 10px;">
-                                {% for item in payment_records %}
-                                <div class="detail-row">
-                                    <span>🌾 {{ item.crop_name }} ({{ item.quantity }})</span>
-                                    <strong>₹{{ item.amount|floatformat:2 }} &bull; {{ item.status }}</strong>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        <a class="button" href="{% url 'payments:payments' %}" style="margin-top:12px;">View payment details →</a>
-                    </section>
-
-                    <!-- Recent Updates / Notifications Section -->
-                    <section class="panel" id="notifications">
-                        <div class="card-title">
-                            <h3>Recent updates</h3>
-                            <a class="section-link" href="{% url 'notifications:notifications' %}">View all →</a>
-                        </div>
-                        {% if recent_notifications %}
-                            <div style="display: grid; gap: 8px;">
-                                {% for notif in recent_notifications %}
-                                <div class="notification-row">
-                                    <span>🔔</span>
-                                    <div>
-                                        <strong style="display:block;">{{ notif.title }}</strong>
-                                        <span class="empty" style="font-size:12px;">{{ notif.message }}</span>
-                                        <div style="font-size:10px;color:var(--muted);margin-top:2px;">{{ notif.created_at|timesince }} ago</div>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <div class="notification-row"><span>♢</span><span class="empty">No new notifications.</span></div>
-                            <div class="notification-row"><span>🌾</span><span class="empty">Your registered produce updates will appear here.</span></div>
-                        {% endif %}
-                    </section>
-                </div>
-            </main>
+            </div>
         </div>
     </div>
-    <script>function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }</script>
-</body>
-</html>
+
+    <!-- Summary Metrics Bar -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        
+        <!-- Metric 1: Total Crops -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md transition-all group">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Registered Produce</span>
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+                    🌾
+                </div>
+            </div>
+            <div class="mt-4 flex items-baseline gap-2">
+                <span class="text-3xl font-extrabold text-slate-900">{{ summary.total_produce }}</span>
+                <span class="text-xs font-medium text-slate-500">crop batch{% if summary.total_produce != 1 %}es{% endif %}</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Total registered produce in system</p>
+        </div>
+
+        <!-- Metric 2: Procurement Requests -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md transition-all group">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Procurement Requests</span>
+                <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+                    📦
+                </div>
+            </div>
+            <div class="mt-4 flex items-baseline gap-2">
+                <span class="text-3xl font-extrabold text-slate-900">{{ summary.requested_procurements }}</span>
+                <span class="text-xs font-medium text-slate-500">active MSP request{% if summary.requested_procurements != 1 %}s{% endif %}</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Centers assigned for sale</p>
+        </div>
+
+        <!-- Metric 3: Active Appointments -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md transition-all group">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Appointments</span>
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+                    📅
+                </div>
+            </div>
+            <div class="mt-4 flex items-baseline gap-2">
+                <span class="text-3xl font-extrabold text-slate-900">{{ summary.active_appointments }}</span>
+                <span class="text-xs font-medium text-slate-500">confirmed slot{% if summary.active_appointments != 1 %}s{% endif %}</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Center arrival slots</p>
+        </div>
+
+        <!-- Metric 4: Active Queue Tokens -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md transition-all group">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Queue Tokens</span>
+                <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg group-hover:scale-110 transition-transform">
+                    🎟️
+                </div>
+            </div>
+            <div class="mt-4 flex items-baseline gap-2">
+                <span class="text-3xl font-extrabold text-slate-900">{{ summary.active_tokens }}</span>
+                <span class="text-xs font-medium text-slate-500">token{% if summary.active_tokens != 1 %}s{% endif %} issued</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Live queue status</p>
+        </div>
+
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="space-y-4">
+        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <span>⚡ Quick Actions</span>
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <a href="{% url 'produce:add_produce' %}" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-emerald-500 hover:-translate-y-0.5 transition-all group flex flex-col justify-between">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-bold mb-3 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                    ＋
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">Register Produce</h3>
+                    <p class="text-xs text-slate-500 mt-1">Register new crop yield for MSP procurement.</p>
+                </div>
+            </a>
+
+            <a href="{% url 'procurement:centers' %}{% if current_produce %}?produce_id={{ current_produce.id }}{% endif %}" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-emerald-500 hover:-translate-y-0.5 transition-all group flex flex-col justify-between">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-bold mb-3 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                    📍
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">Request Procurement</h3>
+                    <p class="text-xs text-slate-500 mt-1">Find nearby center &amp; request purchase.</p>
+                </div>
+            </a>
+
+            <a href="{% url 'appointments:appointments' %}" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-emerald-500 hover:-translate-y-0.5 transition-all group flex flex-col justify-between">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-bold mb-3 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                    📅
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">Book Appointment</h3>
+                    <p class="text-xs text-slate-500 mt-1">Schedule visit slot at procurement center.</p>
+                </div>
+            </a>
+
+            <a href="{% url 'procurement:status' %}" class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:border-emerald-500 hover:-translate-y-0.5 transition-all group flex flex-col justify-between">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl font-bold mb-3 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                    📊
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">Track Status</h3>
+                    <p class="text-xs text-slate-500 mt-1">Check verification, weighing &amp; payment.</p>
+                </div>
+            </a>
+
+        </div>
+    </div>
+
+    <!-- All Produce Journeys Overview -->
+    <div id="procurement" class="space-y-4">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-bold text-slate-900">🌾 Registered Crop Procurement Journeys</h2>
+            <a href="{% url 'produce:my_produce' %}" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">View All Produce &rarr;</a>
+        </div>
+
+        {% if produce_journeys %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for journey in produce_journeys %}
+                    <div class="bg-white rounded-2xl p-5 border {% if active_journey and active_journey.id == journey.id %}border-emerald-500 ring-2 ring-emerald-500/20 bg-emerald-50/20{% else %}border-slate-200/80{% endif %} shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start gap-2 mb-3">
+                                <div>
+                                    <h3 class="font-bold text-slate-900 text-base flex items-center gap-1.5">
+                                        🌾 {{ journey.crop_name }}
+                                    </h3>
+                                    <span class="text-xs text-slate-500 font-medium">{{ journey.quantity }} {{ journey.unit }}</span>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold {% if journey.stage_num >= 10 %}bg-emerald-100 text-emerald-800 border border-emerald-200{% elif journey.stage_num >= 2 %}bg-amber-100 text-amber-800 border border-amber-200{% else %}bg-slate-100 text-slate-700 border border-slate-200{% endif %}">
+                                    {{ journey.stage_display }}
+                                </span>
+                            </div>
+
+                            <div class="space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 mb-4">
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Center:</span>
+                                    <strong class="text-slate-800 font-medium">{{ journey.center_name }}</strong>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Slot:</span>
+                                    <strong class="text-slate-800 font-medium">{{ journey.appointment_time }}</strong>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-slate-400">Token:</span>
+                                    <strong class="text-emerald-700 font-bold">{{ journey.token_number }}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+                            {% if journey.status == 'AVAILABLE' %}
+                                <a href="{% url 'procurement:centers' %}?produce_id={{ journey.id }}" class="w-full text-center px-3 py-2 rounded-xl bg-emerald-600 text-white font-semibold text-xs hover:bg-emerald-700 transition-colors shadow-xs">
+                                    Request Procurement &rarr;
+                                </a>
+                            {% else %}
+                                <a href="{% url 'farmer_dashboard' %}?produce_id={{ journey.id }}#procurement" class="flex-1 text-center px-3 py-2 rounded-xl bg-emerald-600 text-white font-semibold text-xs hover:bg-emerald-700 transition-colors shadow-xs">
+                                    View Timeline &darr;
+                                </a>
+                                <a href="{% url 'procurement:status' %}?produce_id={{ journey.id }}" class="px-3 py-2 rounded-xl border border-slate-200 text-slate-700 font-medium text-xs hover:bg-slate-50 transition-colors">
+                                    Details &rarr;
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Detailed Timeline Stage Panel -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-6 mb-6">
+                <div>
+                    <span class="text-xs font-bold text-emerald-600 uppercase tracking-widest">Active Procurement Tracker</span>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">
+                        {% if active_journey %}
+                            🌾 {{ active_journey.crop_name }} ({{ active_journey.quantity }} {{ active_journey.unit }})
+                        {% else %}
+                            No Crop Selected
+                        {% endif %}
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+                        {% if active_journey %}
+                            Center: <strong>{{ active_journey.center_name }}</strong>
+                        {% else %}
+                            Register a crop to begin procurement.
+                        {% endif %}
+                    </p>
+                </div>
+                {% if active_journey %}
+                    <span class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200/80">
+                        {{ active_journey.stage_display }}
+                    </span>
+                {% endif %}
+            </div>
+
+            <!-- Timeline Stepper Bar -->
+            <div class="overflow-x-auto pb-4">
+                <div class="min-w-[650px] flex items-center justify-between relative px-4">
+                    <div class="absolute left-10 right-10 top-4 h-1 bg-slate-100 -z-0"></div>
+
+                    <!-- Step 1 -->
+                    <div class="relative z-10 flex flex-col items-center gap-2 text-center w-24">
+                        <div class="w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center ring-4 ring-white {% if procurement_stage_num >= 1 %}bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}bg-slate-200 text-slate-500{% endif %}">
+                            1
+                        </div>
+                        <span class="text-xs font-semibold {% if procurement_stage_num >= 1 %}text-emerald-700{% else %}text-slate-400{% endif %}">Registered</span>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="relative z-10 flex flex-col items-center gap-2 text-center w-24">
+                        <div class="w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center ring-4 ring-white {% if procurement_stage_num >= 2 %}bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}bg-slate-200 text-slate-500{% endif %}">
+                            2
+                        </div>
+                        <span class="text-xs font-semibold {% if procurement_stage_num >= 2 %}text-emerald-700{% else %}text-slate-400{% endif %}">Appointment</span>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="relative z-10 flex flex-col items-center gap-2 text-center w-24">
+                        <div class="w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center ring-4 ring-white {% if procurement_stage_num >= 3 %}bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}bg-slate-200 text-slate-500{% endif %}">
+                            3
+                        </div>
+                        <span class="text-xs font-semibold {% if procurement_stage_num >= 3 %}text-emerald-700{% else %}text-slate-400{% endif %}">Gate Entry</span>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="relative z-10 flex flex-col items-center gap-2 text-center w-24">
+                        <div class="w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center ring-4 ring-white {% if procurement_stage_num >= 4 %}bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}bg-slate-200 text-slate-500{% endif %}">
+                            4
+                        </div>
+                        <span class="text-xs font-semibold {% if procurement_stage_num >= 4 %}text-emerald-700{% else %}text-slate-400{% endif %}">Quality Check</span>
+                    </div>
+
+                    <!-- Step 5 -->
+                    <div class="relative z-10 flex flex-col items-center gap-2 text-center w-24">
+                        <div class="w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center ring-4 ring-white {% if procurement_stage_num >= 5 %}bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}bg-slate-200 text-slate-500{% endif %}">
+                            5
+                        </div>
+                        <span class="text-xs font-semibold {% if procurement_stage_num >= 5 %}text-emerald-700{% else %}text-slate-400{% endif %}">Weighing</span>
+                    </div>
+
+                    <!-- Step 6 -->
+                    <div class="relative z-10 flex flex-col items-center gap-2 text-center w-24">
+                        <div class="w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center ring-4 ring-white {% if procurement_stage_num >= 6 %}bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}bg-slate-200 text-slate-500{% endif %}">
+                            6
+                        </div>
+                        <span class="text-xs font-semibold {% if procurement_stage_num >= 6 %}text-emerald-700{% else %}text-slate-400{% endif %}">Billed</span>
+                    </div>
+
+                    <!-- Step 7 -->
+                    <div class="relative z-10 flex flex-col items-center gap-2 text-center w-24">
+                        <div class="w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center ring-4 ring-white {% if procurement_stage_num >= 10 %}bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}bg-slate-200 text-slate-500{% endif %}">
+                            7
+                        </div>
+                        <span class="text-xs font-semibold {% if procurement_stage_num >= 10 %}text-emerald-700{% else %}text-slate-400{% endif %}">Paid</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Split Grid: Appointments & Live Queue Token -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Upcoming Appointments Card -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-4">
+                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <span>📅 Upcoming Appointments</span>
+                    </h3>
+                    <a href="{% url 'appointments:appointments' %}" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">
+                        View All &rarr;
+                    </a>
+                </div>
+
+                {% if active_appointments %}
+                    <div class="space-y-3">
+                        {% for appt in active_appointments %}
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 flex items-start gap-4">
+                                <div class="bg-emerald-600 text-white p-3 rounded-xl text-center min-w-[70px] flex-shrink-0 shadow-xs">
+                                    <span class="block text-[10px] font-bold uppercase tracking-wider opacity-80">Date</span>
+                                    <span class="block text-sm font-extrabold">{{ appt.appointment_date|date:"d M" }}</span>
+                                </div>
+                                <div class="space-y-1 flex-1 min-w-0">
+                                    <h4 class="font-bold text-slate-900 text-sm truncate">🏢 {{ appt.procurement_center.name }}</h4>
+                                    <p class="text-xs text-slate-500">
+                                        Crop: <strong class="text-slate-700">🌾 {{ appt.produce.crop_name }}</strong> ({{ appt.produce.quantity }} {{ appt.produce.get_unit_display }})
+                                    </p>
+                                    <div class="flex items-center gap-2 text-xs text-slate-600 mt-1">
+                                        <span>Slot: <strong>{{ appt.appointment_time_slot }}</strong></span>
+                                        <span>&bull;</span>
+                                        <span>Token: <strong class="text-emerald-700">#{{ appt.token_number|default:'Pending' }}</strong></span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8 text-slate-500 space-y-2">
+                        <div class="text-3xl">📅</div>
+                        <p class="text-sm font-medium">No Active Upcoming Appointments</p>
+                        <p class="text-xs text-slate-400">Register your harvest to schedule procurement slot.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="pt-4 mt-4 border-t border-slate-100">
+                <a href="{% url 'appointments:appointments' %}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 transition-colors shadow-xs">
+                    <span>Manage Appointment Schedule</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- Live Queue Token Card -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-4">
+                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <span>🎟️ Live Queue &amp; Token</span>
+                    </h3>
+                    <a href="{% url 'tokens:token_queue' %}" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">
+                        View Live Queue &rarr;
+                    </a>
+                </div>
+
+                {% if active_tokens %}
+                    <div class="space-y-3">
+                        {% for tok in active_tokens %}
+                            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-3">
+                                {% if tok.is_your_turn %}
+                                    <div class="bg-red-50 border-2 border-red-500/80 rounded-xl p-3 text-center animate-pulse">
+                                        <strong class="text-red-700 text-sm font-extrabold block">🚨 IT'S YOUR TURN!</strong>
+                                        <span class="text-xs text-slate-700">Proceed to <strong>{{ tok.counter_number }}</strong> at {{ tok.procurement_center.name }}</span>
+                                    </div>
+                                {% endif %}
+                                <div class="flex justify-between items-center">
+                                    <span class="font-bold text-slate-900 text-sm">🌾 {{ tok.produce.crop_name }}</span>
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                                        Token #{{ tok.token_number }}
+                                    </span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-white p-3 rounded-xl border border-slate-100">
+                                    <div>
+                                        <span class="text-slate-400 block">Center:</span>
+                                        <strong class="text-slate-800 truncate block">{{ tok.procurement_center.name }}</strong>
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-400 block">Queue Position:</span>
+                                        <strong class="text-emerald-700 block">#{{ tok.get_queue_position }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8 text-slate-500 space-y-2">
+                        <div class="text-3xl">🎫</div>
+                        <p class="text-sm font-medium">No Active Tokens</p>
+                        <p class="text-xs text-slate-400">Tokens are generated automatically upon arrival.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="pt-4 mt-4 border-t border-slate-100">
+                <a href="{% url 'tokens:token_queue' %}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 transition-colors shadow-xs">
+                    <span>View Live Token Queue</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Split Grid: Payments & Notifications -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Payment Status Card -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-4">
+                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <span>💰 Payment &amp; Payout Status</span>
+                    </h3>
+                    <a href="{% url 'payments:payments' %}" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">
+                        Payment Details &rarr;
+                    </a>
+                </div>
+
+                <div class="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-4 mb-4 flex items-center justify-between">
+                    <div>
+                        <span class="text-xs font-medium text-emerald-800 uppercase tracking-wider block">Processing Payout</span>
+                        <span class="text-2xl font-extrabold text-emerald-900">₹{{ summary.payout_processing|floatformat:2 }}</span>
+                    </div>
+                    {% if summary.payout_completed > 0 %}
+                        <div class="text-right">
+                            <span class="text-xs font-medium text-emerald-700 block">Total Received</span>
+                            <span class="text-sm font-bold text-emerald-800">✓ ₹{{ summary.payout_completed|floatformat:2 }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                {% if payment_records %}
+                    <div class="space-y-2">
+                        {% for item in payment_records %}
+                            <div class="flex justify-between items-center p-3 rounded-xl bg-slate-50 text-xs">
+                                <span class="font-medium text-slate-700">🌾 {{ item.crop_name }} ({{ item.quantity }})</span>
+                                <strong class="text-slate-900">₹{{ item.amount|floatformat:2 }} &bull; {{ item.status }}</strong>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="pt-4 mt-4 border-t border-slate-100">
+                <a href="{% url 'payments:payments' %}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 transition-colors">
+                    View Full Payment Ledger
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Updates Card -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between mb-4 border-b border-slate-100 pb-4">
+                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <span>🔔 Recent Updates</span>
+                    </h3>
+                    <a href="{% url 'notifications:notifications' %}" class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">
+                        View All &rarr;
+                    </a>
+                </div>
+
+                {% if recent_notifications %}
+                    <div class="space-y-3">
+                        {% for notif in recent_notifications %}
+                            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-start gap-3 text-xs">
+                                <span class="text-base">🔔</span>
+                                <div class="space-y-0.5 flex-1">
+                                    <strong class="text-slate-900 block font-semibold">{{ notif.title }}</strong>
+                                    <p class="text-slate-600">{{ notif.message }}</p>
+                                    <span class="text-[10px] text-slate-400 block">{{ notif.created_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8 text-slate-500 space-y-2">
+                        <div class="text-3xl">🔔</div>
+                        <p class="text-sm font-medium">No Recent Notifications</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="pt-4 mt-4 border-t border-slate-100">
+                <a href="{% url 'notifications:notifications' %}" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 transition-colors">
+                    Notification Preferences
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

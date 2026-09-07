@@ -1,253 +1,227 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Procurement Centers | KisanFlow</title>
-    <style>
-        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, "Times New Roman", serif; }
-        a { color: inherit; }
-        .app-shell { display: flex; min-height: 100vh; }
-        .sidebar { width: 248px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .brand { padding: 0 14px 30px; font-size: 25px; font-weight: bold; }
-        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
-        .nav-list { display: grid; gap: 3px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
-        .nav-item:hover, .nav-item.active { background: #286c4a; color: white; }
-        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
-        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
-        .main-area { min-width: 0; flex: 1; }
-        .topbar { min-height: 82px; background: white; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
-        .menu-button { display: none; border: 0; background: var(--mint); color: var(--deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
-        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
-        .crumb strong { color: var(--ink); }
-        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
-        .profile-text { text-align: right; line-height: 1.5; }
-        .profile-text strong { display: block; color: var(--ink); }
-        .profile-id { color: var(--muted); font-size: 11px; }
-        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
-        .content { max-width: 1360px; margin: 0 auto; padding: 38px clamp(20px, 4vw, 50px) 60px; }
-        .page-eyebrow { margin: 0 0 8px; color: var(--green); font: bold 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
-        h1 { margin: 0 0 8px; font-size: clamp(28px, 4vw, 42px); line-height: 1.08; }
-        .description { color: var(--muted); font: 15px Arial, sans-serif; }
-        .empty-section { margin-top: 28px; padding: 28px; background: white; border: 1px solid var(--line); border-radius: 8px; color: var(--muted); font: 14px Arial, sans-serif; }
-        .recommendation-card { margin-top: 28px; padding: 26px; background: white; border: 1px solid var(--line); border-left: 5px solid var(--green); border-radius: 8px; box-shadow: 0 4px 13px rgba(30, 75, 53, .05); }
-        .recommendation-label { margin-bottom: 18px; color: var(--green); font: bold 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
-        .recommendation-title { margin: 0 0 8px; font-size: 25px; }
-        .recommendation-quantity { color: var(--muted); font: 14px Arial, sans-serif; }
-        .center-name { margin: 24px 0 14px; font-size: 20px; }
-        .center-name span { color: var(--green); }
-        .recommendation-stats { display: flex; flex-wrap: wrap; gap: 10px; }
-        .stat { padding: 8px 11px; border-radius: 18px; background: var(--mint); color: var(--green); font: bold 12px Arial, sans-serif; }
-        .match-score { margin-top: 20px; color: #9c5d13; font: bold 15px Arial, sans-serif; }
-        .reasons { margin: 10px 0 0; padding-left: 19px; color: var(--muted); font: 13px Arial, sans-serif; line-height: 1.8; }
-        .recommendation-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
-        .recommendation-button { display: inline-block; padding: 10px 14px; border-radius: 5px; background: var(--green); color: white; font: bold 12px Arial, sans-serif; text-decoration: none; }
-        .recommendation-button.secondary { background: #edf3ee; color: var(--green); }
-        .nearby-heading { margin: 34px 0 14px; font-size: 21px; }
-        .nearby-layout { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 18px; }
-        .center-list { display: grid; gap: 13px; }
-        .center-card { padding: 20px; background: white; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); }
-        .center-card.district-match { border-left: 4px solid var(--green); }
-        .center-card h3 { margin: 0 0 13px; font-size: 18px; }
-        .center-distance { margin-bottom: 13px; color: var(--muted); font: 13px Arial, sans-serif; }
-        .center-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-        .center-tag { padding: 7px 9px; border-radius: 16px; background: var(--mint); color: var(--green); font: bold 11px Arial, sans-serif; }
-        .center-tag.medium { background: #fff2d9; color: #9c5d13; }
-        .map-placeholder { min-height: 100%; display: grid; place-items: center; padding: 25px; border: 1px solid var(--line); border-radius: 8px; background: #edf5ee; color: var(--muted); text-align: center; font: 14px Arial, sans-serif; }
-        .map-placeholder strong { display: block; margin-bottom: 9px; color: var(--green); font: 20px Georgia, serif; }
-        .filters { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
-        .filters input, .filters select { width: 100%; min-height: 42px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: white; color: var(--ink); font: 13px Arial, sans-serif; }
-        .filters input:focus, .filters select:focus { outline: 2px solid var(--mint); border-color: var(--green); }
-        @media (max-width: 900px) { .filters { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 700px) { .nearby-layout { grid-template-columns: 1fr; } .map-placeholder { min-height: 190px; } }
-        @media (max-width: 1000px) { .sidebar { width: 215px; } }
-        @media (max-width: 700px) { .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 5; transform: translateX(-100%); transition: transform .2s ease; } .sidebar.open { transform: translateX(0); } .menu-button { display: block; } .topbar { min-height: 68px; } .profile-text { display: none; } .content { padding-top: 27px; } }
-    </style>
-</head>
-<body>
-    <div class="app-shell">
-        <aside class="sidebar" id="sidebar">
-            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
-            <div class="nav-label">Main menu</div>
-            <nav class="nav-list" aria-label="Farmer navigation">
-                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
-                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
-                <a class="nav-item active" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
-                <a class="nav-item" href="{% url 'appointments:appointments' %}"><span class="nav-icon">▣</span> Appointments</a>
-                <a class="nav-item" href="{% url 'tokens:token_queue' %}"><span class="nav-icon">▤</span> My Token</a>
-                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
-                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
-                <a class="nav-item" href="#"><span class="nav-icon">•</span> Notifications</a>
-            </nav>
-            <div class="sidebar-bottom nav-list">
-                <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Settings</a>
-                <a class="nav-item" href="#"><span class="nav-icon">?</span> Help &amp; Support</a>
-                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
-            </div>
-        </aside>
-        <div class="main-area">
-            <header class="topbar">
-                <div style="display:flex;align-items:center;gap:13px"><button class="menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" onclick="toggleSidebar()">☰</button><div class="crumb"><strong>Procurement Centers</strong> &nbsp;/&nbsp; Farmer space</div></div>
-                <div class="profile"><span aria-label="Notifications" style="font-size:22px;color:var(--green)">♢</span><div class="profile-text"><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><span class="profile-id">Farmer account</span></div><div class="avatar">{{ request.user.first_name|default:request.user.username|first|upper }}</div><span aria-hidden="true">⌄</span></div>
-            </header>
-            <main class="content">
-                <p class="page-eyebrow">FIND A CENTER (UTTAR PRADESH)</p>
-                <h1>Procurement Centers</h1>
-                <p class="description">Locate the nearest government MSP procurement center matching your district and produce batch.</p>
+{% extends 'base.html' %}
 
-                {% if recommended_center %}
-                    {% if active_produce %}
-                    <section class="recommendation-card" aria-labelledby="recommendation-heading">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                            <p class="recommendation-label" style="margin:0;">🤖 Dynamic Intelligent Recommendation</p>
-                            <span class="stat" style="background:#fff2d9;color:#9c5d13;font-size:12px;">{{ recommended_center.recommendation_badge|default:"🥇 BEST MATCH" }}</span>
-                        </div>
+{% block title %}Procurement Centers | KisanFlow{% endblock %}
+{% block breadcrumb %}Procurement Centers{% endblock %}
 
-                        <h2 class="recommendation-title" id="recommendation-heading">🌾 {{ active_produce.crop_name }} Procurement</h2>
-                        <p class="recommendation-quantity">{{ active_produce.quantity }} {{ active_produce.get_unit_display }} &bull; 📍 Farmer District: <strong>{{ selected_district }}</strong></p>
+{% block content %}
+<div class="space-y-8">
 
-                        <h3 class="center-name"><span>🏢</span> {{ recommended_center.name }}</h3>
+    <!-- Page Header -->
+    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
+        <span class="text-xs font-bold uppercase tracking-widest text-emerald-600">Uttar Pradesh MSP Centers</span>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">🏢 Procurement Centers</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">Locate the nearest government procurement center matched to your district and crop yield.</p>
+    </div>
 
-                        <div class="recommendation-stats">
-                            <span class="stat">📍 {{ recommended_center.district }} ({% if recommended_center.tehsil_block %}{{ recommended_center.tehsil_block }}{% else %}Sadar{% endif %})</span>
-                            <span class="stat">⚡ ~{{ recommended_center.distance_km }} km away</span>
-                            <span class="stat">{% if recommended_center.queue_status == "LOW" %}🟢 Low Queue{% elif recommended_center.queue_status == "MEDIUM" %}🟡 Medium Queue{% else %}🔴 High Queue{% endif %}</span>
-                            <span class="stat">📅 {{ recommended_center.open_slots_count|default:"35" }} slots open (7 days)</span>
-                        </div>
+    <!-- AI Intelligent Recommendation Card -->
+    {% if recommended_center %}
+        {% if active_produce %}
+            <div class="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-slate-900 to-emerald-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-emerald-800/50 space-y-6">
+                <!-- Background Glow -->
+                <div class="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-                        <p class="match-score">⭐ Compatibility Score: {{ recommended_center.recommendation_score|default:"100.0" }} pts</p>
-                        <p class="description">Address: <strong>{{ recommended_center.address }}</strong></p>
-                        <ul class="reasons">
-                            {% for reason in recommended_center.reasons %}
-                            <li>{{ reason }}</li>
-                            {% empty %}
-                            <li>Accepts {{ active_produce.crop_name }} procurement</li>
-                            <li>Located in {{ recommended_center.district }} district</li>
-                            <li>Appointment slots available over next 7 days</li>
-                            {% endfor %}
-                        </ul>
-
-                        <div class="recommendation-actions">
-                            <form method="post" action="{% url 'procurement:select_center' %}" style="display:inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="produce_id" value="{{ active_produce.id }}">
-                                <input type="hidden" name="center_id" value="{{ recommended_center.id }}">
-                                <button type="submit" class="recommendation-button" style="border:none;cursor:pointer;">
-                                    ✓ Select This Center &amp; Book Appointment
-                                </button>
-                            </form>
-                            <a class="recommendation-button secondary" href="{% url 'procurement:center_detail' %}">View Center Details</a>
-                        </div>
-                    </section>
-                    {% else %}
-                    <section class="recommendation-card" style="border-left-color: #d88424; background: #fffdfa;" aria-labelledby="recommendation-heading">
-                        <p class="recommendation-label" style="color: #b45309;">⚠️ No Registered Produce Found</p>
-                        <h2 class="recommendation-title" id="recommendation-heading" style="font-size: 22px;">Register Produce Batch to Enable Center Recommendations</h2>
-                        <p class="recommendation-quantity">You currently have no active produce registered for MSP procurement. &bull; 📍 Active District: <strong>{{ selected_district }}</strong></p>
-
-                        <p class="description" style="margin-top: 12px; color: var(--muted);">
-                            Registering your crop batch enables intelligent matching with government procurement centers in <strong>{{ selected_district }}</strong> (e.g. 🏢 {{ recommended_center.name }}).
+                <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-emerald-800/60 pb-5">
+                    <div>
+                        <span class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold uppercase tracking-wider">
+                            🤖 AI Intelligent Recommendation
+                        </span>
+                        <h2 class="text-xl sm:text-2xl font-extrabold text-white mt-2">
+                            🌾 {{ active_produce.crop_name }} Procurement Match
+                        </h2>
+                        <p class="text-xs text-slate-300">
+                            Quantity: <strong>{{ active_produce.quantity }} {{ active_produce.get_unit_display }}</strong> &bull; District: <strong>{{ selected_district }}</strong>
                         </p>
+                    </div>
 
-                        <div class="recommendation-actions" style="margin-top: 18px;">
-                            <a class="recommendation-button" href="{% url 'produce:add_produce' %}" style="background: var(--green);">➕ Register Produce Now</a>
-                            <a class="recommendation-button secondary" href="{% url 'produce:my_produce' %}">My Produce List</a>
+                    <span class="px-3 py-1.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold">
+                        {{ recommended_center.recommendation_badge|default:"🥇 BEST MATCH" }}
+                    </span>
+                </div>
+
+                <div class="relative z-10 space-y-4">
+                    <div class="flex items-center gap-3">
+                        <span class="text-3xl">🏢</span>
+                        <div>
+                            <h3 class="text-2xl font-bold text-white">{{ recommended_center.name }}</h3>
+                            <p class="text-xs text-slate-300 mt-0.5">📍 {{ recommended_center.address }}</p>
                         </div>
-                    </section>
-                    {% endif %}
-                {% endif %}
+                    </div>
 
-                <h2 class="nearby-heading">Eligible Procurement Centers in Uttar Pradesh</h2>
+                    <!-- Metrics Badges -->
+                    <div class="flex flex-wrap gap-2 text-xs font-semibold">
+                        <span class="px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/80 text-emerald-400">
+                            📍 {{ recommended_center.district }} ({% if recommended_center.tehsil_block %}{{ recommended_center.tehsil_block }}{% else %}Sadar{% endif %})
+                        </span>
+                        <span class="px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/80 text-slate-200">
+                            ⚡ ~{{ recommended_center.distance_km }} km distance
+                        </span>
+                        <span class="px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/80 text-amber-300">
+                            {% if recommended_center.queue_status == "LOW" %}🟢 Low Queue{% elif recommended_center.queue_status == "MEDIUM" %}🟡 Medium Queue{% else %}🔴 High Queue{% endif %}
+                        </span>
+                        <span class="px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/80 text-blue-300">
+                            📅 {{ recommended_center.open_slots_count|default:"35" }} slots available
+                        </span>
+                    </div>
 
-                <form class="filters" method="get" aria-label="Filter procurement centers">
-                    {% if active_produce %}
-                    <input type="hidden" name="produce_id" value="{{ active_produce.id }}">
-                    {% endif %}
-                    <input type="search" name="search" value="{{ search_query }}" placeholder="Search center by name..." aria-label="Search centers">
-
-                    <select name="district" onchange="this.form.submit()" aria-label="District filter">
-                        <option value="">-- Select UP District --</option>
-                        {% for d in up_districts %}
-                            <option value="{{ d }}" {% if selected_district == d %}selected{% endif %}>{{ d }}</option>
+                    <!-- Match Reasons -->
+                    <ul class="text-xs text-slate-300 space-y-1.5 pl-4 list-disc">
+                        {% for reason in recommended_center.reasons %}
+                            <li>{{ reason }}</li>
+                        {% empty %}
+                            <li>Accepts {{ active_produce.crop_name }} procurement</li>
+                            <li>Located within {{ recommended_center.district }} district limits</li>
+                            <li>Appointment slots available over next 7 days</li>
                         {% endfor %}
-                    </select>
+                    </ul>
 
-                    <select name="queue" onchange="this.form.submit()" aria-label="Queue filter">
-                        <option value="">All Queues</option>
-                        <option value="LOW" {% if selected_queue == "LOW" %}selected{% endif %}>🟢 Low Queue</option>
-                        <option value="MEDIUM" {% if selected_queue == "MEDIUM" %}selected{% endif %}>🟡 Medium Queue</option>
-                        <option value="HIGH" {% if selected_queue == "HIGH" %}selected{% endif %}>🔴 High Queue</option>
-                    </select>
+                    <!-- Action Button -->
+                    <div class="pt-3 flex flex-wrap gap-3">
+                        <form method="post" action="{% url 'procurement:select_center' %}" class="inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="produce_id" value="{{ active_produce.id }}">
+                            <input type="hidden" name="center_id" value="{{ recommended_center.id }}">
+                            <button type="submit" class="px-6 py-3 rounded-2xl bg-emerald-500 text-slate-950 font-extrabold text-xs sm:text-sm hover:bg-emerald-400 shadow-lg shadow-emerald-500/20 transition-all cursor-pointer">
+                                ✓ Select This Center &amp; Book Appointment
+                            </button>
+                        </form>
+                        <a href="{% url 'procurement:center_detail' %}" class="px-5 py-3 rounded-2xl bg-slate-800/80 text-white font-semibold text-xs sm:text-sm hover:bg-slate-700 transition-colors border border-slate-700">
+                            View Center Details
+                        </a>
+                    </div>
 
-                    <button type="submit" class="recommendation-button" style="border:none;cursor:pointer;">Filter</button>
-                </form>
+                </div>
+            </div>
+        {% else %}
+            <div class="bg-amber-50 border border-amber-200 rounded-3xl p-6 sm:p-8 space-y-3">
+                <span class="text-xs font-bold text-amber-700 uppercase tracking-wider">⚠️ No Registered Produce Selected</span>
+                <h2 class="text-lg font-bold text-amber-900">Register crop batch to view dynamic center recommendations</h2>
+                <p class="text-xs text-amber-800">Select or register your produce to receive automated distance, queue and crop suitability recommendations.</p>
+                <div class="pt-2">
+                    <a href="{% url 'produce:add_produce' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-600 text-white font-semibold text-xs hover:bg-amber-700 transition-colors">
+                        <span>＋ Register Produce Now</span>
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
 
-                <section class="nearby-layout" aria-label="Nearby procurement centers">
-                    <div class="center-list">
-                        {% if nearby_centers %}
-                            {% for center in nearby_centers %}
-                            <article class="center-card{% if center.district|lower == selected_district|lower %} district-match{% endif %}">
-                                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
-                                    <h3>🏢 {{ center.name }}</h3>
-                                    <span class="center-tag" style="background:#fff2d9;color:#9c5d13;font-size:10px;">
-                                        {{ center.recommendation_badge|default:"🟢 AVAILABLE" }}
-                                    </span>
+    <!-- Center Filters Form -->
+    <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
+        <h2 class="text-base font-bold text-slate-900">Filter Procurement Centers</h2>
+        
+        <form method="get" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {% if active_produce %}
+                <input type="hidden" name="produce_id" value="{{ active_produce.id }}">
+            {% endif %}
+
+            <input type="search" name="search" value="{{ search_query }}" placeholder="Search center name..." class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:border-emerald-500">
+
+            <select name="district" onchange="this.form.submit()" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-500">
+                <option value="">-- All UP Districts --</option>
+                {% for d in up_districts %}
+                    <option value="{{ d }}" {% if selected_district == d %}selected{% endif %}>{{ d }}</option>
+                {% endfor %}
+            </select>
+
+            <select name="queue" onchange="this.form.submit()" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-500">
+                <option value="">All Queue Statuses</option>
+                <option value="LOW" {% if selected_queue == "LOW" %}selected{% endif %}>🟢 Low Queue</option>
+                <option value="MEDIUM" {% if selected_queue == "MEDIUM" %}selected{% endif %}>🟡 Medium Queue</option>
+                <option value="HIGH" {% if selected_queue == "HIGH" %}selected{% endif %}>🔴 High Queue</option>
+            </select>
+
+            <button type="submit" class="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 transition-colors">
+                Apply Filters
+            </button>
+        </form>
+    </div>
+
+    <!-- Nearby Centers Layout Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Center List (2 Cols) -->
+        <div class="lg:col-span-2 space-y-4">
+            <h2 class="text-base font-bold text-slate-900">
+                Active Procurement Centers ({% if nearby_centers %}{{ nearby_centers|length }}{% else %}0{% endif %})
+            </h2>
+
+            {% if nearby_centers %}
+                <div class="space-y-4">
+                    {% for center in nearby_centers %}
+                        <div class="bg-white rounded-3xl p-6 border {% if center.district|lower == selected_district|lower %}border-emerald-500/60 ring-1 ring-emerald-500/20{% else %}border-slate-200/80{% endif %} shadow-xs hover:shadow-md transition-all space-y-3">
+                            <div class="flex justify-between items-start gap-3">
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-900">🏢 {{ center.name }}</h3>
+                                    <span class="text-xs text-slate-500">📍 {{ center.district }} District &bull; {{ center.tehsil_block|default:"Sadar" }} &bull; ~{{ center.distance_km }} km</span>
                                 </div>
-                                <p class="center-distance">📍 {{ center.district }} district &bull; {{ center.tehsil_block|default:"Sadar" }} &bull; ~{{ center.distance_km }} km</p>
-                                <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">{{ center.address }}</p>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                    {{ center.recommendation_badge|default:"🟢 AVAILABLE" }}
+                                </span>
+                            </div>
 
-                                <div class="center-tags">
-                                    <span class="center-tag {% if center.queue_status == 'MEDIUM' %}medium{% endif %}">
-                                        {% if center.queue_status == 'LOW' %}🟢 Low Queue{% elif center.queue_status == 'MEDIUM' %}🟡 Medium Queue{% else %}🔴 High Queue{% endif %}
+                            <p class="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                {{ center.address }}
+                            </p>
+
+                            <div class="flex flex-wrap gap-2 text-xs">
+                                <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 font-semibold border border-emerald-100">
+                                    {% if center.queue_status == 'LOW' %}🟢 Low Queue{% elif center.queue_status == 'MEDIUM' %}🟡 Medium Queue{% else %}🔴 High Queue{% endif %}
+                                </span>
+                                <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 font-medium">
+                                    🌾 {{ center.crops_handled|truncatechars:30 }}
+                                </span>
+                                {% if center.open_slots_count %}
+                                    <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 font-semibold border border-blue-100">
+                                        📅 {{ center.open_slots_count }} slots open
                                     </span>
-                                    <span class="center-tag">🌾 {{ center.crops_handled|truncatechars:30 }}</span>
-                                    {% if center.open_slots_count %}
-                                    <span class="center-tag" style="background:#e6f2e9;color:#1f6b45;">📅 {{ center.open_slots_count }} slots open</span>
-                                    {% endif %}
-                                </div>
-
-                                {% if center.reasons %}
-                                <ul style="margin:10px 0 0;padding-left:16px;font-size:11px;color:var(--muted);">
-                                    {% for reason in center.reasons|slice:":2" %}
-                                    <li>{{ reason }}</li>
-                                    {% endfor %}
-                                </ul>
                                 {% endif %}
+                            </div>
 
-                                <div style="margin-top:14px;display:flex;gap:8px;align-items:center;">
-                                    {% if active_produce %}
-                                    <form method="post" action="{% url 'procurement:select_center' %}" style="display:inline;">
+                            <div class="flex items-center gap-2 pt-3 border-t border-slate-100">
+                                {% if active_produce %}
+                                    <form method="post" action="{% url 'procurement:select_center' %}" class="inline">
                                         {% csrf_token %}
                                         <input type="hidden" name="produce_id" value="{{ active_produce.id }}">
                                         <input type="hidden" name="center_id" value="{{ center.id }}">
-                                        <button type="submit" class="recommendation-button" style="border:none;cursor:pointer;padding:8px 12px;font-size:11px;">
-                                            Select This Center
+                                        <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-semibold text-xs hover:bg-emerald-700 transition-colors shadow-xs cursor-pointer">
+                                            Select Center &rarr;
                                         </button>
                                     </form>
-                                    {% endif %}
-                                    <a class="recommendation-button secondary" href="{% url 'procurement:center_detail' %}" style="padding:8px 12px;font-size:11px;">View Details</a>
-                                </div>
-                            </article>
-                            {% endfor %}
-                        {% else %}
-                            <p style="padding:20px;background:white;border-radius:8px;">No centers found matching the selected filters in {{ selected_district }}.</p>
-                        {% endif %}
-                    </div>
-                    <div class="map-placeholder" role="img" aria-label="Uttar Pradesh Procurement Locations">
-                        <div>
-                            <strong>🗺️ Uttar Pradesh Procurement Map</strong>
-                            <p style="margin-top:8px;">Active District: <strong style="color:var(--green)">{{ selected_district }}</strong></p>
-                            <p style="font-size:13px;color:var(--muted);margin-top:12px;">Displaying {{ nearby_centers|length }} government MSP purchasing centers across {{ selected_district }} and adjacent UP regions.</p>
+                                {% endif %}
+                                <a href="{% url 'procurement:center_detail' %}" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 transition-colors">
+                                    View Details
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                </section>
-            </main>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="bg-white rounded-3xl p-8 text-center border border-slate-200/80 text-slate-500">
+                    <p class="text-sm font-medium">No procurement centers found matching criteria in {{ selected_district }}.</p>
+                </div>
+            {% endif %}
         </div>
+
+        <!-- UP Map Placeholder (1 Col) -->
+        <div class="bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 flex flex-col justify-between min-h-[300px]">
+            <div class="space-y-3">
+                <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest">Geographic Coverage</span>
+                <h3 class="text-xl font-bold">🗺️ Uttar Pradesh Procurement Map</h3>
+                <p class="text-xs text-slate-400">
+                    Active District Region: <strong class="text-white">{{ selected_district }}</strong>
+                </p>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Showing {{ nearby_centers|length }} active state MSP procurement centers across {{ selected_district }} district.
+                </p>
+            </div>
+            
+            <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-700/80 text-center space-y-2 mt-6">
+                <span class="text-3xl">📍</span>
+                <span class="block text-xs font-semibold text-emerald-400">Center Locations Verified</span>
+            </div>
+        </div>
+
     </div>
-    <script>function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }</script>
-</body>
-</html>
+
+</div>
+{% endblock %}

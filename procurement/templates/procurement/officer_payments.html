@@ -1,185 +1,230 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Payout Processing | KisanFlow</title>
-    <style>
-        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --white: #fff; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
-        a { color: inherit; text-decoration: none; }
-        .app-shell { display: flex; min-height: 100vh; }
-        .sidebar { width: 260px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .brand { padding: 0 14px 25px; font-size: 24px; font-weight: bold; border-bottom: 1px solid #2e6848; margin-bottom: 20px; }
-        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 11px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
-        .nav-list { display: grid; gap: 4px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; }
-        .nav-item:hover, .nav-item.active { background: #286c4a; color: var(--white); }
-        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
-        .main-area { min-width: 0; flex: 1; display: flex; flex-direction: column; }
-        .topbar { min-height: 70px; background: var(--white); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); }
-        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
-        .crumb strong { color: var(--ink); }
-        .content { max-width: 1360px; margin: 0 auto; padding: 30px clamp(20px, 4vw, 50px) 60px; width: 100%; }
+{% extends 'base.html' %}
 
-        .grid-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
-        @media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } }
+{% block title %}Direct Payout Authorization Desk | KisanFlow{% endblock %}
+{% block breadcrumb %}Payout Desk{% endblock %}
 
-        .card { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
-        .card-title { font-size: 18px; margin-top: 0; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
-        
-        .record-list { display: grid; gap: 10px; max-height: 500px; overflow-y: auto; }
-        .record-item { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); transition: all 0.2s; cursor: pointer; }
-        .record-item:hover, .record-item.active { border-color: var(--green); background: var(--mint); }
+{% block extra_head %}
+<style>
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.75rem;
+        background-color: #f8fafc;
+        color: #0f172a;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        border-color: #10b981;
+        background-color: #ffffff;
+        outline: 2px solid rgba(16, 185, 129, 0.2);
+    }
+</style>
+{% endblock %}
 
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; font: 13px Arial, sans-serif; font-weight: bold; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; }
-        .form-control { width: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 6px; font: 14px Arial, sans-serif; background: var(--paper); color: var(--ink); }
-        .form-control:focus { border-color: var(--green); outline: none; background: var(--white); }
-        .btn { display: inline-block; width: 100%; padding: 12px; background: var(--green); color: var(--white); font: 15px Arial, sans-serif; font-weight: bold; border-radius: 6px; border: 0; cursor: pointer; text-align: center; }
-        .btn:hover { background: var(--deep-green); }
-        
-        .info-box { background: #fef9c3; border-left: 4px solid #a16207; padding: 14px; border-radius: 6px; margin-bottom: 20px; font: 14px Arial, sans-serif; color: #713f12; }
-        .alert { padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font: 14px Arial, sans-serif; }
-        .alert-error { background: #fee2e2; color: #991b1b; }
-        .alert-success { background: #d1fae5; color: #065f46; }
-    </style>
-</head>
-<body>
-    <div class="app-shell">
-        <aside class="sidebar">
-            <div class="brand">🌾 KisanFlow<small>Officer Portal</small></div>
-            <div class="nav-label">Navigation</div>
-            <nav class="nav-list">
-                <a href="{% url 'officer_dashboard' %}" class="nav-item"><span>📊 Dashboard</span></a>
-                <a href="{% url 'procurement:officer_appointments' %}" class="nav-item"><span>📅 Appointments</span></a>
-                <a href="{% url 'procurement:officer_gate_entry' %}" class="nav-item"><span>🚪 Gate Entry</span></a>
-                <a href="{% url 'procurement:officer_queue' %}" class="nav-item"><span>🚦 Live Center Queue</span></a>
-                <a href="{% url 'procurement:officer_quality_check' %}" class="nav-item"><span>🔬 Quality Check</span></a>
-                <a href="{% url 'procurement:officer_weighing' %}" class="nav-item"><span>⚖️ Weighing Scale</span></a>
-                <a href="{% url 'procurement:officer_acceptance' %}" class="nav-item"><span>✅ Final Acceptance</span></a>
-                <a href="{% url 'procurement:officer_bills' %}" class="nav-item"><span>📄 Billing</span></a>
-                <a href="{% url 'procurement:officer_payments' %}" class="nav-item active"><span>💳 Payments</span></a>
-                <a href="{% url 'procurement:officer_history' %}" class="nav-item"><span>📜 History Audit</span></a>
-            </nav>
-            <div class="sidebar-bottom">
-                <a href="{% url 'logout' %}" class="nav-item"><span>🚪 Sign Out</span></a>
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header / Title -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div class="space-y-1">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-bold uppercase tracking-wider">
+                <span>Step 6 of 6</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span>Financial Settlement</span>
             </div>
-        </aside>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                <span>💳 Direct Farmer Payout Desk</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 max-w-2xl">
+                Authorize direct bank disbursements (DBT / PFMS / Bank Transfer) and confirm payment settlement.
+            </p>
+        </div>
 
-        <main class="main-area">
-            <header class="topbar">
-                <div class="crumb">Officer Portal / <strong>Direct Benefit Transfer (DBT) Payouts</strong></div>
-            </header>
+        <a href="{% url 'procurement:officer_queue' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors self-start sm:self-auto">
+            <span>🚦 View Live Queue Desk</span>
+        </a>
+    </div>
 
-            <div class="content">
-                <h1 style="font-size: 28px; margin-bottom: 8px;">💳 Payment Payout & Bank Disbursement</h1>
-                <p style="color: var(--muted); margin-bottom: 24px; font: 14px Arial, sans-serif;">Initiate bank transfers and verify farmer payment receipt confirmation.</p>
+    <!-- 2-Column Split Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
-                            {{ message }}
+        <!-- Column 1: Pending Payout Queue (5 cols) -->
+        <div class="lg:col-span-5 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                    <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                        <span>1. Pending Payouts Queue</span>
+                    </h2>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                        {{ pending_records|length }} In Queue
+                    </span>
+                </div>
+
+                <div class="space-y-3 max-h-[580px] overflow-y-auto pr-1">
+                    {% for rec in pending_records %}
+                        <a href="?record_id={{ rec.id }}" class="block p-4 rounded-2xl border transition-all {% if selected_record and selected_record.id == rec.id %}border-emerald-500 bg-emerald-50/40 ring-2 ring-emerald-500/20 shadow-xs{% else %}border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/60{% endif %}">
+                            <div class="flex justify-between items-start gap-2 mb-2">
+                                <span class="font-mono font-extrabold text-slate-900 text-sm">
+                                    #{{ rec.token_number }}
+                                </span>
+                                <span class="px-2 py-0.5 rounded-lg text-[11px] font-bold {% if rec.current_stage == 'BILL_GENERATED' %}bg-blue-100 text-blue-800{% else %}bg-amber-100 text-amber-800{% endif %}">
+                                    {% if rec.current_stage == 'BILL_GENERATED' %}Bill Ready{% else %}Initiated{% endif %}
+                                </span>
+                            </div>
+
+                            <div class="text-sm font-bold text-slate-900">
+                                {{ rec.farmer.get_full_name|default:rec.farmer.username }}
+                                <span class="text-xs font-normal text-slate-500">({{ rec.farmer.profile.farmer_id|default:"FAR-N/A" }})</span>
+                            </div>
+
+                            <div class="mt-2 pt-2 border-t border-slate-100/80 flex items-center justify-between text-xs text-slate-500">
+                                <span>🌾 {{ rec.crop_name }}</span>
+                                <strong class="text-emerald-700 font-extrabold text-sm">₹{{ rec.bill.net_amount|default:"0.00" }}</strong>
+                            </div>
+                        </a>
+                    {% empty %}
+                        <div class="py-16 text-center text-slate-400">
+                            <span class="text-4xl block mb-2">💳</span>
+                            <p class="font-semibold text-slate-600">No pending payouts awaiting disbursement</p>
+                            <p class="text-xs text-slate-400 mt-1">Generated bills will appear here automatically.</p>
                         </div>
                     {% endfor %}
-                {% endif %}
-
-                <div class="grid-layout">
-                    <div class="card">
-                        <h2 class="card-title">1. Pending Payout Queue</h2>
-                        <div class="record-list">
-                            {% for rec in pending_records %}
-                                <a href="?record_id={{ rec.id }}" class="record-item {% if selected_record and selected_record.id == rec.id %}active{% endif %}">
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                                        <strong>#{{ rec.token_number }}</strong>
-                                        <small style="color: #a16207; font-weight: bold;">
-                                            {% if rec.stage == 'BILL_GENERATED' %}Bill Ready{% else %}Initiated{% endif %}
-                                        </small>
-                                    </div>
-                                    <div style="font: 13px Arial, sans-serif; color: var(--ink);">
-                                        👤 <strong>{{ rec.farmer.get_full_name|default:rec.farmer.username }}</strong>
-                                        <span style="color: var(--muted); font-size: 11px;">(ID: {{ rec.farmer.profile.farmer_id|default:"FAR-N/A" }})</span>
-                                    </div>
-                                    <div style="font: 12px Arial, sans-serif; color: var(--muted); margin-top: 4px;">
-                                        📞 {{ rec.farmer.profile.phone|default:"N/A" }} | Amount: <strong style="color: var(--green);">₹{{ rec.bill.net_amount|default:"0.00" }}</strong>
-                                    </div>
-                                </a>
-                            {% empty %}
-                                <div style="text-align: center; color: var(--muted); padding: 30px; font: 14px Arial, sans-serif;">
-                                    No pending payments awaiting disbursement.
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h2 class="card-title">2. Payment Action Panel</h2>
-                        {% if selected_record %}
-                            <div class="info-box">
-                                <strong>Payout Information:</strong><br>
-                                • Token: <strong>#{{ selected_record.token_number }}</strong><br>
-                                • Farmer: <strong>{{ selected_record.farmer.get_full_name|default:selected_record.farmer.username }}</strong> (ID: {{ selected_record.farmer.profile.farmer_id|default:"FAR-N/A" }})<br>
-                                • Contact Phone: <strong>{{ selected_record.farmer.profile.phone|default:"N/A" }}</strong> | District: <strong>{{ selected_record.district }}</strong><br>
-                                • Bill No: <strong>#{{ selected_record.bill.bill_number|default:"N/A" }}</strong><br>
-                                • Net Payout Amount: <strong style="font-size: 16px; color: var(--green);">₹{{ selected_record.bill.net_amount }}</strong>
-                            </div>
-
-                            {% if selected_record.stage == 'BILL_GENERATED' %}
-                                <h3 style="font-size: 16px; margin-bottom: 12px;">Step A: Initiate Bank Payout</h3>
-                                <form method="POST">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="record_id" value="{{ selected_record.id }}">
-                                    <input type="hidden" name="action_type" value="initiate">
-
-                                    <div class="form-group">
-                                        <label>Payment Mode</label>
-                                        {{ initiate_form.payment_mode }}
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Bank Reference / UTR Number</label>
-                                        {{ initiate_form.transaction_reference }}
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label>Disbursement Notes</label>
-                                        {{ initiate_form.notes }}
-                                    </div>
-
-                                    <button type="submit" class="btn">Initiate Payout & Generate UTR →</button>
-                                </form>
-
-                            {% elif selected_record.stage == 'PAYMENT_INITIATED' %}
-                                <h3 style="font-size: 16px; margin-bottom: 12px; color: #a16207;">Step B: Confirm Payment Received</h3>
-                                <div style="background: var(--paper); border: 1px solid var(--line); padding: 12px; border-radius: 6px; margin-bottom: 16px; font: 13px Arial, sans-serif;">
-                                    UTR Ref: <strong>{{ selected_record.payment_record.transaction_reference }}</strong><br>
-                                    Initiated At: <strong>{{ selected_record.payment_record.initiated_at|date:"M d, Y, h:i A" }}</strong>
-                                </div>
-
-                                <form method="POST">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="record_id" value="{{ selected_record.id }}">
-                                    <input type="hidden" name="action_type" value="confirm">
-
-                                    <div class="form-group">
-                                        <label>Farmer Confirmation Remarks</label>
-                                        {{ receive_form.confirmation_notes }}
-                                    </div>
-
-                                    <button type="submit" class="btn" style="background: var(--green);">Confirm Payment Credit & Complete Lifecycle ✅</button>
-                                </form>
-                            {% endif %}
-                        {% else %}
-                            <div style="text-align: center; padding: 50px 20px; color: var(--muted); font: 15px Georgia, serif;">
-                                👈 Select a bill record from the left queue to process payout.
-                            </div>
-                        {% endif %}
-                    </div>
                 </div>
             </div>
-        </main>
+
+            <div class="pt-4 mt-4 border-t border-slate-100 text-xs text-slate-400 text-center">
+                Select a bill to authorize bank transfer or record payment confirmation.
+            </div>
+        </div>
+
+        <!-- Column 2: Payment Action Panel (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs">
+            <div class="border-b border-slate-100 pb-4 mb-6">
+                <h2 class="font-bold text-slate-900 text-lg">2. Payment Action Panel</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Authorize electronic transfer or complete payment confirmation.</p>
+            </div>
+
+            {% if selected_record %}
+                <!-- Target Details Card -->
+                <div class="p-5 rounded-2xl bg-gradient-to-br from-emerald-50/80 to-slate-50 border border-emerald-100 space-y-3 mb-6">
+                    <div class="flex justify-between items-center border-b border-emerald-200/60 pb-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-800">Payout Information</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-emerald-600 text-white">
+                            Token #{{ selected_record.token_number }}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-700">
+                        <div>
+                            <span class="text-slate-400 block">Farmer Name:</span>
+                            <strong class="text-slate-900 text-sm">{{ selected_record.farmer.get_full_name|default:selected_record.farmer.username }}</strong>
+                            <span class="text-slate-500 block">ID: {{ selected_record.farmer.profile.farmer_id|default:"FAR-N/A" }}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block">Contact Phone:</span>
+                            <strong class="text-slate-900">{{ selected_record.farmer.profile.phone|default:"N/A" }}</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block">Bill Number:</span>
+                            <strong class="text-slate-900 font-mono">#{{ selected_record.bill.bill_number|default:"N/A" }}</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block">Net Payout Amount:</span>
+                            <strong class="text-emerald-700 font-extrabold text-base">₹{{ selected_record.bill.net_amount }}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                {% if selected_record.current_stage == 'BILL_GENERATED' %}
+                    <!-- Step A: Initiate Bank Payout -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 text-sm font-bold text-slate-900">
+                            <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs">A</span>
+                            <span>Initiate Bank Payout &amp; Generate UTR</span>
+                        </div>
+
+                        <form method="POST" class="space-y-5">
+                            {% csrf_token %}
+                            <input type="hidden" name="record_id" value="{{ selected_record.id }}">
+                            <input type="hidden" name="action_type" value="initiate">
+
+                            <div class="form-group space-y-1.5">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                    Payment Mode <span class="text-red-500">*</span>
+                                </label>
+                                {{ initiate_form.payment_mode }}
+                            </div>
+
+                            <div class="form-group space-y-1.5">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                    Bank Reference / UTR Number <span class="text-red-500">*</span>
+                                </label>
+                                {{ initiate_form.transaction_reference }}
+                            </div>
+
+                            <div class="form-group space-y-1.5">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                    Disbursement Notes / Remarks
+                                </label>
+                                {{ initiate_form.notes }}
+                            </div>
+
+                            <div class="pt-4 border-t border-slate-100 flex items-center gap-3">
+                                <button type="submit" class="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.01] active:scale-[0.99]">
+                                    <span>Initiate Payout &amp; Record Bank Reference</span>
+                                    <span>&rarr;</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                {% elif selected_record.current_stage == 'PAYMENT_INITIATED' %}
+                    <!-- Step B: Confirm Payment Received -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 text-sm font-bold text-amber-800">
+                            <span class="w-6 h-6 rounded-full bg-amber-600 text-white flex items-center justify-center text-xs">B</span>
+                            <span>Confirm Payment Credit / Settlement</span>
+                        </div>
+
+                        <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
+                            <div>UTR Reference: <strong>{{ selected_record.payment_record.transaction_reference }}</strong></div>
+                            <div>Initiated Date: <strong>{{ selected_record.payment_record.initiated_at|date:"M d, Y, h:i A"|default:"Today" }}</strong></div>
+                        </div>
+
+                        <form method="POST" class="space-y-5">
+                            {% csrf_token %}
+                            <input type="hidden" name="record_id" value="{{ selected_record.id }}">
+                            <input type="hidden" name="action_type" value="confirm">
+
+                            <div class="form-group space-y-1.5">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                    Farmer Confirmation Remarks
+                                </label>
+                                {{ receive_form.confirmation_notes }}
+                            </div>
+
+                            <div class="pt-4 border-t border-slate-100 flex items-center gap-3">
+                                <button type="submit" class="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.01] active:scale-[0.99]">
+                                    <span>Confirm Settlement &amp; Complete Lifecycle ✅</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="py-24 text-center text-slate-400 space-y-3">
+                    <span class="text-5xl block">💳</span>
+                    <h3 class="text-base font-bold text-slate-700">No Bill Record Selected</h3>
+                    <p class="text-xs text-slate-400 max-w-sm mx-auto">
+                        Please select an invoice from the left queue to authorize payout or confirm completion.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+
     </div>
-</body>
-</html>
+
+</div>
+{% endblock %}

@@ -1,171 +1,110 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appointment {{ appointment.appointment_code }} Details | KisanFlow</title>
-    <style>
-        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --amber: #d88424; --red: #dc2626; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, "Times New Roman", serif; }
-        a { color: inherit; }
-        .app-shell { display: flex; min-height: 100vh; }
-        .sidebar { width: 248px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .brand { padding: 0 14px 30px; font-size: 25px; font-weight: bold; }
-        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
-        .nav-list { display: grid; gap: 3px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
-        .nav-item:hover, .nav-item.active { background: #286c4a; color: white; }
-        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
-        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
-        .main-area { min-width: 0; flex: 1; }
-        .topbar { min-height: 82px; background: white; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
-        .menu-button { display: none; border: 0; background: var(--mint); color: var(--deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
-        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
-        .crumb strong { color: var(--ink); }
-        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
-        .profile-text { text-align: right; line-height: 1.5; }
-        .profile-text strong { display: block; color: var(--ink); }
-        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
-        .content { max-width: 1120px; margin: 0 auto; padding: 35px clamp(20px, 4vw, 50px) 60px; }
-        .back-link { display: inline-block; margin-bottom: 25px; color: var(--green); font: bold 13px Arial, sans-serif; text-decoration: none; }
-        .title-row { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 25px; }
-        h1 { margin: 0; font-size: clamp(28px, 4vw, 40px); }
-        .status-badge { padding: 8px 14px; border-radius: 18px; font: bold 12px Arial, sans-serif; text-transform: uppercase; white-space: nowrap; }
-        .status-confirmed { background: var(--mint); color: var(--green); }
-        .status-completed { background: #dbeafe; color: #1e40af; }
-        .status-cancelled { background: #fee2e2; color: #991b1b; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-        .panel { background: white; border: 1px solid var(--line); border-radius: 8px; padding: 24px; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); }
-        .panel h2 { margin: 0 0 18px; font-size: 17px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-        .panel p { margin: 0; color: var(--muted); font: 13px Arial, sans-serif; }
-        .panel .main-value { margin: 10px 0 5px; color: var(--green); font-size: 25px; font-weight: bold; }
-        .date-panel { margin-top: 18px; }
-        .token-panel { margin-top: 18px; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
-        .token-number { margin-top: 10px; color: #9c5d13; font: bold 32px Arial, sans-serif; }
-        .qr-placeholder { width: 100px; height: 100px; display: grid; place-items: center; border: 4px solid var(--ink); background: repeating-linear-gradient(45deg, white 0 5px, var(--ink) 5px 9px); color: white; text-shadow: 0 1px 2px #000; font: bold 11px Arial, sans-serif; text-align: center; border-radius: 6px; }
-        .progress-panel { margin-top: 18px; }
-        .progress-list { display: grid; gap: 0; max-width: 680px; }
-        .progress-step { position: relative; display: flex; align-items: center; gap: 12px; min-height: 40px; color: #9daaa2; font: 14px Arial, sans-serif; }
-        .progress-step:not(:last-child)::before { content: ''; position: absolute; top: 25px; bottom: -1px; left: 8px; width: 2px; background: var(--line); }
-        .progress-step.done { color: var(--green); font-weight: bold; }
-        .progress-step.done::before { background: var(--green); }
-        .progress-step.current { color: #9c5d13; font-weight: bold; }
-        .progress-dot { position: relative; z-index: 1; display: grid; place-items: center; width: 18px; height: 18px; border: 2px solid var(--line); border-radius: 50%; background: white; font-size: 10px; }
-        .progress-step.done .progress-dot { border-color: var(--green); background: var(--green); color: white; }
-        .progress-step.current .progress-dot { border-color: var(--amber); background: #fff2d9; color: var(--amber); }
-        .actions-bar { margin-top: 25px; display: flex; gap: 12px; flex-wrap: wrap; }
-        .button { display: inline-block; padding: 11px 18px; border-radius: 5px; background: var(--green); color: white; font: bold 13px Arial, sans-serif; text-decoration: none; border: 0; cursor: pointer; }
-        .button.secondary { background: #edf3ee; color: var(--green); }
-        .button.danger { background: #fee2e2; color: #991b1b; }
-        @media (max-width: 700px) { .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 5; transform: translateX(-100%); transition: transform .2s ease; } .sidebar.open { transform: translateX(0); } .menu-button { display: block; } .topbar { min-height: 68px; } .profile-text { display: none; } .content { padding-top: 27px; } .title-row, .token-panel { align-items: flex-start; flex-direction: column; } .info-grid { grid-template-columns: 1fr; } }
-    </style>
-</head>
-<body>
-    <div class="app-shell">
-        <aside class="sidebar" id="sidebar">
-            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
-            <div class="nav-label">Main menu</div>
-            <nav class="nav-list" aria-label="Farmer navigation">
-                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
-                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
-                <a class="nav-item" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
-                <a class="nav-item active" href="{% url 'appointments:appointments' %}"><span class="nav-icon">▣</span> Appointments</a>
-                <a class="nav-item" href="{% url 'tokens:token_queue' %}"><span class="nav-icon">▤</span> My Token</a>
-                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
-                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
-                <a class="nav-item" href="{% url 'notifications:notifications' %}"><span class="nav-icon">🔔</span> Notifications</a>
-            </nav>
-            <div class="sidebar-bottom nav-list">
-                <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Settings</a>
-                <a class="nav-item" href="#"><span class="nav-icon">?</span> Help &amp; Support</a>
-                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
-            </div>
-        </aside>
+{% extends 'base.html' %}
 
-        <div class="main-area">
-            <header class="topbar">
-                <div style="display:flex;align-items:center;gap:13px">
-                    <button class="menu-button" type="button" onclick="toggleSidebar()">☰</button>
-                    <div class="crumb"><strong>Appointment {{ appointment.appointment_code }}</strong> &nbsp;/&nbsp; Appointments</div>
-                </div>
-                <div class="profile">
-                    <div class="profile-text">
-                        <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
-                        <span class="profile-id">Farmer account</span>
-                    </div>
-                    <div class="avatar">{{ request.user.first_name|default:request.user.username|first|upper }}</div>
-                </div>
-            </header>
+{% block title %}Appointment {{ appointment.appointment_code }} Details | KisanFlow{% endblock %}
+{% block breadcrumb %}Appointment #{{ appointment.appointment_code }}{% endblock %}
 
-            <main class="content">
-                <a class="back-link" href="{% url 'appointments:appointments' %}">← Back to Appointments</a>
-                <div class="title-row">
-                    <h1>📅 Appointment Details: {{ appointment.appointment_code }}</h1>
-                    <span class="status-badge {% if appointment.status == 'CONFIRMED' %}status-confirmed{% elif appointment.status == 'COMPLETED' %}status-completed{% else %}status-cancelled{% endif %}">
-                        {{ appointment.get_status_display }}
-                    </span>
-                </div>
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
 
-                <div class="info-grid">
-                    <section class="panel">
-                        <h2>🌾 Produce Batch</h2>
-                        <div class="main-value">{{ appointment.produce.crop_name }}</div>
-                        <p>Quantity: <strong>{{ appointment.produce.quantity }} {{ appointment.produce.get_unit_display }}</strong> &bull; District: {{ appointment.produce.district }}</p>
-                    </section>
+    <!-- Header / Title -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div class="space-y-1">
+            <a href="{% url 'appointments:appointments' %}" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors mb-1">
+                <span>&larr; Back to Appointments</span>
+            </a>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                <span>📅 Appointment Details</span>
+            </h1>
+            <p class="text-xs text-slate-500">
+                Code: <strong class="text-slate-800 font-mono">{{ appointment.appointment_code }}</strong> &bull; Booked on {{ appointment.created_at|date:"d M Y"|default:"Recently" }}
+            </p>
+        </div>
 
-                    <section class="panel">
-                        <h2>📍 Procurement Center</h2>
-                        <div class="main-value">{{ appointment.procurement_center.name }}</div>
-                        <p>District: <strong>{{ appointment.procurement_center.district }}</strong> &bull; Address: {{ appointment.procurement_center.address }}</p>
-                    </section>
-                </div>
+        <span class="px-3.5 py-1.5 rounded-full text-xs font-bold self-start sm:self-center {% if appointment.status == 'CONFIRMED' %}bg-emerald-100 text-emerald-800 border border-emerald-200{% elif appointment.status == 'COMPLETED' %}bg-blue-100 text-blue-800 border border-blue-200{% else %}bg-red-100 text-red-800 border border-red-200{% endif %}">
+            {{ appointment.get_status_display }}
+        </span>
+    </div>
 
-                <section class="panel date-panel">
-                    <h2>📅 Scheduled Date &amp; Slot</h2>
-                    <div class="main-value">{{ appointment.appointment_date|date:"l, d F Y" }}</div>
-                    <p style="font-size:16px;color:var(--green);font-weight:bold;margin-top:4px;">🕒 Slot: {{ appointment.appointment_time_slot }}</p>
-                </section>
+    <!-- 2-Panel Grid: Produce & Center -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-2">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">🌾 Produce Batch</span>
+            <div class="text-xl font-extrabold text-slate-900">{{ appointment.produce.crop_name }}</div>
+            <p class="text-xs text-slate-600">
+                Quantity: <strong class="text-slate-900">{{ appointment.produce.quantity }} {{ appointment.produce.get_unit_display }}</strong> &bull; District: {{ appointment.produce.district }}
+            </p>
+        </div>
 
-                <section class="panel token-panel">
-                    <div>
-                        <h2>🎟️ Procurement Token</h2>
-                        <div class="token-number">#{{ appointment.token_number }}</div>
-                        <p>Present this token upon arrival at {{ appointment.procurement_center.name }}.</p>
-                    </div>
-                    <div class="qr-placeholder" role="img" aria-label="QR Code Verification Token">
-                        QR<br>VERIFIED
-                    </div>
-                </section>
-
-                <section class="panel progress-panel">
-                    <h2>🌾 Live Procurement Progress Timeline</h2>
-                    <div class="progress-list">
-                        {% for step in timeline %}
-                        <div class="progress-step {{ step.state }}">
-                            <span class="progress-dot">
-                                {% if step.state == 'done' %}✓{% elif step.state == 'current' %}●{% else %}○{% endif %}
-                            </span>
-                            {{ step.label }}
-                        </div>
-                        {% endfor %}
-                    </div>
-                </section>
-
-                <div class="actions-bar">
-                    <a class="button secondary" href="{% url 'tokens:token_queue' %}">View Live Token Queue</a>
-                    <a class="button secondary" href="{% url 'procurement:status' %}">Track Procurement Status</a>
-                    {% if can_cancel %}
-                    <a class="button" style="background:#d88424;color:white;" href="{% url 'appointments:reschedule_appointment' pk=appointment.pk %}">🔄 Reschedule Appointment</a>
-                    <a class="button danger" href="{% url 'appointments:cancel_appointment' pk=appointment.pk %}">Cancel Appointment</a>
-                    {% endif %}
-                </div>
-            </main>
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-2">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">📍 Procurement Center</span>
+            <div class="text-xl font-extrabold text-slate-900">{{ appointment.procurement_center.name }}</div>
+            <p class="text-xs text-slate-600">
+                District: <strong>{{ appointment.procurement_center.district }}</strong> &bull; Address: {{ appointment.procurement_center.address }}
+            </p>
         </div>
     </div>
-    <script>
-        function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }
-    </script>
-</body>
-</html>
+
+    <!-- Date & Token Split -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <!-- Scheduled Date -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-2">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">📅 Scheduled Date &amp; Slot</span>
+            <div class="text-lg font-bold text-slate-900">{{ appointment.appointment_date|date:"l, d F Y" }}</div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200/70">
+                <span>🕒 Slot:</span>
+                <span>{{ appointment.appointment_time_slot }}</span>
+            </div>
+        </div>
+
+        <!-- Token Card -->
+        <div class="bg-gradient-to-br from-emerald-950 via-slate-900 to-emerald-900 text-white rounded-3xl p-6 border border-emerald-800/40 shadow-lg flex items-center justify-between gap-4">
+            <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">🎟️ Digital Arrival Token</span>
+                <div class="text-3xl font-black font-mono text-white mt-1">#{{ appointment.token_number|default:"Pending" }}</div>
+                <p class="text-xs text-slate-300 mt-1">Present upon arrival at center gate.</p>
+            </div>
+            <div class="w-16 h-16 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-center font-mono font-bold text-[10px] text-white flex-shrink-0">
+                QR<br>READY
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline Progress Panel -->
+    {% if timeline %}
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-4">
+            <h2 class="font-bold text-slate-900 text-base">🌾 Procurement Lifecycle Progress</h2>
+            <div class="space-y-3">
+                {% for step in timeline %}
+                    <div class="flex items-center gap-3 text-xs sm:text-sm">
+                        <span class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs {% if step.state == 'done' %}bg-emerald-600 text-white{% elif step.state == 'current' %}bg-amber-500 text-white animate-pulse{% else %}bg-slate-100 text-slate-400{% endif %}">
+                            {% if step.state == 'done' %}✓{% elif step.state == 'current' %}●{% else %}○{% endif %}
+                        </span>
+                        <span class="{% if step.state == 'done' %}text-slate-900 font-bold{% elif step.state == 'current' %}text-amber-700 font-extrabold{% else %}text-slate-400{% endif %}">
+                            {{ step.label }}
+                        </span>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Actions Bar -->
+    <div class="flex flex-wrap items-center gap-3 pt-2">
+        <a href="{% url 'tokens:token_queue' %}" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-xs transition-colors">
+            🎟️ View Live Token Queue
+        </a>
+        <a href="{% url 'procurement:status' %}" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs transition-colors">
+            📊 Track Status
+        </a>
+        {% if can_cancel %}
+            <a href="{% url 'appointments:reschedule_appointment' pk=appointment.pk %}" class="px-5 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-semibold text-xs transition-colors">
+                🔄 Reschedule Appointment
+            </a>
+            <a href="{% url 'appointments:cancel_appointment' pk=appointment.pk %}" class="px-5 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-semibold text-xs transition-colors">
+                Cancel Appointment
+            </a>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

@@ -1,149 +1,82 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirm Appointment | KisanFlow</title>
-    <style>
-        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --amber: #d88424; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, "Times New Roman", serif; }
-        a { color: inherit; }
-        .app-shell { display: flex; min-height: 100vh; }
-        .sidebar { width: 248px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .brand { padding: 0 14px 30px; font-size: 25px; font-weight: bold; }
-        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
-        .nav-list { display: grid; gap: 3px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
-        .nav-item:hover, .nav-item.active { background: #286c4a; color: white; }
-        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
-        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
-        .main-area { min-width: 0; flex: 1; }
-        .topbar { min-height: 82px; background: white; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
-        .menu-button { display: none; border: 0; background: var(--mint); color: var(--deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
-        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
-        .crumb strong { color: var(--ink); }
-        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
-        .profile-text { text-align: right; line-height: 1.5; }
-        .profile-text strong { display: block; color: var(--ink); }
-        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
-        .content { max-width: 800px; margin: 0 auto; padding: 35px clamp(20px, 4vw, 50px) 60px; }
-        .back-link { display: inline-block; margin-bottom: 25px; color: var(--green); font: bold 13px Arial, sans-serif; text-decoration: none; }
-        .eyebrow { margin: 0 0 8px; color: var(--green); font: bold 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
-        h1 { margin: 0 0 9px; font-size: clamp(28px, 4vw, 40px); }
-        .intro { margin: 0 0 27px; color: var(--muted); font: 15px Arial, sans-serif; }
-        .summary-card { padding: 30px; background: white; border: 1px solid var(--line); border-left: 6px solid var(--green); border-radius: 10px; box-shadow: 0 6px 18px rgba(30, 75, 53, .06); }
-        .summary-header { border-bottom: 1px solid var(--line); padding-bottom: 16px; margin-bottom: 20px; }
-        .summary-header h2 { margin: 0 0 4px; font-size: 22px; color: var(--ink); }
-        .summary-header p { margin: 0; color: var(--muted); font: 14px Arial, sans-serif; }
-        .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); font: 15px Arial, sans-serif; }
-        .detail-row:last-child { border-bottom: 0; }
-        .detail-row span { color: var(--muted); }
-        .detail-row strong { color: var(--ink); text-align: right; }
-        .token-highlight { background: #fff2d9; color: #9c5d13; padding: 5px 12px; border-radius: 4px; font-weight: bold; }
-        .actions-row { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-top: 28px; }
-        .button { display: inline-block; padding: 13px 24px; border-radius: 6px; background: var(--green); color: white; font: bold 15px Arial, sans-serif; text-decoration: none; border: 0; cursor: pointer; }
-        .button.secondary { background: #edf3ee; color: var(--green); }
-    </style>
-</head>
-<body>
-    <div class="app-shell">
-        <aside class="sidebar" id="sidebar">
-            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
-            <div class="nav-label">Main menu</div>
-            <nav class="nav-list" aria-label="Farmer navigation">
-                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
-                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
-                <a class="nav-item" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
-                <a class="nav-item active" href="{% url 'appointments:appointments' %}"><span class="nav-icon">▣</span> Appointments</a>
-                <a class="nav-item" href="{% url 'tokens:token_queue' %}"><span class="nav-icon">▤</span> My Token</a>
-                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
-                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
-                <a class="nav-item" href="{% url 'notifications:notifications' %}"><span class="nav-icon">🔔</span> Notifications</a>
-            </nav>
-            <div class="sidebar-bottom nav-list">
-                <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Settings</a>
-                <a class="nav-item" href="#"><span class="nav-icon">?</span> Help &amp; Support</a>
-                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
-            </div>
-        </aside>
+{% extends 'base.html' %}
 
-        <div class="main-area">
-            <header class="topbar">
-                <div style="display:flex;align-items:center;gap:13px">
-                    <button class="menu-button" type="button" onclick="toggleSidebar()">☰</button>
-                    <div class="crumb"><strong>Review &amp; Confirm</strong> &nbsp;/&nbsp; Appointments</div>
-                </div>
-                <div class="profile">
-                    <div class="profile-text">
-                        <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
-                        <span class="profile-id">Farmer account</span>
-                    </div>
-                    <div class="avatar">{{ request.user.first_name|default:request.user.username|first|upper }}</div>
-                </div>
-            </header>
+{% block title %}Confirm Appointment | KisanFlow{% endblock %}
+{% block breadcrumb %}Confirm Slot{% endblock %}
 
-            <main class="content">
-                <a class="back-link" href="{% url 'appointments:book_appointment' %}?produce_id={{ produce.id }}&date={{ appointment_date|date:'Y-m-d' }}">← Edit Details</a>
-                <p class="eyebrow">FINAL CONFIRMATION</p>
-                <h1>📋 Review &amp; Confirm Appointment</h1>
-                <p class="intro">Please review your appointment summary below before locking your procurement slot.</p>
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
 
-                <div class="summary-card">
-                    <div class="summary-header">
-                        <h2>🌾 {{ produce.crop_name }} Procurement Visit</h2>
-                        <p>Batch Quantity: <strong>{{ produce.quantity }} {{ produce.get_unit_display }}</strong> &bull; District: {{ produce.district }}</p>
-                    </div>
-
-                    <div class="detail-row">
-                        <span>📍 Procurement Center</span>
-                        <strong>{{ center.name }} ({{ center.district }})</strong>
-                    </div>
-
-                    <div class="detail-row">
-                        <span>🏢 Center Address</span>
-                        <strong>{{ center.address }}</strong>
-                    </div>
-
-                    <div class="detail-row">
-                        <span>📅 Appointment Date</span>
-                        <strong style="color:var(--green)">{{ appointment_date|date:"l, d F Y" }}</strong>
-                    </div>
-
-                    <div class="detail-row">
-                        <span>🕒 Time Slot</span>
-                        <strong style="color:var(--green)">{{ appointment_time_slot }}</strong>
-                    </div>
-
-                    <div class="detail-row">
-                        <span>🎟️ Token Number Preview</span>
-                        <strong><span class="token-highlight">#{{ token_number }}</span></strong>
-                    </div>
-
-                    <div class="detail-row">
-                        <span>👮 Verification Officer</span>
-                        <strong>Assigned Officer at {{ center.name }}</strong>
-                    </div>
-
-                    <form method="post" action="{% url 'appointments:book_appointment' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="action" value="confirm">
-                        <input type="hidden" name="produce_id" value="{{ produce.id }}">
-                        <input type="hidden" name="appointment_date" value="{{ appointment_date|date:'Y-m-d' }}">
-                        <input type="hidden" name="appointment_time_slot" value="{{ appointment_time_slot }}">
-
-                        <div class="actions-row">
-                            <a class="button secondary" href="{% url 'appointments:book_appointment' %}?produce_id={{ produce.id }}&date={{ appointment_date|date:'Y-m-d' }}">← Change Slot</a>
-                            <button type="submit" class="button">Confirm &amp; Lock Slot ✓</button>
-                        </div>
-                    </form>
-                </div>
-            </main>
+    <!-- Header / Title -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div class="space-y-1">
+            <a href="{% url 'appointments:book_appointment' %}?produce_id={{ produce.id }}&date={{ appointment_date|date:'Y-m-d' }}" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors mb-1">
+                <span>&larr; Edit Details / Change Slot</span>
+            </a>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                <span>📋 Review &amp; Confirm Appointment</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500">
+                Please verify your visit details below before locking your center arrival token.
+            </p>
         </div>
     </div>
-    <script>
-        function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }
-    </script>
-</body>
-</html>
+
+    <!-- Summary Confirmation Card -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+        <div class="border-b border-slate-100 pb-4">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-600">Procurement Appointment Summary</span>
+            <h2 class="text-xl font-extrabold text-slate-900 mt-1">🌾 {{ produce.crop_name }} Procurement Visit</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Quantity: <strong>{{ produce.quantity }} {{ produce.get_unit_display }}</strong> &bull; District: {{ produce.district }}</p>
+        </div>
+
+        <div class="divide-y divide-slate-100 text-sm">
+            <div class="py-3 flex justify-between items-center">
+                <span class="text-slate-500">📍 Procurement Center</span>
+                <strong class="text-slate-900">{{ center.name }} ({{ center.district }})</strong>
+            </div>
+
+            <div class="py-3 flex justify-between items-center">
+                <span class="text-slate-500">🏢 Center Address</span>
+                <span class="text-slate-700 font-medium text-right max-w-xs">{{ center.address }}</span>
+            </div>
+
+            <div class="py-3 flex justify-between items-center">
+                <span class="text-slate-500">📅 Appointment Date</span>
+                <strong class="text-emerald-700 font-bold">{{ appointment_date|date:"l, d F Y" }}</strong>
+            </div>
+
+            <div class="py-3 flex justify-between items-center">
+                <span class="text-slate-500">🕒 Time Slot Window</span>
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    {{ appointment_time_slot }}
+                </span>
+            </div>
+
+            <div class="py-3 flex justify-between items-center">
+                <span class="text-slate-500">🎟️ Token Number Preview</span>
+                <span class="px-3 py-1 rounded-xl text-sm font-mono font-black bg-amber-50 text-amber-800 border border-amber-200">
+                    #{{ token_number }}
+                </span>
+            </div>
+        </div>
+
+        <form method="post" action="{% url 'appointments:book_appointment' %}" class="pt-4 border-t border-slate-100">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="confirm">
+            <input type="hidden" name="produce_id" value="{{ produce.id }}">
+            <input type="hidden" name="appointment_date" value="{{ appointment_date|date:'Y-m-d' }}">
+            <input type="hidden" name="appointment_time_slot" value="{{ appointment_time_slot }}">
+
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <a href="{% url 'appointments:book_appointment' %}?produce_id={{ produce.id }}&date={{ appointment_date|date:'Y-m-d' }}" class="w-full sm:w-auto px-5 py-3 rounded-2xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs text-center transition-colors">
+                    &larr; Change Slot
+                </a>
+                <button type="submit" class="w-full sm:w-auto flex-1 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.01] active:scale-[0.99] text-center">
+                    Confirm &amp; Lock Appointment Slot ✓
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

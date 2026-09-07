@@ -1,476 +1,278 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Procurement Status | KisanFlow</title>
-    <style>
-        :root {
-            --green: #1f6b45;
-            --deep-green: #174b35;
-            --mint: #e6f2e9;
-            --ink: #19352a;
-            --muted: #6b7c72;
-            --line: #dfe9e1;
-            --paper: #f6faf7;
-            --white: #ffffff;
-            --amber: #d88424;
-            --blue: #1565c0;
-        }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
-        a { color: inherit; }
-        .app-shell { display: flex; min-height: 100vh; }
-        .sidebar { width: 248px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .brand { padding: 0 14px 30px; font-size: 25px; font-weight: bold; letter-spacing: .02em; }
-        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
-        .nav-list { display: grid; gap: 3px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
-        .nav-item:hover, .nav-item.active { background: #286c4a; color: var(--white); }
-        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
-        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
+{% extends 'base.html' %}
 
-        .main-area { min-width: 0; flex: 1; }
-        .topbar { min-height: 82px; background: var(--white); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
-        .menu-button { display: none; border: 0; background: var(--mint); color: var(--deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
-        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
-        .crumb strong { color: var(--ink); }
-        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
-        .profile-text { text-align: right; line-height: 1.5; }
-        .profile-text strong { display: block; color: var(--ink); }
-        .profile-id { color: var(--muted); font-size: 11px; }
-        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
+{% block title %}Procurement Status | KisanFlow{% endblock %}
+{% block breadcrumb %}Procurement Status{% endblock %}
 
-        .content { max-width: 1060px; margin: 0 auto; padding: 38px clamp(20px, 4vw, 50px) 60px; }
-        .page-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 24px; }
-        .eyebrow { margin: 0 0 6px; color: var(--green); font: bold 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
-        h1 { margin: 0 0 6px; font-size: clamp(28px, 4vw, 40px); line-height: 1.08; }
-        .description { margin: 0; color: var(--muted); font: 15px Arial, sans-serif; }
+{% block content %}
+<div class="space-y-8">
 
-        /* Stage Switcher Pills */
-        .stage-switcher { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: var(--white); padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); margin-bottom: 22px; font: 13px Arial, sans-serif; }
-        .switcher-label { color: var(--muted); font-weight: bold; }
-        .stage-pill { padding: 5px 12px; border-radius: 16px; background: var(--paper); color: var(--ink); text-decoration: none; font-size: 12px; border: 1px solid var(--line); font-weight: bold; }
-        .stage-pill.active { background: var(--green); color: white; border-color: var(--deep-green); }
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div>
+            <span class="text-xs font-bold uppercase tracking-widest text-emerald-600">Live Stage Tracking</span>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">📦 Procurement Status</h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">Monitor produce verification, quality inspection, weighing scale records, and bill settlements.</p>
+        </div>
+        <a href="{% url 'produce:add_produce' %}" class="px-5 py-3 rounded-2xl bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition-all">
+            ＋ Register New Crop
+        </a>
+    </div>
 
-        /* Active Procurement Hero Card */
-        .card { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 26px; box-shadow: 0 4px 14px rgba(30, 75, 53, .04); margin-bottom: 22px; }
-        .hero-card { border-left: 6px solid var(--green); }
-        .hero-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
-        .hero-title { font-size: 24px; margin: 0 0 4px; }
-        .status-pill { display: inline-block; padding: 6px 14px; border-radius: 20px; background: #e8f7ec; color: #1b6b3e; font: bold 12px Arial, sans-serif; border: 1px solid #c2ebd0; }
-        .status-pill.completed { background: #e3f2fd; color: #1565c0; border-color: #bbdefb; }
+    {% if all_farmer_crops %}
 
-        .hero-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; background: var(--paper); padding: 18px; border-radius: 9px; border: 1px solid var(--line); }
-        .hero-stat .label { color: var(--muted); font: 12px Arial, sans-serif; margin-bottom: 4px; }
-        .hero-stat .val { color: var(--ink); font: bold 16px Arial, sans-serif; }
-
-        .btn-link { display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 6px; background: var(--green); color: white; font: bold 13px Arial, sans-serif; text-decoration: none; border: none; cursor: pointer; }
-        .btn-link:hover { background: var(--deep-green); }
-        .btn-secondary { background: #edf3ee; color: var(--green); }
-
-        /* Progress Tracker */
-        .progress-card h2 { margin: 0 0 20px; font-size: 20px; }
-        .progress-flow { display: flex; flex-direction: column; gap: 0; max-width: 750px; }
-        .progress-step-item { position: relative; display: flex; align-items: flex-start; gap: 16px; padding-bottom: 20px; }
-        .progress-step-item:not(:last-child)::before { content: ''; position: absolute; left: 13px; top: 28px; bottom: 0; width: 2px; background: var(--line); }
-        .progress-step-item.done:not(:last-child)::before { background: var(--green); }
-        
-        .step-icon-bubble { width: 28px; height: 28px; border-radius: 50%; background: var(--white); border: 2px solid var(--line); display: grid; place-items: center; font: bold 12px Arial, sans-serif; color: var(--muted); flex-shrink: 0; z-index: 1; }
-        .progress-step-item.done .step-icon-bubble { background: var(--green); border-color: var(--deep-green); color: white; }
-        .progress-step-item.current .step-icon-bubble { background: #fff2d9; border-color: var(--amber); color: #9c5d13; font-weight: 900; box-shadow: 0 0 0 4px #ffeec9; }
-        
-        .step-content { flex: 1; font: 14px Arial, sans-serif; }
-        .step-title { font-weight: bold; color: var(--ink); margin-bottom: 2px; }
-        .progress-step-item.done .step-title { color: var(--green); }
-        .progress-step-item.current .step-title { color: #9c5d13; }
-        .step-desc { color: var(--muted); font-size: 12px; }
-
-        /* Split Cards Grid */
-        .twin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 22px; }
-        .detail-card h3 { margin: 0 0 16px; font-size: 18px; display: flex; align-items: center; justify-content: space-between; }
-        .kv-list { display: flex; flex-direction: column; gap: 10px; font: 14px Arial, sans-serif; }
-        .kv-row { display: flex; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
-        .kv-row span { color: var(--muted); }
-        .kv-row strong { color: var(--ink); }
-
-        /* Summary Card */
-        .summary-card { background: #edf7ef; border-color: #b8dec2; }
-        .total-amount-display { font-family: Arial, sans-serif; font-size: 32px; font-weight: 900; color: var(--deep-green); margin: 8px 0; }
-
-        /* History Table */
-        .history-table-wrap { overflow-x: auto; margin-top: 14px; }
-        .history-table { width: 100%; border-collapse: collapse; font: 13px Arial, sans-serif; }
-        .history-table th { padding: 11px 12px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; text-align: left; }
-        .history-table td { padding: 14px 12px; border-bottom: 1px solid var(--line); }
-        .badge-done { display: inline-block; padding: 4px 10px; border-radius: 15px; background: var(--mint); color: var(--green); font-size: 11px; font-weight: bold; }
-
-        /* Empty State */
-        .empty-token-card { background: var(--white); border: 1px dashed #b2cac0; border-radius: 12px; padding: 42px 24px; text-align: center; color: var(--muted); font: 14px Arial, sans-serif; }
-
-        @media (max-width: 1000px) { .sidebar { width: 215px; } .hero-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 700px) { .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 5; transform: translateX(-100%); transition: transform .2s ease; } .sidebar.open { transform: translateX(0); } .menu-button { display: block; } .topbar { min-height: 68px; } .profile-text { display: none; } .content { padding-top: 27px; } .page-header { display: block; } .hero-grid, .twin-grid { grid-template-columns: 1fr; } }
-    </style>
-</head>
-<body>
-    <div class="app-shell">
-        <aside class="sidebar" id="sidebar">
-            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
-            <div class="nav-label">Main menu</div>
-            <nav class="nav-list" aria-label="Farmer navigation">
-                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
-                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
-                <a class="nav-item" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
-                <a class="nav-item" href="{% url 'appointments:appointments' %}"><span class="nav-icon">▣</span> Appointments</a>
-                <a class="nav-item" href="{% url 'tokens:token_queue' %}"><span class="nav-icon">▤</span> My Token</a>
-                <a class="nav-item active" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
-                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
-                <a class="nav-item" href="{% url 'notifications:notifications' %}"><span class="nav-icon">🔔</span> Notifications</a>
-            </nav>
-            <div class="sidebar-bottom nav-list">
-                <a class="nav-item" href="{% url 'farmer_dashboard' %}#settings"><span class="nav-icon">⚙</span> Settings</a>
-                <a class="nav-item" href="{% url 'farmer_dashboard' %}#help"><span class="nav-icon">?</span> Help &amp; Support</a>
-                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
+        <!-- All Crops Table Overview -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-4">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">🌾 All Registered Crops Status Overview</h2>
+                <p class="text-xs text-slate-500">Real-time procurement progress across all {{ total_crops_count }} registered produce batch(es).</p>
             </div>
-        </aside>
 
-        <div class="main-area">
-            <header class="topbar">
-                <div style="display:flex;align-items:center;gap:13px">
-                    <button class="menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" onclick="toggleSidebar()">☰</button>
-                    <div class="crumb"><strong>Procurement Status</strong> &nbsp;/&nbsp; Farmer space</div>
-                </div>
-                <div class="profile">
-                    <span aria-label="Notifications" style="font-size:22px;color:var(--green)">♢</span>
-                    <div class="profile-text">
-                        <strong>{{ farmer.get_full_name|default:farmer.username }}</strong>
-                        <span class="profile-id">Farmer ID: {{ profile.farmer_id|default:'Not assigned' }}</span>
-                    </div>
-                    <div class="avatar">{{ farmer.first_name|default:farmer.username|first|upper }}</div>
-                    <span aria-hidden="true">⌄</span>
-                </div>
-            </header>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-200/80 text-slate-400 uppercase tracking-wider font-bold">
+                            <th class="pb-3 px-2">Crop Name</th>
+                            <th class="pb-3 px-2">Registered Qty</th>
+                            <th class="pb-3 px-2">Assigned Center</th>
+                            <th class="pb-3 px-2">Slot</th>
+                            <th class="pb-3 px-2">Token #</th>
+                            <th class="pb-3 px-2">Stage Status</th>
+                            <th class="pb-3 px-2">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for crop in all_farmer_crops %}
+                            <tr class="{% if active_crop and active_crop.id == crop.id %}bg-emerald-50/40{% else %}hover:bg-slate-50/80{% endif %}">
+                                <td class="py-3 px-2">
+                                    <strong class="text-slate-900 font-bold block text-sm">🌾 {{ crop.crop_name }}</strong>
+                                    <span class="text-[11px] text-slate-400">Registered: {{ crop.harvest_date|date:"d M Y" }}</span>
+                                </td>
+                                <td class="py-3 px-2 font-medium text-slate-800">
+                                    <strong>{{ crop.registered_qty }}</strong> {{ crop.unit }}
+                                    {% if crop.actual_qty %}
+                                        <span class="block text-emerald-700 font-bold text-[11px]">(Net: {{ crop.actual_qty }} {{ crop.unit }})</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-2 font-medium text-slate-900">{{ crop.center_name }}</td>
+                                <td class="py-3 px-2 text-slate-700">
+                                    {% if crop.appointment_time != '--' %}
+                                        <span class="text-emerald-700 font-semibold">📅 {{ crop.appointment_time }}</span>
+                                    {% else %}
+                                        <span class="text-slate-400">--</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-2 font-bold font-mono text-slate-900">
+                                    {% if crop.token_number != '--' %}
+                                        {{ crop.token_number }}
+                                    {% else %}
+                                        <span class="text-slate-400">--</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-2">
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-bold {% if crop.stage == 'COMPLETED' %}bg-blue-100 text-blue-800{% else %}bg-emerald-100 text-emerald-800{% endif %}">
+                                        {{ crop.overall_status }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-2">
+                                    {% if crop.stage == 'AVAILABLE' %}
+                                        <a href="{% url 'procurement:centers' %}?produce_id={{ crop.id }}" class="px-3 py-1.5 rounded-xl bg-emerald-600 text-white font-semibold text-[11px] hover:bg-emerald-700">
+                                            Request &rarr;
+                                        </a>
+                                    {% elif crop.stage == 'REQUESTED' %}
+                                        <a href="{% url 'procurement:centers' %}?produce_id={{ crop.id }}" class="px-3 py-1.5 rounded-xl bg-amber-500 text-white font-semibold text-[11px] hover:bg-amber-600">
+                                            Select Center &rarr;
+                                        </a>
+                                    {% else %}
+                                        <a href="?produce_id={{ crop.id }}" class="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 font-semibold text-[11px] hover:bg-slate-50">
+                                            {% if active_crop and active_crop.id == crop.id %}Viewing Tracker ✓{% else %}Track Progress &rarr;{% endif %}
+                                        </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-            <main class="content">
-                <!-- Page Title -->
-                <section class="page-header">
+        {% if active_crop %}
+
+            <!-- Active Selected Crop Hero Card -->
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border-l-8 border-l-emerald-600 border-y border-r border-slate-200/80 shadow-xs space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
                     <div>
-                        <p class="eyebrow">PROCUREMENT TRACKING</p>
-                        <h1>📦 Procurement Status</h1>
-                        <p class="description">Track your produce through verification, quality check, weighing, and payment completion.</p>
+                        <h2 class="text-2xl font-extrabold text-slate-900">🌾 {{ active_crop.crop_name }}</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">{{ active_crop.registered_qty }} {{ active_crop.unit }} registered for procurement</p>
                     </div>
-                </section>
+                    <span class="px-3 py-1.5 rounded-full text-xs font-bold {% if active_crop.stage == 'COMPLETED' %}bg-blue-100 text-blue-800{% else %}bg-emerald-100 text-emerald-800{% endif %}">
+                        {{ active_crop.overall_status }}
+                    </span>
+                </div>
 
-                {% if all_farmer_crops %}
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100 text-xs">
+                    <div>
+                        <span class="text-slate-400 block">Center Name</span>
+                        <strong class="text-slate-900 font-bold truncate block">{{ active_crop.center_name }}</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">Token Number</span>
+                        <strong class="text-slate-900 font-mono font-bold">{{ active_crop.token_number }}</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">Current Stage</span>
+                        <strong class="text-emerald-700 font-bold">{{ active_crop.stage_title }}</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">Appointment Slot</span>
+                        <strong class="text-slate-900 font-bold">{{ active_crop.appointment_time }}</strong>
+                    </div>
+                </div>
 
-                <!-- 1. All Registered Crops Status Overview Table -->
-                <section class="card" aria-label="All Registered Crops Procurement Status" style="margin-bottom: 24px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
-                        <div>
-                            <h2 style="margin: 0; font-size: 22px;">🌾 All Registered Crops Status</h2>
-                            <span style="color: var(--muted); font: 13px Arial, sans-serif;">Showing real-time procurement status for all {{ total_crops_count }} crop(s) registered by you.</span>
+                <div>
+                    <a href="{% url 'procurement:status_detail' %}?produce_id={{ active_crop.id }}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 transition-colors shadow-xs">
+                        View Full Timeline Details &rarr;
+                    </a>
+                </div>
+            </div>
+
+            <!-- Progress Tracker -->
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+                <h2 class="text-lg font-bold text-slate-900">Procurement Progress Tracker ({{ active_crop.crop_name }})</h2>
+
+                <div class="space-y-4 max-w-2xl">
+                    
+                    <!-- Step 1 -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center flex-shrink-0 border-2 border-white shadow-xs {% if active_crop.stage_rank >= 1 %}bg-emerald-600 text-white{% else %}bg-slate-200 text-slate-500{% endif %}">
+                            {% if active_crop.stage_rank >= 1 %}✓{% else %}●{% endif %}
                         </div>
-                        <a href="{% url 'produce:add_produce' %}" class="btn-link" style="padding: 7px 14px; font-size: 12px;">＋ Register New Crop</a>
-                    </div>
-
-                    <div class="history-table-wrap">
-                        <table class="history-table" style="width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th>Crop Name</th>
-                                    <th>Registered Qty</th>
-                                    <th>Assigned Center</th>
-                                    <th>Appointment Slot</th>
-                                    <th>Token #</th>
-                                    <th>Procurement Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for crop in all_farmer_crops %}
-                                <tr style="{% if active_crop and active_crop.id == crop.id %}background: #f0f7f2;{% endif %}">
-                                    <td>
-                                        <strong style="font-size: 15px; color: var(--ink);">🌾 {{ crop.crop_name }}</strong><br>
-                                        <small style="color: var(--muted);">Registered: {{ crop.harvest_date|date:"d M Y" }}</small>
-                                    </td>
-                                    <td>
-                                        <strong>{{ crop.registered_qty }}</strong> {{ crop.unit }}
-                                        {% if crop.actual_qty %}
-                                            <br><small style="color: var(--green); font-weight: bold;">(Net: {{ crop.actual_qty }} {{ crop.unit }})</small>
-                                        {% endif %}
-                                    </td>
-                                    <td><strong>{{ crop.center_name }}</strong></td>
-                                    <td>
-                                        {% if crop.appointment_time != '--' %}
-                                            <span style="color: var(--green); font-weight: bold;">📅 {{ crop.appointment_time }}</span>
-                                        {% else %}
-                                            <span style="color: var(--muted);">--</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if crop.token_number != '--' %}
-                                            <strong>{{ crop.token_number }}</strong>
-                                        {% else %}
-                                            <span style="color: var(--muted);">--</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span class="status-pill {% if crop.stage == 'COMPLETED' %}completed{% endif %}">
-                                            {{ crop.overall_status }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        {% if crop.stage == 'AVAILABLE' %}
-                                            <a href="{% url 'procurement:centers' %}?produce_id={{ crop.id }}" class="btn-link" style="padding: 5px 10px; font-size: 11px; background: var(--green);">Request Procurement →</a>
-                                        {% elif crop.stage == 'REQUESTED' %}
-                                            <a href="{% url 'procurement:centers' %}?produce_id={{ crop.id }}" class="btn-link" style="padding: 5px 10px; font-size: 11px; background: var(--amber);">Select Center →</a>
-                                        {% else %}
-                                            <a href="?produce_id={{ crop.id }}" class="btn-link {% if active_crop and active_crop.id == crop.id %}btn-secondary{% endif %}" style="padding: 5px 10px; font-size: 11px;">
-                                                {% if active_crop and active_crop.id == crop.id %}Viewing Tracker ✓{% else %}Track Progress →{% endif %}
-                                            </a>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                {% if active_crop %}
-                <!-- 2. Active Selected Crop Hero Section -->
-                <section class="card hero-card" aria-label="Active Procurement Summary">
-                    <div class="hero-header">
-                        <div>
-                            <h2 class="hero-title">🌾 {{ active_crop.crop_name }}</h2>
-                            <span class="description">{{ active_crop.registered_qty }} {{ active_crop.unit }} registered for procurement</span>
+                        <div class="space-y-0.5 text-xs">
+                            <h3 class="font-bold text-sm {% if active_crop.stage_rank >= 1 %}text-emerald-700{% else %}text-slate-900{% endif %}">1. Produce Registered</h3>
+                            <p class="text-slate-500">{{ active_crop.crop_name }} — {{ active_crop.registered_qty }} {{ active_crop.unit }} registered successfully.</p>
                         </div>
-                        <span class="status-pill {% if active_crop.stage == 'COMPLETED' %}completed{% endif %}">
-                            {{ active_crop.overall_status }}
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center flex-shrink-0 border-2 border-white shadow-xs {% if active_crop.stage_rank >= 2 %}bg-emerald-600 text-white{% else %}bg-slate-200 text-slate-500{% endif %}">
+                            {% if active_crop.stage_rank >= 2 %}✓{% else %}●{% endif %}
+                        </div>
+                        <div class="space-y-0.5 text-xs">
+                            <h3 class="font-bold text-sm {% if active_crop.stage_rank >= 2 %}text-emerald-700{% else %}text-slate-900{% endif %}">2. Appointment &amp; Center Confirmed</h3>
+                            <p class="text-slate-500">{% if active_crop.appointment_time != '--' %}Scheduled for {{ active_crop.appointment_time }} at {{ active_crop.center_name }}.{% else %}Awaiting center selection.{% endif %}</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center flex-shrink-0 border-2 border-white shadow-xs {% if active_crop.stage_rank >= 3 %}bg-emerald-600 text-white{% else %}bg-slate-200 text-slate-500{% endif %}">
+                            {% if active_crop.stage_rank >= 3 %}✓{% else %}●{% endif %}
+                        </div>
+                        <div class="space-y-0.5 text-xs">
+                            <h3 class="font-bold text-sm {% if active_crop.stage_rank >= 3 %}text-emerald-700{% else %}text-slate-900{% endif %}">3. Gate Entry</h3>
+                            <p class="text-slate-500">{% if active_crop.token_number != '--' %}Token {{ active_crop.token_number }} verified at entry gate.{% else %}Arrival pending at center gate.{% endif %}</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 4 -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center flex-shrink-0 border-2 border-white shadow-xs {% if active_crop.stage_rank >= 5 %}bg-emerald-600 text-white{% else %}bg-slate-200 text-slate-500{% endif %}">
+                            {% if active_crop.stage_rank >= 5 %}✓{% else %}●{% endif %}
+                        </div>
+                        <div class="space-y-0.5 text-xs">
+                            <h3 class="font-bold text-sm {% if active_crop.stage_rank >= 5 %}text-emerald-700{% else %}text-slate-900{% endif %}">4. Quality Check Inspection</h3>
+                            <p class="text-slate-500">Grade: {{ active_crop.quality_grade }} | Moisture: {{ active_crop.moisture_content }}.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 5 -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center flex-shrink-0 border-2 border-white shadow-xs {% if active_crop.stage_rank >= 6 %}bg-emerald-600 text-white{% else %}bg-slate-200 text-slate-500{% endif %}">
+                            {% if active_crop.stage_rank >= 6 %}✓{% else %}●{% endif %}
+                        </div>
+                        <div class="space-y-0.5 text-xs">
+                            <h3 class="font-bold text-sm {% if active_crop.stage_rank >= 6 %}text-emerald-700{% else %}text-slate-900{% endif %}">5. Weighing Scale Recorded</h3>
+                            <p class="text-slate-500">{% if active_crop.actual_qty %}Net Recorded Weight: {{ active_crop.actual_qty }} {{ active_crop.unit }}.{% else %}Weighing scale measurement pending.{% endif %}</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 6 -->
+                    <div class="flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-full font-bold text-xs flex items-center justify-center flex-shrink-0 border-2 border-white shadow-xs {% if active_crop.stage_rank >= 10 %}bg-emerald-600 text-white{% else %}bg-slate-200 text-slate-500{% endif %}">
+                            {% if active_crop.stage_rank >= 10 %}✓{% else %}●{% endif %}
+                        </div>
+                        <div class="space-y-0.5 text-xs">
+                            <h3 class="font-bold text-sm {% if active_crop.stage_rank >= 10 %}text-emerald-700{% else %}text-slate-900{% endif %}">6. Bill Generated &amp; Payout Completed</h3>
+                            <p class="text-slate-500">Official MSP procurement payout settled.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Twin Grid: Verification & Quality Check -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                
+                <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <h3 class="font-bold text-slate-900 text-base">🔍 Verification</h3>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                            🟢 {{ active_crop.verification_status }}
                         </span>
                     </div>
-
-                    <div class="hero-grid">
-                        <div class="hero-stat">
-                            <div class="label">Procurement Center</div>
-                            <div class="val">{{ active_crop.center_name }}</div>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between text-slate-600">
+                            <span>Farmer Identity:</span>
+                            <strong class="text-slate-900">{% if active_crop.stage_rank >= 3 %}Verified ✓{% else %}Pending{% endif %}</strong>
                         </div>
-                        <div class="hero-stat">
-                            <div class="label">Token Number</div>
-                            <div class="val">{{ active_crop.token_number }}</div>
+                        <div class="flex justify-between text-slate-600">
+                            <span>Ownership Record:</span>
+                            <strong class="text-slate-900">{% if active_crop.stage_rank >= 3 %}Verified ✓{% else %}Pending{% endif %}</strong>
                         </div>
-                        <div class="hero-stat">
-                            <div class="label">Current Stage</div>
-                            <div class="val" style="color: var(--green);">{{ active_crop.stage_title }}</div>
-                        </div>
-                        <div class="hero-stat">
-                            <div class="label">Appointment</div>
-                            <div class="val">{{ active_crop.appointment_time }}</div>
+                        <div class="flex justify-between text-slate-600">
+                            <span>Officer Verified:</span>
+                            <strong class="text-slate-900">{{ active_crop.verified_by }}</strong>
                         </div>
                     </div>
+                </div>
 
-                    <div>
-                        <a href="{% url 'procurement:status_detail' %}?produce_id={{ active_crop.id }}" class="btn-link">View Full Timeline Details →</a>
+                <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                        <h3 class="font-bold text-slate-900 text-base">🧪 Quality Inspection</h3>
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                            🟢 {{ active_crop.quality_status }}
+                        </span>
                     </div>
-                </section>
-
-                <!-- 3. Procurement Progress Tracker -->
-                <section class="card progress-card" aria-label="Procurement Progress Tracker">
-                    <h2>Procurement Progress Tracker ({{ active_crop.crop_name }})</h2>
-                    <div class="progress-flow">
-                        <!-- Step 1: Registered -->
-                        <div class="progress-step-item {% if active_crop.stage_rank >= 1 %}done{% else %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 1 %}✓{% else %}●{% endif %}</div>
-                            <div class="step-content">
-                                <div class="step-title">1. Produce Registered</div>
-                                <div class="step-desc">{{ active_crop.crop_name }} — {{ active_crop.registered_qty }} {{ active_crop.unit }} registered successfully.</div>
-                            </div>
+                    <div class="space-y-2 text-xs">
+                        <div class="flex justify-between text-slate-600">
+                            <span>Quality Grade:</span>
+                            <strong class="text-slate-900">{{ active_crop.quality_grade }}</strong>
                         </div>
-                        <!-- Step 2: Appointment Confirmed -->
-                        <div class="progress-step-item {% if active_crop.stage_rank >= 2 %}done{% elif active_crop.stage_rank == 1 %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 2 %}✓{% elif active_crop.stage_rank == 1 %}●{% else %}○{% endif %}</div>
-                            <div class="step-content">
-                                <div class="step-title">2. Appointment & Center Confirmed</div>
-                                <div class="step-desc">{% if active_crop.appointment_time != '--' %}Scheduled for {{ active_crop.appointment_time }} at {{ active_crop.center_name }}.{% else %}Awaiting procurement center selection.{% endif %}</div>
-                            </div>
+                        <div class="flex justify-between text-slate-600">
+                            <span>Moisture Level:</span>
+                            <strong class="text-slate-900">{{ active_crop.moisture_content }}</strong>
                         </div>
-                        <!-- Step 3: Gate Entry -->
-                        <div class="progress-step-item {% if active_crop.stage_rank >= 3 %}done{% elif active_crop.stage_rank == 2 %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 3 %}✓{% elif active_crop.stage_rank == 2 %}●{% else %}○{% endif %}</div>
-                            <div class="step-content">
-                                <div class="step-title">3. Farmer Arrived & Gate Entry</div>
-                                <div class="step-desc">{% if active_crop.token_number != '--' %}Token {{ active_crop.token_number }} verified at entry gate.{% else %}Arrival pending at center gate.{% endif %}</div>
-                            </div>
-                        </div>
-                        <!-- Step 4: Verification -->
-                        <div class="progress-step-item {% if active_crop.stage_rank >= 4 %}done{% elif active_crop.stage_rank == 3 %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 4 %}✓{% elif active_crop.stage_rank == 3 %}●{% else %}○{% endif %}</div>
-                            <div class="step-content">
-                                <div class="step-title">4. Verification</div>
-                                <div class="step-desc">Farmer identity and produce ownership verified by {{ active_crop.verified_by }}.</div>
-                            </div>
-                        </div>
-                        <!-- Step 5: Quality Check -->
-                        <div class="progress-step-item {% if active_crop.stage_rank >= 5 %}done{% elif active_crop.stage_rank == 4 %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 5 %}✓{% elif active_crop.stage_rank == 4 %}●{% else %}○{% endif %}</div>
-                            <div class="step-content">
-                                <div class="step-title">5. Quality Check</div>
-                                <div class="step-desc">Inspection grade: {{ active_crop.quality_grade }} | Moisture: {{ active_crop.moisture_content }}.</div>
-                            </div>
-                        </div>
-                        <!-- Step 6: Weighing -->
-                        <div class="progress-step-item {% if active_crop.stage_rank >= 6 %}done{% elif active_crop.stage_rank == 5 %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 6 %}✓{% elif active_crop.stage_rank == 5 %}●{% else %}○{% endif %}</div>
-                            <div class="step-content">
-                                <div class="step-title">6. Weighing Scale</div>
-                                <div class="step-desc">{% if active_crop.actual_qty %}Actual Recorded Weight: {{ active_crop.actual_qty }} {{ active_crop.unit }}.{% else %}Weighing scale measurement in progress.{% endif %}</div>
-                            </div>
-                        </div>
-                        <!-- Step 7: Acceptance & Bill -->
-                        <div class="progress-step-item {% if active_crop.stage_rank >= 8 %}done{% elif active_crop.stage_rank in '6 7' %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 8 %}✓{% elif active_crop.stage_rank in '6 7' %}●{% else %}○{% endif %}</div>
-                            <div class="step-content">
-                                <div class="step-title">7. Batch Acceptance & Bill Generation</div>
-                                <div class="step-desc">Official MSP procurement bill generated for ₹{{ active_crop.total_amount }}.</div>
-                            </div>
-                        </div>
-                        <!-- Step 8: Payment Processing -->
-                        <div class="progress-step-item {% if active_crop.stage_rank >= 9 %}done{% elif active_crop.stage_rank == 8 %}current{% endif %}">
-                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 9 %}✓{% elif active_crop.stage_rank == 8 %}●{% else %}○{% endif %}</div>
-                            <div class="step-content">
-                                <div class="step-title">8. Payment Disbursement</div>
-                                <div class="step-desc">Amount ₹{{ active_crop.total_amount }} submitted to direct bank transfer queue.</div>
-                            </div>
-                        </div>
-                        <!-- Step 9: Payment Completed -->
-                        <div class="progress-step-item {% if active_crop.stage_rank >= 10 %}done{% endif %}">
-                            <div class="step-icon-bubble">{% if active_crop.stage_rank >= 10 %}✓{% else %}○{% endif %}</div>
-                            <div class="step-content">
-                                <div class="step-title">9. Payment Completed</div>
-                                <div class="step-desc">Final MSP payout credited to farmer account.</div>
-                            </div>
+                        <div class="flex justify-between text-slate-600">
+                            <span>Officer Remarks:</span>
+                            <strong class="text-slate-900">{{ active_crop.officer_remarks }}</strong>
                         </div>
                     </div>
-                </section>
+                </div>
 
-                <!-- 4. Twin Grid: Verification & Quality Check -->
-                <section class="twin-grid" aria-label="Verification and Quality">
-                    <!-- Verification Card -->
-                    <div class="card detail-card">
-                        <h3>
-                            <span>🔍 Verification</span>
-                            <span class="status-pill">🟢 {{ active_crop.verification_status }}</span>
-                        </h3>
-                        <div class="kv-list">
-                            <div class="kv-row"><span>Farmer Identity</span><strong>{% if active_crop.stage_rank >= 3 %}Verified ✓{% else %}Pending{% endif %}</strong></div>
-                            <div class="kv-row"><span>Produce Ownership</span><strong>{% if active_crop.stage_rank >= 3 %}Verified ✓{% else %}Pending{% endif %}</strong></div>
-                            <div class="kv-row"><span>Procurement Request</span><strong>{% if active_crop.stage_rank >= 1 %}Verified ✓{% else %}Not Requested{% endif %}</strong></div>
-                            <div class="kv-row"><span>Verified By</span><strong>{{ active_crop.verified_by }}</strong></div>
-                        </div>
-                    </div>
+            </div>
 
-                    <!-- Quality Check Card -->
-                    <div class="card detail-card">
-                        <h3>
-                            <span>🧪 Quality Check</span>
-                            <span class="status-pill">🟢 {{ active_crop.quality_status }}</span>
-                        </h3>
-                        <div class="kv-list">
-                            <div class="kv-row"><span>Quality Grade</span><strong>{{ active_crop.quality_grade }}</strong></div>
-                            <div class="kv-row"><span>Moisture Level</span><strong>{{ active_crop.moisture_content }}</strong></div>
-                            <div class="kv-row"><span>Quality Assessment</span><strong>{{ active_crop.quality_status }}</strong></div>
-                            <div class="kv-row"><span>Officer Remarks</span><strong>{{ active_crop.officer_remarks }}</strong></div>
-                        </div>
-                    </div>
-                </section>
+        {% endif %}
 
-                <!-- 5. Twin Grid: Weighing & Procurement Summary -->
-                <section class="twin-grid" aria-label="Weighing and Financial Summary">
-                    <!-- Weighing Card -->
-                    <div class="card detail-card">
-                        <h3>
-                            <span>⚖️ Weighing Details</span>
-                            <span class="status-pill">{% if active_crop.actual_qty %}🟢 Recorded{% else %}🟡 Pending{% endif %}</span>
-                        </h3>
-                        <div class="kv-list">
-                            <div class="kv-row"><span>Expected Quantity</span><strong>{{ active_crop.registered_qty }} Quintals</strong></div>
-                            <div class="kv-row"><span>Actual Recorded Weight</span><strong>{% if active_crop.actual_qty %}{{ active_crop.actual_qty }} Quintals{% else %}--{% endif %}</strong></div>
-                            <div class="kv-row"><span>Net Difference</span><strong>{% if active_crop.diff_qty %}{{ active_crop.diff_qty }} Quintals{% else %}--{% endif %}</strong></div>
-                            <div class="kv-row"><span>Weighing Counter</span><strong>{{ active_crop.counter_number }}</strong></div>
-                        </div>
-                    </div>
-
-                    <!-- Procurement Summary Card -->
-                    <div class="card detail-card summary-card">
-                        <h3>
-                            <span>💰 Procurement Summary</span>
-                            <span class="status-pill">🟡 {{ active_crop.payment_status }}</span>
-                        </h3>
-                        <div>
-                            <div style="font-size: 13px; color: var(--muted);">Calculated Total Payment Amount</div>
-                            <div class="total-amount-display">₹{{ active_crop.total_amount }}</div>
-                        </div>
-                        <div class="kv-list">
-                            <div class="kv-row"><span>Procured Quantity</span><strong>{% if active_crop.actual_qty %}{{ active_crop.actual_qty }}{% else %}{{ active_crop.registered_qty }}{% endif %} Quintals</strong></div>
-                            <div class="kv-row"><span>Govt MSP Rate</span><strong>₹{{ active_crop.rate_per_quintal }} / Q</strong></div>
-                        </div>
-                    </div>
-                </section>
-                {% endif %}
-
-                <!-- 6. Procurement History Table -->
-                <section class="card" aria-label="Recent Procurement History">
-                    <h2 style="margin: 0 0 16px; font-size: 20px;">📜 Recent Procurement History</h2>
-                    <div class="history-table-wrap">
-                        <table class="history-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Crop</th>
-                                    <th>Quantity</th>
-                                    <th>Center</th>
-                                    <th>Total Amount</th>
-                                    <th>Status</th>
-                                    <th>Details</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in procurement_history %}
-                                <tr>
-                                    <td>{{ item.date }}</td>
-                                    <td><strong>{{ item.crop }}</strong></td>
-                                    <td>{{ item.quantity }}</td>
-                                    <td>{{ item.center }}</td>
-                                    <td><strong>{{ item.amount }}</strong></td>
-                                    <td><span class="badge-done">✓ {{ item.status }}</span></td>
-                                    <td><a href="{% url 'procurement:status_detail' %}?produce_id={{ item.id }}" style="color: var(--green); font-weight: bold; text-decoration: none;">View →</a></td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="7" style="text-align: center; color: var(--muted); padding: 30px;">
-                                        No completed procurement history yet.
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                {% else %}
-                <!-- Empty Procurement State -->
-                <section class="empty-token-card">
-                    <h3>No Produce Registered Yet</h3>
-                    <p>Register your harvested crop to begin your procurement tracking journey.</p>
-                    <a href="{% url 'produce:add_produce' %}" class="btn-link" style="margin-top: 14px;">＋ Register Produce</a>
-                </section>
-                {% endif %}
-            </main>
+    {% else %}
+        <div class="bg-white rounded-3xl p-12 text-center border border-slate-200/80 shadow-xs space-y-4">
+            <div class="text-4xl">📦</div>
+            <h2 class="text-xl font-bold text-slate-900">No Produce Registered Yet</h2>
+            <p class="text-sm text-slate-500 max-w-md mx-auto">Register your harvest crop to start procurement tracking.</p>
+            <a href="{% url 'produce:add_produce' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-700 shadow-xs transition-colors">
+                <span>＋ Register Produce</span>
+            </a>
         </div>
-    </div>
-    <script>
-        function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }
-    </script>
-</body>
-</html>
+    {% endif %}
+
+</div>
+{% endblock %}

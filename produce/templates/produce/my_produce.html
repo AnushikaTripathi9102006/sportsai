@@ -1,898 +1,144 @@
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>My Produce | KisanFlow</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f7f5;
-            color: #333;
-        }
-
-        /* Navbar */
-        .navbar {
-            background: #1b5e20;
-            color: white;
-            padding: 18px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .user-info {
-            font-size: 14px;
-        }
-
-        /* Main container */
-        .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-
-        /* Page heading */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-
-        .page-header h1 {
-            margin-bottom: 8px;
-        }
-
-        .page-header p {
-            color: #666;
-        }
-
-        .page-eyebrow {
-            margin-bottom: 8px;
-            color: #1f6b45;
-            font-size: 11px;
-            font-weight: bold;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-        }
-
-        .page-header h1 {
-            color: #19352a;
-            font-family: Georgia, "Times New Roman", serif;
-            font-size: 34px;
-        }
-
-        .page-description {
-            color: #6b7c72;
-            font-size: 15px;
-        }
-
-        /* Buttons */
-        .btn {
-            display: inline-block;
-            padding: 10px 16px;
-            border-radius: 6px;
-            border: none;
-            font-size: 14px;
-            text-decoration: none;
-            cursor: pointer;
-            font-family: Arial, sans-serif;
-        }
-
-        .btn-primary {
-            background: #1b5e20;
-            color: white;
-        }
-
-        .btn-primary {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            background: #1f6b45;
-            box-shadow: 0 4px 12px rgba(31, 107, 69, 0.16);
-        }
-
-        .btn-primary:hover {
-            background: #174b35;
-        }
-
-        .btn-secondary {
-            background: #eeeeee;
-            color: #333;
-        }
-
-        .btn-secondary:hover {
-            background: #e0e0e0;
-        }
-
-        .btn-danger {
-            background: #c62828;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #a91f1f;
-        }
-
-        .btn-disabled {
-            background: #eeeeee;
-            color: #999;
-            cursor: not-allowed;
-        }
-
-        /* Produce cards */
-        .produce-list {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-
-        .produce-card {
-            background: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .produce-card:hover {
-            transform: translateY(-2px);
-        }
-
-        .produce-title {
-            color: #1b5e20;
-            font-size: 20px;
-            margin-bottom: 18px;
-        }
-
-        .produce-detail {
-            margin-bottom: 10px;
-            font-size: 15px;
-        }
-
-        .produce-detail strong {
-            color: #444;
-        }
-
-        /* Status */
-        .status {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        .status-available {
-            background: #e8f5e9;
-            color: #1b5e20;
-        }
-
-        .status-requested {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-procured {
-            background: #e3f2fd;
-            color: #1565c0;
-        }
-
-        /* Actions */
-        .actions {
-            margin-top: 20px;
-            padding-top: 18px;
-            border-top: 1px solid #eee;
-
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .delete-form {
-            display: inline;
-        }
-
-        /* Messages */
-        .messages {
-            margin-bottom: 20px;
-        }
-
-        .message {
-            background: #e8f5e9;
-            color: #1b5e20;
-            padding: 12px 15px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-
-        /* Empty state */
-        .empty-state {
-            background: white;
-            padding: 50px 25px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            text-align: center;
-        }
-
-        .empty-state h2 {
-            color: #1b5e20;
-            margin-bottom: 10px;
-        }
-
-        .empty-state p {
-            color: #666;
-            margin-bottom: 20px;
-        }
-
-        /* Mobile */
-        @media (max-width: 768px) {
-
-            .navbar {
-                padding: 15px;
-            }
-
-            .container {
-                margin-top: 20px;
-            }
-
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-
-            .produce-list {
-                grid-template-columns: 1fr;
-            }
-
-            .actions {
-                flex-direction: column;
-            }
-
-            .actions .btn,
-            .actions form {
-                width: 100%;
-            }
-
-            .actions form button {
-                width: 100%;
-            }
-        }
-
-        /* Farmer dashboard shell */
-        :root {
-            --dashboard-green: #1f6b45;
-            --dashboard-deep-green: #174b35;
-            --dashboard-mint: #e6f2e9;
-            --dashboard-ink: #19352a;
-            --dashboard-muted: #6b7c72;
-            --dashboard-line: #dfe9e1;
-            --dashboard-paper: #f6faf7;
-        }
-
-        body {
-            background: var(--dashboard-paper);
-            color: var(--dashboard-ink);
-            font-family: Georgia, "Times New Roman", serif;
-        }
-
-        .app-shell {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .sidebar {
-            width: 248px;
-            background: var(--dashboard-deep-green);
-            color: #eaf4ed;
-            padding: 28px 16px 20px;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-
-        .brand {
-            padding: 0 14px 30px;
-            color: #eaf4ed;
-            font-size: 25px;
-            font-weight: bold;
-        }
-
-        .brand small {
-            display: block;
-            margin-top: 5px;
-            color: #a9c9b4;
-            font: 12px Arial, sans-serif;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-        }
-
-        .nav-label {
-            padding: 0 14px 9px;
-            color: #8db59c;
-            font: 11px Arial, sans-serif;
-            letter-spacing: .12em;
-            text-transform: uppercase;
-        }
-
-        .nav-list {
-            display: grid;
-            gap: 3px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 11px 14px;
-            border-radius: 7px;
-            color: #d7e9dd;
-            font: 14px Arial, sans-serif;
-            text-decoration: none;
-        }
-
-        .nav-item:hover,
-        .nav-item.active {
-            background: #286c4a;
-            color: white;
-        }
-
-        .nav-icon {
-            width: 20px;
-            text-align: center;
-            font-size: 17px;
-        }
-
-        .sidebar-bottom {
-            margin-top: auto;
-            border-top: 1px solid #35664b;
-            padding-top: 14px;
-        }
-
-        .main-area {
-            min-width: 0;
-            flex: 1;
-        }
-
-        .topbar {
-            min-height: 82px;
-            background: white;
-            border-bottom: 1px solid var(--dashboard-line);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px clamp(20px, 4vw, 50px);
-            gap: 18px;
-        }
-
-        .menu-button {
-            display: none;
-            border: 0;
-            background: var(--dashboard-mint);
-            color: var(--dashboard-deep-green);
-            border-radius: 6px;
-            font-size: 21px;
-            padding: 7px 10px;
-            cursor: pointer;
-        }
-
-        .crumb {
-            color: var(--dashboard-muted);
-            font: 13px Arial, sans-serif;
-        }
-
-        .crumb strong {
-            color: var(--dashboard-ink);
-        }
-
-        .profile {
-            display: flex;
-            align-items: center;
-            gap: 11px;
-            font: 13px Arial, sans-serif;
-        }
-
-        .profile-text {
-            text-align: right;
-            line-height: 1.5;
-        }
-
-        .profile-text strong {
-            display: block;
-            color: var(--dashboard-ink);
-        }
-
-        .profile-id {
-            color: var(--dashboard-muted);
-            font-size: 11px;
-        }
-
-        .avatar {
-            width: 38px;
-            height: 38px;
-            display: grid;
-            place-items: center;
-            border-radius: 50%;
-            background: #d9eadc;
-            color: var(--dashboard-deep-green);
-            font-weight: bold;
-        }
-
-        .content {
-            max-width: 1360px;
-            margin: 0 auto;
-            padding: 38px clamp(20px, 4vw, 50px) 60px;
-        }
-
-        .page-header {
-            margin-bottom: 28px;
-        }
-
-        .page-header h1 {
-            font-size: 34px;
-            line-height: 1.08;
-        }
-
-        .page-description {
-            color: var(--dashboard-muted);
-            font: 15px Arial, sans-serif;
-        }
-
-        .btn-primary {
-            background: var(--dashboard-green);
-            box-shadow: 0 4px 12px rgba(31, 107, 69, .16);
-        }
-
-        .btn-primary:hover {
-            background: var(--dashboard-deep-green);
-        }
-
-        .produce-list {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 13px;
-            margin-bottom: 18px;
-        }
-
-        .summary-card {
-            display: block;
-            background: white;
-            border: 1px solid var(--dashboard-line);
-            border-radius: 8px;
-            padding: 18px;
-            box-shadow: 0 4px 13px rgba(30, 75, 53, .04);
-            color: inherit;
-            text-decoration: none;
-        }
-
-        .summary-card:hover,
-        .summary-card.active {
-            border-color: var(--dashboard-green);
-            box-shadow: 0 5px 16px rgba(31, 107, 69, .11);
-        }
-
-        .summary-card span {
-            display: block;
-            color: var(--dashboard-muted);
-            font: 12px Arial, sans-serif;
-        }
-
-        .summary-card strong {
-            display: block;
-            margin-top: 9px;
-            color: var(--dashboard-green);
-            font-size: 29px;
-            line-height: 1;
-        }
-
-        .search-toolbar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 18px;
-        }
-
-        .search-toolbar input {
-            width: min(100%, 380px);
-            padding: 12px 14px;
-            border: 1px solid var(--dashboard-line);
-            border-radius: 6px;
-            background: white;
-            color: var(--dashboard-ink);
-            font: 14px Arial, sans-serif;
-        }
-
-        .search-toolbar input:focus {
-            outline: 2px solid var(--dashboard-mint);
-            border-color: var(--dashboard-green);
-        }
-
-        .search-toolbar .btn {
-            min-height: 42px;
-        }
-
-        @media (max-width: 1000px) {
-            .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-        }
-
-        .produce-card,
-        .empty-state {
-            border: 1px solid var(--dashboard-line);
-            border-radius: 8px;
-            box-shadow: 0 4px 13px rgba(30, 75, 53, .04);
-        }
-
-        .produce-title,
-        .empty-state h2 {
-            color: var(--dashboard-green);
-        }
-
-        .produce-detail,
-        .actions {
-            font-family: Arial, sans-serif;
-        }
-
-        @media (max-width: 1000px) {
-            .sidebar { width: 215px; }
-        }
-
-        @media (max-width: 700px) {
-            .sidebar {
-                position: fixed;
-                inset: 0 auto 0 0;
-                z-index: 5;
-                transform: translateX(-100%);
-                transition: transform .2s ease;
-            }
-
-            .sidebar.open { transform: translateX(0); }
-            .menu-button { display: block; }
-            .topbar { min-height: 68px; }
-            .profile-text { display: none; }
-            .content { padding-top: 27px; }
-            .summary-grid { grid-template-columns: 1fr 1fr; }
-            .produce-list { grid-template-columns: 1fr; }
-            .search-toolbar { align-items: stretch; flex-direction: column; }
-            .search-toolbar input { width: 100%; }
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="app-shell">
-        <aside class="sidebar" id="sidebar">
-            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
-            <div class="nav-label">Main menu</div>
-            <nav class="nav-list" aria-label="Farmer navigation">
-                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
-                <a class="nav-item active" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
-                <a class="nav-item" href="{% url 'produce:add_produce' %}"><span class="nav-icon">＋</span> Register Produce</a>
-                <a class="nav-item" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
-                <a class="nav-item" href="{% url 'appointments:appointments' %}"><span class="nav-icon">▣</span> Appointments</a>
-                <a class="nav-item" href="{% url 'tokens:token_queue' %}"><span class="nav-icon">▤</span> My Token</a>
-                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
-                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
-                <a class="nav-item" href="#"><span class="nav-icon">•</span> Notifications</a>
-            </nav>
-            <div class="sidebar-bottom nav-list">
-                <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Settings</a>
-                <a class="nav-item" href="#"><span class="nav-icon">?</span> Help &amp; Support</a>
-                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
-            </div>
-        </aside>
-        <div class="main-area">
-            <header class="topbar">
-                <div style="display:flex;align-items:center;gap:13px"><button class="menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" onclick="toggleSidebar()">☰</button><div class="crumb"><strong>My Produce</strong> &nbsp;/&nbsp; Manage crops</div></div>
-                <div class="profile"><span aria-label="Notifications" style="font-size:22px;color:var(--dashboard-green)">♢</span><div class="profile-text"><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><span class="profile-id">Farmer account</span></div><div class="avatar">{{ request.user.first_name|default:request.user.username|first|upper }}</div><span aria-hidden="true">⌄</span></div>
-            </header>
-            <main class="content">
-
-        <!-- Page Header -->
-            <!-- Page Header -->
-        <section class="page-header">
-
-            <div>
-                <p class="page-eyebrow">
-                    FARMER SPACE
-                </p>
-
-                <h1>My Produce</h1>
-
-                <p class="page-description">
-                    Manage your registered crops and track their current status.
-                </p>
-            </div>
-
-            <a
-                href="{% url 'produce:add_produce' %}"
-                class="btn btn-primary"
-            >
-                <span aria-hidden="true">＋</span>
-                Register New Produce
-            </a>
-
-        </section>
-
-
-        <!-- Messages -->
-        {% if messages %}
-
-            <div class="messages">
-
-                {% for message in messages %}
-
-                    <div class="message">
-                        {{ message }}
-                    </div>
-
-                {% endfor %}
-
-            </div>
-
+{% extends 'base.html' %}
+
+{% block title %}My Produce | KisanFlow{% endblock %}
+{% block breadcrumb %}My Produce{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Page Header & Action -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div>
+            <span class="text-xs font-bold uppercase tracking-widest text-emerald-600">Farmer Space</span>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">🌾 My Produce</h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">Manage your registered crop harvest batches and monitor procurement status.</p>
+        </div>
+        <a href="{% url 'produce:add_produce' %}" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition-all flex-shrink-0">
+            <span>＋ Register New Produce</span>
+        </a>
+    </div>
+
+    <!-- Alert Messages -->
+    {% if messages %}
+        <div class="space-y-2">
+            {% for message in messages %}
+                <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-sm font-medium flex items-center gap-3">
+                    <span>✓</span>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Filter Pills / Summary Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <a href="{% url 'produce:my_produce' %}" class="p-4 rounded-2xl border transition-all text-center {% if not selected_status %}bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-600/20 font-bold{% else %}bg-white border-slate-200/80 text-slate-700 hover:border-emerald-500{% endif %}">
+            <span class="block text-xs uppercase tracking-wider opacity-80">All Produce</span>
+            <span class="block text-2xl font-extrabold mt-1">{{ produce_counts.all }}</span>
+        </a>
+
+        <a href="{% url 'produce:my_produce' %}?status=AVAILABLE" class="p-4 rounded-2xl border transition-all text-center {% if selected_status == 'AVAILABLE' %}bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-600/20 font-bold{% else %}bg-white border-slate-200/80 text-slate-700 hover:border-emerald-500{% endif %}">
+            <span class="block text-xs uppercase tracking-wider opacity-80">Available</span>
+            <span class="block text-2xl font-extrabold mt-1">{{ produce_counts.available }}</span>
+        </a>
+
+        <a href="{% url 'produce:my_produce' %}?status=REQUESTED" class="p-4 rounded-2xl border transition-all text-center {% if selected_status == 'REQUESTED' %}bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-600/20 font-bold{% else %}bg-white border-slate-200/80 text-slate-700 hover:border-emerald-500{% endif %}">
+            <span class="block text-xs uppercase tracking-wider opacity-80">Requested</span>
+            <span class="block text-2xl font-extrabold mt-1">{{ produce_counts.requested }}</span>
+        </a>
+
+        <a href="{% url 'produce:my_produce' %}?status=PROCURED" class="p-4 rounded-2xl border transition-all text-center {% if selected_status == 'PROCURED' %}bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-600/20 font-bold{% else %}bg-white border-slate-200/80 text-slate-700 hover:border-emerald-500{% endif %}">
+            <span class="block text-xs uppercase tracking-wider opacity-80">Procured</span>
+            <span class="block text-2xl font-extrabold mt-1">{{ produce_counts.procured }}</span>
+        </a>
+    </div>
+
+    <!-- Search Toolbar -->
+    <form method="get" class="flex flex-col sm:flex-row gap-3">
+        <div class="relative flex-1">
+            <input type="search" name="search" value="{{ search_query }}" placeholder="Search produce by crop name..." class="w-full px-4 py-3 pl-10 rounded-2xl border border-slate-200/80 bg-white text-sm font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">
+            <svg class="w-5 h-5 absolute left-3 top-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
+        {% if selected_status %}
+            <input type="hidden" name="status" value="{{ selected_status }}">
         {% endif %}
+        <button type="submit" class="px-6 py-3 rounded-2xl bg-slate-900 text-white font-semibold text-sm hover:bg-slate-800 transition-colors flex-shrink-0">
+            Search
+        </button>
+    </form>
 
-
-        <!-- Summary -->
-        <section class="summary-grid" aria-label="Produce summary">
-
-            <a class="summary-card{% if not selected_status %} active{% endif %}" href="{% url 'produce:my_produce' %}">
-                <span>All Produce</span>
-                <strong>{{ produce_counts.all }}</strong>
-            </a>
-
-            <a class="summary-card{% if selected_status == 'AVAILABLE' %} active{% endif %}" href="{% url 'produce:my_produce' %}?status=AVAILABLE">
-                <span>Available</span>
-                <strong>{{ produce_counts.available }}</strong>
-            </a>
-
-            <a class="summary-card{% if selected_status == 'REQUESTED' %} active{% endif %}" href="{% url 'produce:my_produce' %}?status=REQUESTED">
-                <span>Requested</span>
-                <strong>{{ produce_counts.requested }}</strong>
-            </a>
-
-            <a class="summary-card{% if selected_status == 'PROCURED' %} active{% endif %}" href="{% url 'produce:my_produce' %}?status=PROCURED">
-                <span>Procured</span>
-                <strong>{{ produce_counts.procured }}</strong>
-            </a>
-
-        </section>
-
-
-        <!-- Search -->
-        <form class="search-toolbar" method="get" role="search">
-            <input
-                type="search"
-                name="search"
-                value="{{ search_query }}"
-                placeholder="Search produce..."
-                aria-label="Search produce by crop name"
-            >
-
-            {% if selected_status %}
-                <input
-                    type="hidden"
-                    name="status"
-                    value="{{ selected_status }}"
-                >
-            {% endif %}
-
-            <button class="btn btn-primary" type="submit">
-                Search
-            </button>
-        </form>
-
-
-        <!-- Produce -->
-        {% if produce_list %}
-
-            <section class="produce-list">
-
-                {% for produce in produce_list %}
-
-                    <div class="produce-card">
-
-                        <h2 class="produce-title">
-                            {{ produce.crop_name }}
-                        </h2>
-
-
-                        <div class="produce-detail">
-                            <strong>Quantity:</strong>
-                            {{ produce.quantity }}
-                            {{ produce.get_unit_display }}
+    <!-- Produce Grid -->
+    {% if produce_list %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for produce in produce_list %}
+                <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4">
+                    <div>
+                        <div class="flex justify-between items-start gap-3 border-b border-slate-100 pb-4">
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-900">🌾 {{ produce.crop_name }}</h2>
+                                <span class="text-xs text-slate-500 font-medium">Harvested: {{ produce.harvest_date|date:"d M Y" }}</span>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-bold {% if produce.status == 'AVAILABLE' %}bg-emerald-100 text-emerald-800 border border-emerald-200{% elif produce.status == 'REQUESTED' %}bg-amber-100 text-amber-800 border border-amber-200{% else %}bg-blue-100 text-blue-800 border border-blue-200{% endif %}">
+                                {{ produce.get_status_display }}
+                            </span>
                         </div>
 
-
-                        <div class="produce-detail">
-                            <strong>Harvest Date:</strong>
-                            {{ produce.harvest_date|date:"d M Y" }}
+                        <div class="grid grid-cols-2 gap-3 my-4 text-xs">
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <span class="text-slate-400 block">Quantity</span>
+                                <strong class="text-slate-900 text-sm font-extrabold">{{ produce.quantity }} {{ produce.get_unit_display }}</strong>
+                            </div>
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                <span class="text-slate-400 block">District</span>
+                                <strong class="text-slate-900 text-sm font-bold">{{ produce.district }}</strong>
+                            </div>
                         </div>
-
 
                         {% if produce.address %}
-                        <div class="produce-detail">
-                            <strong>Pickup Address:</strong>
-                            {{ produce.address|truncatechars:45 }}
-                        </div>
+                            <p class="text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-100 truncate">
+                                📍 <strong>Address:</strong> {{ produce.address }}
+                            </p>
                         {% endif %}
-
-
-                        <div class="produce-detail">
-
-                            <strong>Status:</strong>
-
-                            {% if produce.status == "AVAILABLE" %}
-
-                                <span class="status status-available">
-                                    Available
-                                </span>
-
-                            {% elif produce.status == "REQUESTED" %}
-
-                                <span class="status status-requested">
-                                    Procurement Requested
-                                </span>
-
-                            {% elif produce.status == "PROCURED" %}
-
-                                <span class="status status-procured">
-                                    Procured
-                                </span>
-
-                            {% endif %}
-
-                        </div>
-
-
-                        <!-- Actions -->
-                        <div class="actions">
-
-                            {% if produce.status != "PROCURED" %}
-
-                                <!-- Edit -->
-                                <a
-                                    href="{% url 'produce:edit_produce' produce.pk %}"
-                                    class="btn btn-secondary"
-                                >
-                                    Edit
-                                </a>
-
-
-                                <!-- Delete -->
-                                <form
-                                    method="post"
-                                    action="{% url 'produce:delete_produce' produce.pk %}"
-                                    class="delete-form"
-                                    onsubmit="return confirm('Are you sure you want to delete this produce?');"
-                                >
-
-                                    {% csrf_token %}
-
-                                    <button
-                                        type="submit"
-                                        class="btn btn-danger"
-                                    >
-                                        Delete
-                                    </button>
-
-                                </form>
-
-
-                                <!-- View details -->
-                                <a
-                                    href="{% url 'produce:produce_detail' produce.pk %}"
-                                    class="btn btn-secondary"
-                                >
-                                    View Details
-                                </a>
-
-
-                                {% if produce.status == "AVAILABLE" %}
-                                <!-- Procurement -->
-                                <a
-                                    href="{% url 'produce:request_procurement' produce.pk %}"
-                                    class="btn btn-primary"
-                                >
-                                    Request Procurement
-                                </a>
-                                {% else %}
-                                <a
-                                    href="{% url 'procurement:centers' %}?produce_id={{ produce.id }}"
-                                    class="btn btn-primary"
-                                >
-                                    View Center
-                                </a>
-                                {% endif %}
-
-
-                            {% else %}
-
-                                <!-- Locked Edit -->
-                                <button
-                                    type="button"
-                                    class="btn btn-disabled"
-                                    disabled
-                                >
-                                    Edit
-                                </button>
-
-
-                                <!-- Locked Delete -->
-                                <button
-                                    type="button"
-                                    class="btn btn-disabled"
-                                    disabled
-                                >
-                                    Delete
-                                </button>
-
-
-                                <!-- View details -->
-                                <a
-                                    href="{% url 'produce:produce_detail' produce.pk %}"
-                                    class="btn btn-secondary"
-                                >
-                                    View Details
-                                </a>
-
-                            {% endif %}
-
-                        </div>
-
                     </div>
 
-                {% endfor %}
+                    <!-- Actions Bar -->
+                    <div class="flex items-center gap-2 pt-4 border-t border-slate-100">
+                        {% if produce.status != "PROCURED" %}
+                            <a href="{% url 'produce:edit_produce' produce.pk %}" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-semibold text-xs hover:bg-slate-50 transition-colors">
+                                Edit
+                            </a>
 
-            </section>
+                            <form method="post" action="{% url 'produce:delete_produce' produce.pk %}" onsubmit="return confirm('Are you sure you want to delete this produce?');" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="px-4 py-2 rounded-xl bg-red-50 text-red-600 font-semibold text-xs hover:bg-red-100 border border-red-200 transition-colors">
+                                    Delete
+                                </button>
+                            </form>
+                        {% endif %}
 
-
-        {% else %}
-
-            <!-- No Produce -->
-            <section class="empty-state">
-
-                <h2>No Produce Listed</h2>
-
-                <p>
-                    You haven't added any produce yet.
-                </p>
-
-                <a
-                    href="{% url 'produce:add_produce' %}"
-                    class="btn btn-primary"
-                >
-                    Add Your First Produce
-                </a>
-
-            </section>
-
-        {% endif %}
-
-            </main>
+                        {% if produce.status == "AVAILABLE" %}
+                            <a href="{% url 'procurement:centers' %}?produce_id={{ produce.id }}" class="ml-auto px-4 py-2 rounded-xl bg-emerald-600 text-white font-semibold text-xs hover:bg-emerald-700 transition-colors shadow-xs">
+                                Request Procurement &rarr;
+                            </a>
+                        {% else %}
+                            <a href="{% url 'procurement:status' %}?produce_id={{ produce.id }}" class="ml-auto px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold text-xs hover:bg-slate-800 transition-colors shadow-xs">
+                                Track Procurement &rarr;
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
         </div>
-    </div>
-    <script>function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }</script>
-</body>
-</html>
-```
+    {% else %}
+        <div class="bg-white rounded-3xl p-12 text-center border border-slate-200/80 shadow-xs space-y-4">
+            <div class="text-4xl">🌾</div>
+            <h2 class="text-xl font-bold text-slate-900">No Produce Found</h2>
+            <p class="text-sm text-slate-500 max-w-md mx-auto">You have not registered any produce matching the criteria yet.</p>
+            <a href="{% url 'produce:add_produce' %}" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-700 shadow-xs transition-colors">
+                <span>＋ Register Produce Now</span>
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

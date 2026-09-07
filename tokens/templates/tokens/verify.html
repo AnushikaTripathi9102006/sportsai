@@ -1,78 +1,78 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Token Verification | KisanFlow</title>
-    <style>
-        :root {
-            --green: #1f6b45;
-            --deep-green: #174b35;
-            --mint: #e6f2e9;
-            --ink: #19352a;
-            --muted: #6b7c72;
-            --line: #dfe9e1;
-            --paper: #f6faf7;
-            --white: #ffffff;
-            --amber: #d88424;
-        }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; display: grid; place-items: center; min-height: 100vh; padding: 20px; }
-        .verify-card { background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 40px 32px; max-width: 520px; width: 100%; box-shadow: 0 8px 30px rgba(23, 75, 53, 0.08); text-align: center; }
-        .badge-verified { display: inline-flex; align-items: center; gap: 6px; padding: 8px 18px; border-radius: 20px; background: #e8f7ec; color: #1b6b3e; font: bold 13px Arial, sans-serif; border: 1px solid #c2ebd0; margin-bottom: 24px; }
-        .token-num { font-family: Arial, sans-serif; font-size: 56px; font-weight: 900; color: var(--deep-green); letter-spacing: 2px; line-height: 1; margin: 0 0 8px; }
-        .token-subtitle { color: var(--muted); font: bold 12px Arial, sans-serif; letter-spacing: .15em; text-transform: uppercase; margin-bottom: 28px; }
-        .detail-table { width: 100%; border-collapse: collapse; margin-bottom: 28px; text-align: left; font: 14px Arial, sans-serif; }
-        .detail-table td { padding: 12px 14px; border-bottom: 1px solid var(--line); }
-        .detail-table td:first-child { color: var(--muted); width: 40%; font-size: 13px; }
-        .detail-table td:last-child { color: var(--ink); font-weight: bold; }
-        .btn-action { display: inline-block; padding: 12px 28px; border-radius: 8px; background: var(--green); color: white; font: bold 14px Arial, sans-serif; text-decoration: none; border: none; cursor: pointer; }
-        .btn-action:hover { background: var(--deep-green); }
-    </style>
-</head>
-<body>
-    <div class="verify-card">
-        <div class="badge-verified">✓ AUTHENTIC KISANFLOW TOKEN</div>
+{% extends 'base.html' %}
 
-        <div class="token-num">#{{ token.token_number }}</div>
-        <div class="token-subtitle">STATUS: {{ token.get_status_display|upper }}</div>
+{% block title %}Verify Security Token #{{ token.token_number }} - KisanFlow{% endblock %}
 
-        <table class="detail-table">
-            <tr>
-                <td>Farmer Name</td>
-                <td>{{ token.farmer.get_full_name|default:token.farmer.username }}</td>
-            </tr>
-            <tr>
-                <td>Farmer ID</td>
-                <td>{{ token.farmer.profile.farmer_id|default:"FAR-N/A" }}</td>
-            </tr>
-            <tr>
-                <td>Crop & Quantity</td>
-                <td>{{ token.produce.crop_name }} ({{ token.produce.quantity }} {{ token.produce.get_unit_display }})</td>
-            </tr>
-            <tr>
-                <td>Procurement Center</td>
-                <td>{{ token.procurement_center.name }}</td>
-            </tr>
-            <tr>
-                <td>Appointment Date</td>
-                <td>{{ token.date|date:"d M Y" }}</td>
-            </tr>
-            <tr>
-                <td>Counter / Slot</td>
-                <td>{{ token.counter_number }} • {{ token.appointment.time_slot|default:"Morning" }}</td>
-            </tr>
-            <tr>
-                <td>Security Token UUID</td>
-                <td style="font-family: monospace; font-size: 11px; word-break: break-all; color: var(--muted);">{{ token.secure_qr_uuid }}</td>
-            </tr>
-        </table>
+{% block content %}
+<div class="min-h-[75vh] flex items-center justify-center py-8 px-4">
+    <div class="max-w-xl w-full bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-10 space-y-6 text-center relative overflow-hidden">
+        <!-- Glow -->
+        <div class="absolute -right-16 -top-16 w-56 h-56 bg-emerald-100 rounded-full blur-3xl opacity-70 pointer-events-none"></div>
 
-        {% if user.is_authenticated and user.profile.role == "OFFICER" %}
-            <a href="{% url 'procurement:officer_gate_entry' %}?record_id={{ record.id }}" class="btn-action">🚪 Perform Officer Gate Entry</a>
-        {% else %}
-            <a href="{% url 'tokens:token_queue' %}" class="btn-action">View Token Queue</a>
-        {% endif %}
+        <!-- Verification Badge -->
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+            <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            OFFICIAL KISANFLOW QR VERIFIED
+        </div>
+
+        <!-- Token Number Display -->
+        <div class="space-y-1">
+            <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Digital Token Reference</span>
+            <div class="text-4xl sm:text-6xl font-black font-mono text-slate-950 tracking-tight">
+                #{{ token.token_number }}
+            </div>
+            <span class="inline-block px-3 py-1 rounded-md text-xs font-mono font-bold bg-slate-100 text-slate-700">
+                STATUS: {{ token.get_status_display|upper }}
+            </span>
+        </div>
+
+        <!-- Details Table -->
+        <div class="bg-slate-50/80 rounded-2xl border border-slate-200/80 p-4 text-left divide-y divide-slate-200/60 text-xs sm:text-sm">
+            <div class="flex justify-between py-2.5">
+                <span class="text-slate-500">Farmer Name</span>
+                <span class="font-bold text-slate-900">{{ token.farmer.get_full_name|default:token.farmer.username }}</span>
+            </div>
+            <div class="flex justify-between py-2.5">
+                <span class="text-slate-500">Farmer ID</span>
+                <span class="font-mono font-bold text-slate-800">{{ token.farmer.profile.farmer_id|default:"FAR-N/A" }}</span>
+            </div>
+            <div class="flex justify-between py-2.5">
+                <span class="text-slate-500">Produce &amp; Qty</span>
+                <span class="font-bold text-slate-900">{{ token.produce.crop_name }} ({{ token.produce.quantity }} {{ token.produce.get_unit_display }})</span>
+            </div>
+            <div class="flex justify-between py-2.5">
+                <span class="text-slate-500">Procurement Center</span>
+                <span class="font-bold text-slate-900">{{ token.procurement_center.name }}</span>
+            </div>
+            <div class="flex justify-between py-2.5">
+                <span class="text-slate-500">Scheduled Date &amp; Slot</span>
+                <span class="font-semibold text-emerald-800">{{ token.date|date:"d M Y" }} • {{ token.appointment.time_slot|default:"Morning" }}</span>
+            </div>
+            <div class="flex justify-between py-2.5">
+                <span class="text-slate-500">Assigned Counter</span>
+                <span class="font-bold text-slate-900">Counter #{{ token.counter_number }}</span>
+            </div>
+            <div class="py-2.5">
+                <span class="text-slate-400 block text-[10px] uppercase tracking-wider mb-1">Cryptographic UUID</span>
+                <span class="font-mono text-[11px] text-slate-600 break-all select-all block bg-white p-2 rounded-lg border border-slate-200">{{ token.secure_qr_uuid }}</span>
+            </div>
+        </div>
+
+        <!-- Action Row -->
+        <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            {% if user.is_authenticated and user.profile.role == "OFFICER" %}
+                <a href="{% url 'procurement:officer_gate_entry' %}?record_id={{ record.id }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-700 text-white text-xs font-bold hover:bg-emerald-800 transition-colors shadow-xs">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                    Proceed with Gate Entry
+                </a>
+            {% else %}
+                <a href="{% url 'tokens:token_queue' %}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-colors shadow-xs">
+                    Return to Token Queue
+                </a>
+            {% endif %}
+            <button onclick="window.print()" class="w-full sm:w-auto px-5 py-3 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 transition-colors">
+                🖨️ Print Slip
+            </button>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

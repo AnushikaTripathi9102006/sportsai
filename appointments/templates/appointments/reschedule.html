@@ -1,209 +1,154 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reschedule Appointment | KisanFlow</title>
-    <style>
-        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --amber: #d88424; --red: #dc2626; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, "Times New Roman", serif; }
-        a { color: inherit; }
-        .app-shell { display: flex; min-height: 100vh; }
-        .sidebar { width: 248px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .brand { padding: 0 14px 30px; font-size: 25px; font-weight: bold; }
-        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
-        .nav-list { display: grid; gap: 3px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
-        .nav-item:hover, .nav-item.active { background: #286c4a; color: white; }
-        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
-        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
-        .main-area { min-width: 0; flex: 1; }
-        .topbar { min-height: 82px; background: white; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
-        .menu-button { display: none; border: 0; background: var(--mint); color: var(--deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
-        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
-        .crumb strong { color: var(--ink); }
-        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
-        .profile-text { text-align: right; line-height: 1.5; }
-        .profile-text strong { display: block; color: var(--ink); }
-        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
-        .content { max-width: 1080px; margin: 0 auto; padding: 35px clamp(20px, 4vw, 50px) 60px; }
-        .back-link { display: inline-block; margin-bottom: 25px; color: var(--green); font: bold 13px Arial, sans-serif; text-decoration: none; }
-        .eyebrow { margin: 0 0 8px; color: var(--amber); font: bold 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
-        h1 { margin: 0 0 9px; font-size: clamp(28px, 4vw, 40px); }
-        .intro { margin: 0 0 27px; color: var(--muted); font: 15px Arial, sans-serif; }
-        .booking-card { padding: 26px; background: white; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); }
-        .step { padding: 22px 0; border-bottom: 1px solid var(--line); }
-        .step:first-child { padding-top: 0; }
-        .step:last-child { border-bottom: 0; padding-bottom: 0; }
-        .step h2 { margin: 0 0 13px; font-size: 17px; }
-        .current-appt-box { background: #fffdfa; border: 1px solid var(--amber); padding: 16px; border-radius: 6px; margin-bottom: 20px; font: 14px Arial, sans-serif; }
-        .current-appt-box strong { color: var(--amber); }
-        .center-choice-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 10px; }
-        .center-option-card { padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: white; cursor: pointer; transition: all 0.2s; position: relative; }
-        .center-option-card:hover, .center-option-card.selected { border-color: var(--green); background: #f4fbf6; }
-        .center-badge { position: absolute; top: 12px; right: 12px; padding: 4px 8px; border-radius: 12px; background: var(--mint); color: var(--green); font: bold 10px Arial, sans-serif; }
-        .center-option-card h3 { margin: 0 0 6px; font-size: 16px; color: var(--ink); padding-right: 70px; }
-        .center-option-card p { margin: 0 0 8px; color: var(--muted); font-size: 12px; }
-        .reasons-list { margin: 6px 0 0; padding-left: 16px; font-size: 11px; color: var(--muted); line-height: 1.5; }
-        .date-options { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-        .time-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .slot-btn { border: 1px solid var(--line); border-radius: 6px; background: white; color: var(--ink); padding: 12px 8px; cursor: pointer; text-align: center; font: 13px Arial, sans-serif; transition: all 0.2s; width: 100%; }
-        .slot-btn strong, .slot-btn small, .slot-btn span { display: block; }
-        .slot-btn small, .slot-btn span { margin-top: 4px; color: var(--muted); font-size: 11px; }
-        .slot-btn:hover:not(.disabled) { border-color: var(--green); background: var(--mint); color: var(--green); }
-        .slot-btn.selected { border-color: var(--green); background: var(--green); color: white; }
-        .slot-btn.selected small, .slot-btn.selected span { color: #d7e9dd; }
-        .slot-btn.disabled { opacity: 0.5; cursor: not-allowed; background: #f1f5f9; border-color: #cbd5e1; }
-        .badge-avail { color: var(--green); font-weight: bold; }
-        .badge-full { color: var(--red); font-weight: bold; }
-        .confirm-row { display: flex; justify-content: flex-end; margin-top: 24px; }
-        .button { display: inline-block; padding: 12px 20px; border-radius: 5px; background: var(--amber); color: white; font: bold 14px Arial, sans-serif; text-decoration: none; border: 0; cursor: pointer; }
-        .alert { padding: 14px 18px; border-radius: 8px; margin-bottom: 20px; font: 14px Arial, sans-serif; }
-        .alert-error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-        @media (max-width: 800px) { .date-options { grid-template-columns: repeat(4, 1fr); } .time-options { grid-template-columns: 1fr 1fr; } }
-        @media (max-width: 500px) { .date-options { grid-template-columns: repeat(2, 1fr); } .time-options { grid-template-columns: 1fr; } }
-    </style>
-</head>
-<body>
-    <div class="app-shell">
-        <aside class="sidebar" id="sidebar">
-            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
-            <div class="nav-label">Main menu</div>
-            <nav class="nav-list" aria-label="Farmer navigation">
-                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
-                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
-                <a class="nav-item" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
-                <a class="nav-item active" href="{% url 'appointments:appointments' %}"><span class="nav-icon">▣</span> Appointments</a>
-                <a class="nav-item" href="{% url 'tokens:token_queue' %}"><span class="nav-icon">▤</span> My Token</a>
-                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
-                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
-                <a class="nav-item" href="{% url 'notifications:notifications' %}"><span class="nav-icon">🔔</span> Notifications</a>
-            </nav>
-            <div class="sidebar-bottom nav-list">
-                <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Settings</a>
-                <a class="nav-item" href="#"><span class="nav-icon">?</span> Help &amp; Support</a>
-                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
-            </div>
-        </aside>
+{% extends 'base.html' %}
 
-        <div class="main-area">
-            <header class="topbar">
-                <div style="display:flex;align-items:center;gap:13px">
-                    <button class="menu-button" type="button" onclick="toggleSidebar()">☰</button>
-                    <div class="crumb"><strong>Reschedule Appointment</strong> &nbsp;/&nbsp; {{ old_appointment.appointment_code }}</div>
-                </div>
-                <div class="profile">
-                    <div class="profile-text">
-                        <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
-                        <span class="profile-id">Farmer account</span>
-                    </div>
-                    <div class="avatar">{{ request.user.first_name|default:request.user.username|first|upper }}</div>
-                </div>
-            </header>
+{% block title %}Reschedule Appointment | KisanFlow{% endblock %}
+{% block breadcrumb %}Reschedule Appointment{% endblock %}
 
-            <main class="content">
-                <a class="back-link" href="{% url 'appointments:appointment_detail' pk=old_appointment.pk %}">← Back to Appointment Details</a>
-                <p class="eyebrow">RESCHEDULE SCHEDULE &amp; CENTER</p>
-                <h1>🔄 Reschedule Procurement Appointment</h1>
-                <p class="intro">You can change your procurement center and appointment time slot. Recommendations have been dynamically recalculated.</p>
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
 
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-error">⚠️ {{ message }}</div>
-                    {% endfor %}
-                {% endif %}
-
-                <div class="current-appt-box">
-                    <strong>📌 Current Appointment:</strong> {{ old_appointment.appointment_date|date:"d M Y" }} ({{ old_appointment.appointment_time_slot }})
-                    at <strong>{{ old_appointment.procurement_center.name }}</strong> &bull; Crop: <strong>{{ produce.crop_name }}</strong> (Token: #{{ old_appointment.token_number }})
-                </div>
-
-                <form method="post" id="rescheduleForm">
-                    {% csrf_token %}
-                    <input type="hidden" name="center_id" id="selectedCenterInput" value="{{ selected_center.id }}">
-                    <input type="hidden" name="appointment_date" id="selectedDateInput" value="{{ selected_date|date:'Y-m-d' }}">
-                    <input type="hidden" name="appointment_time_slot" id="selectedSlotInput" value="">
-
-                    <section class="booking-card">
-                        <!-- Step 1: Select/Switch Center -->
-                        <div class="step">
-                            <h2>Step 1 — Choose Procurement Center (Recommendations Recalculated)</h2>
-                            <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">You can keep your current center or switch to another recommended center accepting {{ produce.crop_name }}.</p>
-                            
-                            <div class="center-choice-grid">
-                                {% for center in ranked_centers %}
-                                <div class="center-option-card {% if center.id == selected_center.id %}selected{% endif %}" onclick="window.location.href='?center_id={{ center.id }}&date={{ selected_date|date:'Y-m-d' }}'">
-                                    <span class="center-badge">{{ center.recommendation_badge }}</span>
-                                    <h3>🏢 {{ center.name }}</h3>
-                                    <p>📍 {{ center.district }} &bull; ~{{ center.distance_km }} km away</p>
-                                    <ul class="reasons-list">
-                                        {% for reason in center.reasons|slice:":3" %}
-                                        <li>{{ reason }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Step 2: Select New Date -->
-                        <div class="step">
-                            <h2>Step 2 — Select New Appointment Date at {{ selected_center.name }}</h2>
-                            <div class="date-options" role="group" aria-label="Select date">
-                                {% for dt in available_dates %}
-                                    <button type="button" class="slot-btn {% if dt == selected_date %}selected{% endif %}" onclick="window.location.href='?center_id={{ selected_center.id }}&date={{ dt|date:'Y-m-d' }}'">
-                                        <strong>{{ dt|date:"d M" }}</strong>
-                                        <small>{{ dt|date:"D" }}</small>
-                                    </button>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <!-- Step 3: Select Time Slot -->
-                        <div class="step">
-                            <h2>Step 3 — Select Time Slot on {{ selected_date|date:"l, d M Y" }}</h2>
-                            <div class="time-options" role="group" aria-label="Select time slot">
-                                {% for slot in slots_availability %}
-                                    <button type="button" class="slot-btn slot-choice-btn {% if not slot.is_available %}disabled{% endif %}" data-slot="{{ slot.code }}" {% if not slot.is_available %}disabled{% endif %}>
-                                        <strong>{{ slot.label }}</strong>
-                                        {% if slot.is_available %}
-                                            <span class="badge-avail">🟢 {{ slot.remaining }} / {{ slot.capacity }} slots left</span>
-                                        {% else %}
-                                            <span class="badge-full">🔴 FULL</span>
-                                        {% endif %}
-                                    </button>
-                                {% endfor %}
-                            </div>
-                        </div>
-
-                        <div class="confirm-row">
-                            <button type="submit" class="button" id="submitBtn" disabled style="opacity:0.6;">Confirm Rescheduling →</button>
-                        </div>
-                    </section>
-                </form>
-            </main>
+    <!-- Header / Title -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div class="space-y-1">
+            <a href="{% url 'appointments:appointment_detail' pk=old_appointment.pk %}" class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors mb-1">
+                <span>&larr; Back to Appointment Details</span>
+            </a>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                <span>🔄 Reschedule Appointment</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500">
+                Change your assigned procurement center and pick a new arrival date &amp; time slot window.
+            </p>
         </div>
     </div>
 
-    <script>
-        function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }
+    <!-- Current Appointment Callout -->
+    <div class="p-5 rounded-2xl bg-amber-50/70 border border-amber-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 text-xs text-amber-900">
+        <div>
+            <strong class="font-bold block text-sm text-amber-950">📌 Current Appointment:</strong>
+            <span class="mt-0.5 block">
+                {{ old_appointment.appointment_date|date:"d M Y" }} ({{ old_appointment.appointment_time_slot }}) at <strong>{{ old_appointment.procurement_center.name }}</strong>
+            </span>
+            <span class="text-amber-800/80 block mt-0.5">Crop: 🌾 {{ produce.crop_name }} &bull; Token: #{{ old_appointment.token_number }}</span>
+        </div>
+        <span class="px-3 py-1 rounded-full bg-amber-200/80 text-amber-900 font-bold text-xs">Modifying</span>
+    </div>
 
-        document.querySelectorAll('.slot-choice-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                if (btn.classList.contains('disabled')) return;
-                document.querySelectorAll('.slot-choice-btn').forEach(function (item) { item.classList.remove('selected'); });
-                btn.classList.add('selected');
+    <form method="post" id="rescheduleForm" class="space-y-6">
+        {% csrf_token %}
+        <input type="hidden" name="center_id" id="selectedCenterInput" value="{{ selected_center.id }}">
+        <input type="hidden" name="appointment_date" id="selectedDateInput" value="{{ selected_date|date:'Y-m-d' }}">
+        <input type="hidden" name="appointment_time_slot" id="selectedSlotInput" value="">
 
-                var slotValue = btn.getAttribute('data-slot');
-                document.getElementById('selectedSlotInput').value = slotValue;
+        <!-- Step 1: Center Selector -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-4">
+            <div class="border-b border-slate-100 pb-3">
+                <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs">1</span>
+                    <span>Choose Center (AI Recommendations Recalculated)</span>
+                </h2>
+                <p class="text-xs text-slate-500 mt-0.5">Keep current center or select another center accepting {{ produce.crop_name }}.</p>
+            </div>
 
-                var submitBtn = document.getElementById('submitBtn');
-                submitBtn.disabled = false;
-                submitBtn.style.opacity = '1';
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {% for center in ranked_centers %}
+                    <div onclick="window.location.href='?center_id={{ center.id }}&date={{ selected_date|date:'Y-m-d' }}'" class="p-5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between {% if center.id == selected_center.id %}border-emerald-600 bg-emerald-50/50 ring-2 ring-emerald-500/20 shadow-xs{% else %}border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/60{% endif %}">
+                        <div>
+                            <div class="flex justify-between items-start gap-2 mb-2">
+                                <h3 class="font-bold text-slate-900 text-sm">🏢 {{ center.name }}</h3>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                    {{ center.recommendation_badge }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-500">📍 {{ center.district }} &bull; ~{{ center.distance_km }} km away</p>
+                            <ul class="text-[11px] text-slate-600 space-y-0.5 mt-2.5 pt-2 border-t border-slate-100">
+                                {% for reason in center.reasons|slice:":2" %}
+                                    <li class="flex items-center gap-1.5"><span>✓</span><span>{{ reason }}</span></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Step 2: Date Selector -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-4">
+            <div class="border-b border-slate-100 pb-3">
+                <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs">2</span>
+                    <span>Select New Appointment Date at {{ selected_center.name }}</span>
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-3 sm:grid-cols-7 gap-2.5">
+                {% for dt in available_dates %}
+                    <button type="button" onclick="window.location.href='?center_id={{ selected_center.id }}&date={{ dt|date:'Y-m-d' }}'" class="p-3.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center {% if dt == selected_date %}border-emerald-600 bg-emerald-600 text-white shadow-md shadow-emerald-600/30{% else %}border-slate-200 bg-slate-50 text-slate-800 hover:bg-slate-100 hover:border-slate-300{% endif %}">
+                        <span class="text-sm font-black">{{ dt|date:"d M" }}</span>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider opacity-80">{{ dt|date:"D" }}</span>
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Step 3: Time Slot Selector -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-4">
+            <div class="border-b border-slate-100 pb-3">
+                <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs">3</span>
+                    <span>Select Time Slot on {{ selected_date|date:"l, d M Y" }}</span>
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {% for slot in slots_availability %}
+                    <button type="button" data-slot="{{ slot.code }}" class="slot-choice-btn p-4 rounded-2xl border text-left transition-all flex items-center justify-between {% if not slot.is_available %}opacity-50 cursor-not-allowed bg-slate-100 border-slate-200 text-slate-400{% else %}bg-slate-50/80 hover:bg-white border-slate-200 hover:border-emerald-400 cursor-pointer shadow-xs{% endif %}" {% if not slot.is_available %}disabled{% endif %}>
+                        <div>
+                            <strong class="text-sm font-bold text-slate-900 block">{{ slot.label }}</strong>
+                            <span class="text-xs text-slate-500">Center arrival window</span>
+                        </div>
+                        {% if slot.is_available %}
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                🟢 {{ slot.remaining }} / {{ slot.capacity }} slots left
+                            </span>
+                        {% else %}
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-red-100 text-red-800 border border-red-200">
+                                🔴 FULL
+                            </span>
+                        {% endif %}
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="pt-2">
+            <button type="submit" id="submitBtn" disabled class="w-full py-4 rounded-2xl bg-amber-600 text-white font-bold text-base shadow-lg shadow-amber-600/20 opacity-50 cursor-not-allowed hover:bg-amber-700 transition-all flex items-center justify-center gap-2">
+                <span>Confirm Rescheduling &amp; Update Slot &rarr;</span>
+            </button>
+        </div>
+    </form>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.slot-choice-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            if (btn.disabled || btn.classList.contains('opacity-50')) return;
+            
+            document.querySelectorAll('.slot-choice-btn').forEach(function (item) {
+                item.classList.remove('border-emerald-600', 'bg-emerald-50', 'ring-2', 'ring-emerald-500/20');
             });
+            btn.classList.add('border-emerald-600', 'bg-emerald-50', 'ring-2', 'ring-emerald-500/20');
+
+            var slotValue = btn.getAttribute('data-slot');
+            document.getElementById('selectedSlotInput').value = slotValue;
+
+            var submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            submitBtn.classList.add('hover:scale-[1.01]', 'active:scale-[0.99]');
         });
-    </script>
-</body>
-</html>
+    });
+</script>
+{% endblock %}

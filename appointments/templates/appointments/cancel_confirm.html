@@ -1,110 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cancel Appointment | KisanFlow</title>
-    <style>
-        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --red: #dc2626; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, "Times New Roman", serif; }
-        a { color: inherit; }
-        .app-shell { display: flex; min-height: 100vh; }
-        .sidebar { width: 248px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .brand { padding: 0 14px 30px; font-size: 25px; font-weight: bold; }
-        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
-        .nav-list { display: grid; gap: 3px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
-        .nav-item:hover, .nav-item.active { background: #286c4a; color: white; }
-        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
-        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
-        .main-area { min-width: 0; flex: 1; }
-        .topbar { min-height: 82px; background: white; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
-        .menu-button { display: none; border: 0; background: var(--mint); color: var(--deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
-        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
-        .crumb strong { color: var(--ink); }
-        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
-        .profile-text { text-align: right; line-height: 1.5; }
-        .profile-text strong { display: block; color: var(--ink); }
-        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
-        .content { max-width: 750px; margin: 0 auto; padding: 35px clamp(20px, 4vw, 50px) 60px; }
-        .back-link { display: inline-block; margin-bottom: 25px; color: var(--green); font: bold 13px Arial, sans-serif; text-decoration: none; }
-        .card { padding: 30px; background: white; border: 1px solid var(--line); border-left: 6px solid var(--red); border-radius: 10px; box-shadow: 0 6px 18px rgba(0, 0, 0, .06); }
-        .card h1 { margin: 0 0 12px; font-size: 24px; color: var(--red); }
-        .card p { color: var(--muted); font: 15px Arial, sans-serif; margin-bottom: 20px; line-height: 1.5; }
-        .details-box { background: var(--paper); padding: 18px; border-radius: 6px; border: 1px solid var(--line); margin-bottom: 25px; font: 14px Arial, sans-serif; }
-        .details-box div { margin-bottom: 8px; }
-        .details-box div:last-child { margin-bottom: 0; }
-        .actions-row { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
-        .button { display: inline-block; padding: 12px 20px; border-radius: 6px; background: var(--red); color: white; font: bold 14px Arial, sans-serif; text-decoration: none; border: 0; cursor: pointer; }
-        .button.secondary { background: #edf3ee; color: var(--green); }
-    </style>
-</head>
-<body>
-    <div class="app-shell">
-        <aside class="sidebar" id="sidebar">
-            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
-            <div class="nav-label">Main menu</div>
-            <nav class="nav-list" aria-label="Farmer navigation">
-                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
-                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
-                <a class="nav-item" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
-                <a class="nav-item active" href="{% url 'appointments:appointments' %}"><span class="nav-icon">▣</span> Appointments</a>
-                <a class="nav-item" href="{% url 'tokens:token_queue' %}"><span class="nav-icon">▤</span> My Token</a>
-                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
-                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
-                <a class="nav-item" href="{% url 'notifications:notifications' %}"><span class="nav-icon">🔔</span> Notifications</a>
-            </nav>
-            <div class="sidebar-bottom nav-list">
-                <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Settings</a>
-                <a class="nav-item" href="#"><span class="nav-icon">?</span> Help &amp; Support</a>
-                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
-            </div>
-        </aside>
+{% extends 'base.html' %}
 
-        <div class="main-area">
-            <header class="topbar">
-                <div style="display:flex;align-items:center;gap:13px">
-                    <button class="menu-button" type="button" onclick="toggleSidebar()">☰</button>
-                    <div class="crumb"><strong>Cancel Appointment</strong> &nbsp;/&nbsp; Appointments</div>
-                </div>
-                <div class="profile">
-                    <div class="profile-text">
-                        <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
-                        <span class="profile-id">Farmer account</span>
-                    </div>
-                    <div class="avatar">{{ request.user.first_name|default:request.user.username|first|upper }}</div>
-                </div>
-            </header>
+{% block title %}Cancel Appointment | KisanFlow{% endblock %}
+{% block breadcrumb %}Cancel Appointment{% endblock %}
 
-            <main class="content">
-                <a class="back-link" href="{% url 'appointments:appointment_detail' pk=appointment.pk %}">← Back to Appointment Details</a>
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-6">
 
-                <div class="card">
-                    <h1>⚠️ Cancel Appointment {{ appointment.appointment_code }}?</h1>
-                    <p>Are you sure you want to cancel this procurement appointment? Cancelling will release your reserved time slot at the procurement center.</p>
-
-                    <div class="details-box">
-                        <div>🌾 Crop: <strong>{{ appointment.produce.crop_name }}</strong> ({{ appointment.produce.quantity }} {{ appointment.produce.get_unit_display }})</div>
-                        <div>📍 Center: <strong>{{ appointment.procurement_center.name }}</strong></div>
-                        <div>📅 Date &amp; Slot: <strong>{{ appointment.appointment_date|date:"d M Y" }} ({{ appointment.appointment_time_slot }})</strong></div>
-                        <div>🎟️ Token: <strong>#{{ appointment.token_number }}</strong></div>
-                    </div>
-
-                    <form method="post">
-                        {% csrf_token %}
-                        <div class="actions-row">
-                            <a class="button secondary" href="{% url 'appointments:appointment_detail' pk=appointment.pk %}">Keep Appointment</a>
-                            <button type="submit" class="button">Yes, Cancel Appointment</button>
-                        </div>
-                    </form>
-                </div>
-            </main>
+    <!-- Header / Title -->
+    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-red-200/80 shadow-xs space-y-4">
+        <div class="space-y-1">
+            <a href="{% url 'appointments:appointment_detail' pk=appointment.pk %}" class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors mb-1">
+                <span>&larr; Keep Appointment</span>
+            </a>
+            <h1 class="text-2xl font-black text-red-700 tracking-tight flex items-center gap-2.5">
+                <span>⚠️ Cancel Appointment #{{ appointment.appointment_code }}?</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-600">
+                Are you sure you want to cancel this procurement appointment? Your token and scheduled arrival slot will be released.
+            </p>
         </div>
+
+        <div class="p-5 rounded-2xl bg-red-50/50 border border-red-200/80 text-xs text-slate-700 space-y-2">
+            <div>🌾 Crop: <strong class="text-slate-900">{{ appointment.produce.crop_name }} ({{ appointment.produce.quantity }} {{ appointment.produce.get_unit_display }})</strong></div>
+            <div>📍 Center: <strong class="text-slate-900">{{ appointment.procurement_center.name }}</strong></div>
+            <div>📅 Date &amp; Slot: <strong class="text-slate-900">{{ appointment.appointment_date|date:"d M Y" }} ({{ appointment.appointment_time_slot }})</strong></div>
+            <div>🎟️ Token: <strong class="text-slate-900 font-mono">#{{ appointment.token_number }}</strong></div>
+        </div>
+
+        <form method="post" class="pt-2">
+            {% csrf_token %}
+            <div class="flex flex-col sm:flex-row items-center gap-3">
+                <a href="{% url 'appointments:appointment_detail' pk=appointment.pk %}" class="w-full sm:w-auto px-5 py-3 rounded-2xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs text-center transition-colors">
+                    No, Keep Appointment
+                </a>
+                <button type="submit" class="w-full sm:w-auto flex-1 py-3 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-600/20 transition-all text-center">
+                    Yes, Confirm Cancellation
+                </button>
+            </div>
+        </form>
     </div>
-    <script>
-        function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }
-    </script>
-</body>
-</html>
+
+</div>
+{% endblock %}

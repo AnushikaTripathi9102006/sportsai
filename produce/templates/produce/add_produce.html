@@ -1,587 +1,136 @@
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>
-        {% if editing %}
-            Edit Produce - KisanFlow
-        {% else %}
-            Add Produce - KisanFlow
-        {% endif %}
-    </title>
-
-
-    <style>
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f7f5;
-            color: #333;
-        }
-
-
-        /* Navbar */
-
-        .navbar {
-            background: #1b5e20;
-            color: white;
-
-            padding: 18px 30px;
-
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-
-        .user-info {
-            font-size: 14px;
-        }
-
-
-        /* Main container */
-
-        .container {
-            max-width: 700px;
-
-            margin: 30px auto;
-
-            padding: 0 20px;
-        }
-
-
-        /* Page heading */
-
-        .page-header {
-            margin-bottom: 25px;
-        }
-
-
-        .page-header h1 {
-            margin-bottom: 8px;
-        }
-
-
-        .page-header p {
-            color: #666;
-        }
-
-
-        /* Form card */
-
-        .form-card {
-            background: white;
-
-            padding: 30px;
-
-            border-radius: 10px;
-
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-
-        /* Form fields */
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-
-        .form-group label {
-            display: block;
-
-            margin-bottom: 7px;
-
-            font-weight: bold;
-
-            color: #333;
-        }
-
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-
-            padding: 11px 12px;
-
-            border: 1px solid #ccc;
-
-            border-radius: 6px;
-
-            font-size: 15px;
-
-            font-family: Arial, sans-serif;
-
-            background: white;
-        }
-
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-
-            border-color: #1b5e20;
-
-            box-shadow: 0 0 0 2px rgba(27, 94, 32, 0.1);
-        }
-
-
-        /* Errors */
-
-        .form-errors {
-            background: #ffebee;
-
-            color: #b71c1c;
-
-            padding: 12px 15px;
-
-            border-radius: 6px;
-
-            margin-bottom: 20px;
-        }
-
-
-        .field-error {
-            display: block;
-
-            margin-top: 6px;
-
-            color: #c62828;
-
-            font-size: 13px;
-        }
-
-
-        /* Buttons */
-
-        .form-actions {
-            display: flex;
-
-            gap: 10px;
-
-            margin-top: 25px;
-
-            padding-top: 20px;
-
-            border-top: 1px solid #eee;
-        }
-
-
-        .btn {
-            display: inline-block;
-
-            padding: 10px 18px;
-
-            border-radius: 6px;
-
-            border: none;
-
-            font-size: 14px;
-
-            text-decoration: none;
-
-            cursor: pointer;
-
-            font-family: Arial, sans-serif;
-        }
-
-
-        .btn-primary {
-            background: #1b5e20;
-
-            color: white;
-        }
-
-
-        .btn-primary:hover {
-            background: #145218;
-        }
-
-
-        .btn-secondary {
-            background: #eeeeee;
-
-            color: #333;
-        }
-
-
-        .btn-secondary:hover {
-            background: #e0e0e0;
-        }
-
-
-        /* Mobile */
-
-        @media (max-width: 768px) {
-
-            .navbar {
-                padding: 15px;
-            }
-
-
-            .container {
-                margin-top: 20px;
-            }
-
-
-            .form-card {
-                padding: 20px;
-            }
-
-
-            .form-actions {
-                flex-direction: column;
-            }
-
-
-            .form-actions .btn {
-                width: 100%;
-
-                text-align: center;
-            }
-
-        }
-
-        :root {
-            --dashboard-green: #1f6b45;
-            --dashboard-deep-green: #174b35;
-            --dashboard-mint: #e6f2e9;
-            --dashboard-ink: #19352a;
-            --dashboard-muted: #6b7c72;
-            --dashboard-line: #dfe9e1;
-            --dashboard-paper: #f6faf7;
-        }
-
-        body {
-            background: var(--dashboard-paper);
-            color: var(--dashboard-ink);
-            font-family: Georgia, "Times New Roman", serif;
-        }
-
-        .app-shell { display: flex; min-height: 100vh; }
-        .sidebar {
-            width: 248px;
-            background: var(--dashboard-deep-green);
-            color: #eaf4ed;
-            padding: 28px 16px 20px;
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0;
-        }
-        .brand { padding: 0 14px 30px; color: #eaf4ed; font: bold 25px Georgia, serif; }
-        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-        .nav-label { padding: 0 14px 9px; color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
-        .nav-list { display: grid; gap: 3px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
-        .nav-item:hover, .nav-item.active { background: #286c4a; color: white; }
-        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
-        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
-        .main-area { min-width: 0; flex: 1; }
-        .topbar { min-height: 82px; background: white; border-bottom: 1px solid var(--dashboard-line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
-        .menu-button { display: none; border: 0; background: var(--dashboard-mint); color: var(--dashboard-deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
-        .crumb { color: var(--dashboard-muted); font: 13px Arial, sans-serif; }
-        .crumb strong { color: var(--dashboard-ink); }
-        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
-        .profile-text { text-align: right; line-height: 1.5; }
-        .profile-text strong { display: block; color: var(--dashboard-ink); }
-        .profile-id { color: var(--dashboard-muted); font-size: 11px; }
-        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--dashboard-deep-green); font-weight: bold; }
-        .content { max-width: 1360px; margin: 0 auto; padding: 38px clamp(20px, 4vw, 50px) 60px; }
-        .page-header { margin-bottom: 28px; }
-        .page-header h1 { color: var(--dashboard-ink); font: 34px Georgia, "Times New Roman", serif; line-height: 1.08; }
-        .page-header p { color: var(--dashboard-muted); font: 15px Arial, sans-serif; }
-        .form-card { max-width: 760px; border: 1px solid var(--dashboard-line); border-radius: 8px; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); }
-        .form-group label { color: var(--dashboard-ink); font: bold 13px Arial, sans-serif; }
-        .form-group input, .form-group select, .form-group textarea { border-color: var(--dashboard-line); border-radius: 6px; }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--dashboard-green); box-shadow: 0 0 0 2px var(--dashboard-mint); }
-        .form-actions { border-top-color: var(--dashboard-line); }
-        .btn-primary { background: var(--dashboard-green); box-shadow: 0 4px 12px rgba(31, 107, 69, .16); }
-        .btn-primary:hover { background: var(--dashboard-deep-green); }
-        @media (max-width: 700px) {
-            .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 5; transform: translateX(-100%); transition: transform .2s ease; }
-            .sidebar.open { transform: translateX(0); }
-            .menu-button { display: block; }
-            .topbar { min-height: 68px; }
-            .profile-text { display: none; }
-            .content { padding-top: 27px; }
-        }
-
-    </style>
-
-</head>
-
-
-<body>
-
-
-    <div class="app-shell">
-        <aside class="sidebar" id="sidebar">
-            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
-            <div class="nav-label">Main menu</div>
-            <nav class="nav-list" aria-label="Farmer navigation">
-                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
-                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
-                <a class="nav-item active" href="{% url 'produce:add_produce' %}"><span class="nav-icon">＋</span> Register Produce</a>
-                <a class="nav-item" href="#"><span class="nav-icon">⌖</span> Procurement Centers</a>
-                <a class="nav-item" href="#"><span class="nav-icon">▣</span> Appointments</a>
-                <a class="nav-item" href="#"><span class="nav-icon">▤</span> My Token</a>
-                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
-                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
-                <a class="nav-item" href="#"><span class="nav-icon">•</span> Notifications</a>
-            </nav>
-            <div class="sidebar-bottom nav-list">
-                <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Settings</a>
-                <a class="nav-item" href="#"><span class="nav-icon">?</span> Help &amp; Support</a>
-                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
-            </div>
-        </aside>
-        <div class="main-area">
-            <header class="topbar">
-                <div style="display:flex;align-items:center;gap:13px"><button class="menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" onclick="toggleSidebar()">☰</button><div class="crumb"><strong>{% if editing %}Edit Produce{% else %}Register Produce{% endif %}</strong> &nbsp;/&nbsp; Farmer space</div></div>
-                <div class="profile"><span aria-label="Notifications" style="font-size:22px;color:var(--dashboard-green)">♢</span><div class="profile-text"><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><span class="profile-id">Farmer account</span></div><div class="avatar">{{ request.user.first_name|default:request.user.username|first|upper }}</div><span aria-hidden="true">⌄</span></div>
-            </header>
-            <main class="content">
-
-
-        <!-- Page Heading -->
-
-        <section class="page-header">
-
-            {% if editing %}
-
-                <h1>Edit Produce</h1>
-
-                <p>
-                    Update the details of your produce.
-                </p>
-
-            {% else %}
-
-                <h1>Register Produce</h1>
-
-                <p>
-                    Add a new produce batch to your account.
-                </p>
-
-            {% endif %}
-
-        </section>
-
-
-
-        <!-- Form -->
-
-        <section class="form-card">
-
-
-            {% if form.non_field_errors %}
-
-                <div class="form-errors">
-
-                    {{ form.non_field_errors }}
-
-                </div>
-
-            {% endif %}
-
-
-
-            <form method="POST">
-
-                {% csrf_token %}
-
-
-
-                <!-- Crop Name -->
-
-                <div class="form-group">
-
-                    {{ form.crop_name.label_tag }}
-
-                    {{ form.crop_name }}
-
-                    {% for error in form.crop_name.errors %}
-
-                        <span class="field-error">
-                            {{ error }}
-                        </span>
-
-                    {% endfor %}
-
-                </div>
-
-
-
-                <!-- Quantity -->
-
-                <div class="form-group">
-
-                    {{ form.quantity.label_tag }}
-
-                    {{ form.quantity }}
-
-                    {% for error in form.quantity.errors %}
-
-                        <span class="field-error">
-                            {{ error }}
-                        </span>
-
-                    {% endfor %}
-
-                </div>
-
-
-
-                <!-- Unit -->
-
-                <div class="form-group">
-
-                    {{ form.unit.label_tag }}
-
-                    {{ form.unit }}
-
-                    {% for error in form.unit.errors %}
-
-                        <span class="field-error">
-                            {{ error }}
-                        </span>
-
-                    {% endfor %}
-
-                </div>
-
-
-
-                <!-- Harvest Date -->
-
-                <div class="form-group">
-
-                    {{ form.harvest_date.label_tag }}
-
-                    {{ form.harvest_date }}
-
-                    {% for error in form.harvest_date.errors %}
-
-                        <span class="field-error">
-                            {{ error }}
-                        </span>
-
-                    {% endfor %}
-
-                </div>
-
-
-
-                <!-- District Selection (UP) -->
-
-                <div class="form-group">
-
-                    {{ form.district.label_tag }}
-
-                    {{ form.district }}
-
-                    {% for error in form.district.errors %}
-
-                        <span class="field-error">
-                            {{ error }}
-                        </span>
-
-                    {% endfor %}
-
-                </div>
-
-
-
-                <!-- Farm / Pickup Address -->
-
-                <div class="form-group">
-
-                    {{ form.address.label_tag }}
-
-                    {{ form.address }}
-
-                    <small style="display:block;margin-top:5px;color:var(--dashboard-muted);font-size:12px;font-family:Arial,sans-serif;">
-                        📍 This address will be used to automatically locate and match the nearest procurement center.
-                    </small>
-
-                    {% for error in form.address.errors %}
-
-                        <span class="field-error">
-                            {{ error }}
-                        </span>
-
-                    {% endfor %}
-
-                </div>
-
-
-
-                <!-- Buttons -->
-
-                <div class="form-actions">
-
-                    {% if editing %}
-
-                        <button
-                            type="submit"
-                            class="btn btn-primary"
-                        >
-                            Save Changes
-                        </button>
-
-                    {% else %}
-
-                        <button
-                            type="submit"
-                            class="btn btn-primary"
-                        >
-                            Register Produce
-                        </button>
-
-                    {% endif %}
-
-
-                    <a
-                        href="{% url 'produce:my_produce' %}"
-                        class="btn btn-secondary"
-                    >
-                        Cancel
-                    </a>
-
-                </div>
-
-
-            </form>
-
-
-        </section>
-
-
-            </main>
-        </div>
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if editing %}Edit Produce | KisanFlow{% else %}Register Produce | KisanFlow{% endif %}
+{% endblock %}
+
+{% block breadcrumb %}
+    {% if editing %}Edit Produce{% else %}Register Produce{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+    <!-- Page Header -->
+    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
+        <span class="text-xs font-bold uppercase tracking-widest text-emerald-600">Farmer Space</span>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
+            {% if editing %}🌾 Edit Produce Details{% else %}🌾 Register Produce Batch{% endif %}
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">
+            {% if editing %}Update details of your crop harvest batch.{% else %}Add a new produce batch to your KisanFlow account to enable government MSP procurement recommendations.{% endif %}
+        </p>
     </div>
-    <script>function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }</script>
-</body>
 
-</html>
-```
+    <!-- Form Card -->
+    <div class="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs">
+        
+        {% if form.non_field_errors %}
+            <div class="p-4 mb-6 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Crop Name -->
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    {{ form.crop_name.label }}
+                </label>
+                <div class="[&>input]:w-full [&>input]:px-4 [&>input]:py-3 [&>input]:rounded-2xl [&>input]:border [&>input]:border-slate-200/80 [&>input]:bg-slate-50 [&>input]:text-sm [&>input]:font-medium [&>input]:text-slate-900 [&>input]:focus:outline-none [&>input]:focus:bg-white [&>input]:focus:border-emerald-500 [&>input]:transition-all">
+                    {{ form.crop_name }}
+                </div>
+                {% for error in form.crop_name.errors %}
+                    <p class="text-xs text-red-600 font-semibold mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Quantity & Unit Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                        {{ form.quantity.label }}
+                    </label>
+                    <div class="[&>input]:w-full [&>input]:px-4 [&>input]:py-3 [&>input]:rounded-2xl [&>input]:border [&>input]:border-slate-200/80 [&>input]:bg-slate-50 [&>input]:text-sm [&>input]:font-medium [&>input]:text-slate-900 [&>input]:focus:outline-none [&>input]:focus:bg-white [&>input]:focus:border-emerald-500 [&>input]:transition-all">
+                        {{ form.quantity }}
+                    </div>
+                    {% for error in form.quantity.errors %}
+                        <p class="text-xs text-red-600 font-semibold mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                        {{ form.unit.label }}
+                    </label>
+                    <div class="[&>select]:w-full [&>select]:px-4 [&>select]:py-3 [&>select]:rounded-2xl [&>select]:border [&>select]:border-slate-200/80 [&>select]:bg-slate-50 [&>select]:text-sm [&>select]:font-medium [&>select]:text-slate-900 [&>select]:focus:outline-none [&>select]:focus:bg-white [&>select]:focus:border-emerald-500 [&>select]:transition-all">
+                        {{ form.unit }}
+                    </div>
+                    {% for error in form.unit.errors %}
+                        <p class="text-xs text-red-600 font-semibold mt-1">{{ error }}</p>
+                    {% endfor %}
+                </div>
+
+            </div>
+
+            <!-- Harvest Date -->
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    {{ form.harvest_date.label }}
+                </label>
+                <div class="[&>input]:w-full [&>input]:px-4 [&>input]:py-3 [&>input]:rounded-2xl [&>input]:border [&>input]:border-slate-200/80 [&>input]:bg-slate-50 [&>input]:text-sm [&>input]:font-medium [&>input]:text-slate-900 [&>input]:focus:outline-none [&>input]:focus:bg-white [&>input]:focus:border-emerald-500 [&>input]:transition-all">
+                    {{ form.harvest_date }}
+                </div>
+                {% for error in form.harvest_date.errors %}
+                    <p class="text-xs text-red-600 font-semibold mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- District Selection -->
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    {{ form.district.label }}
+                </label>
+                <div class="[&>select]:w-full [&>select]:px-4 [&>select]:py-3 [&>select]:rounded-2xl [&>select]:border [&>select]:border-slate-200/80 [&>select]:bg-slate-50 [&>select]:text-sm [&>select]:font-medium [&>select]:text-slate-900 [&>select]:focus:outline-none [&>select]:focus:bg-white [&>select]:focus:border-emerald-500 [&>select]:transition-all">
+                    {{ form.district }}
+                </div>
+                {% for error in form.district.errors %}
+                    <p class="text-xs text-red-600 font-semibold mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Farm / Pickup Address -->
+            <div class="space-y-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    {{ form.address.label }}
+                </label>
+                <div class="[&>textarea]:w-full [&>textarea]:px-4 [&>textarea]:py-3 [&>textarea]:rounded-2xl [&>textarea]:border [&>textarea]:border-slate-200/80 [&>textarea]:bg-slate-50 [&>textarea]:text-sm [&>textarea]:font-medium [&>textarea]:text-slate-900 [&>textarea]:focus:outline-none [&>textarea]:focus:bg-white [&>textarea]:focus:border-emerald-500 [&>textarea]:transition-all">
+                    {{ form.address }}
+                </div>
+                <p class="text-xs text-slate-500 mt-1">
+                    📍 Address is used to dynamically calculate distance &amp; recommend nearest MSP centers.
+                </p>
+                {% for error in form.address.errors %}
+                    <p class="text-xs text-red-600 font-semibold mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-3 pt-4 border-t border-slate-100">
+                <button type="submit" class="px-6 py-3 rounded-2xl bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-700 shadow-md shadow-emerald-600/20 transition-all">
+                    {% if editing %}Save Changes{% else %}Register Produce Batch{% endif %}
+                </button>
+                <a href="{% url 'produce:my_produce' %}" class="px-6 py-3 rounded-2xl border border-slate-200 text-slate-700 font-semibold text-sm hover:bg-slate-50 transition-colors">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+{% endblock %}

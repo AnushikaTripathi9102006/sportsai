@@ -1,100 +1,203 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Center Details | KisanFlow</title>
-    <style>
-        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --amber: #d88424; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, "Times New Roman", serif; }
-        a { color: inherit; }
-        .app-shell { display: flex; min-height: 100vh; }
-        .sidebar { width: 248px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .brand { padding: 0 14px 30px; font-size: 25px; font-weight: bold; }
-        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 12px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
-        .nav-list { display: grid; gap: 3px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; text-decoration: none; }
-        .nav-item:hover, .nav-item.active { background: #286c4a; color: white; }
-        .nav-icon { width: 20px; text-align: center; font-size: 17px; }
-        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
-        .main-area { min-width: 0; flex: 1; }
-        .topbar { min-height: 82px; background: white; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); gap: 18px; }
-        .menu-button { display: none; border: 0; background: var(--mint); color: var(--deep-green); border-radius: 6px; font-size: 21px; padding: 7px 10px; cursor: pointer; }
-        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
-        .crumb strong { color: var(--ink); }
-        .profile { display: flex; align-items: center; gap: 11px; font: 13px Arial, sans-serif; }
-        .profile-text { text-align: right; line-height: 1.5; }
-        .profile-text strong { display: block; color: var(--ink); }
-        .profile-id { color: var(--muted); font-size: 11px; }
-        .avatar { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: #d9eadc; color: var(--deep-green); font-weight: bold; }
-        .content { max-width: 1200px; margin: 0 auto; padding: 32px clamp(20px, 4vw, 50px) 60px; }
-        .back-link { display: inline-block; margin-bottom: 24px; color: var(--green); font: bold 13px Arial, sans-serif; text-decoration: none; }
-        .page-heading { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 23px; }
-        .page-heading h1 { margin: 0; font-size: clamp(27px, 4vw, 38px); }
-        .open-badge { padding: 8px 13px; border-radius: 18px; background: var(--mint); color: var(--green); font: bold 12px Arial, sans-serif; white-space: nowrap; }
-        .top-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-        .panel { background: white; border: 1px solid var(--line); border-radius: 8px; padding: 24px; box-shadow: 0 4px 13px rgba(30, 75, 53, .04); }
-        .map-panel { min-height: 300px; display: grid; place-items: center; padding: 25px; background: #edf5ee; color: var(--muted); text-align: center; font: 14px Arial, sans-serif; }
-        .map-panel strong { display: block; margin-bottom: 18px; color: var(--green); font: 20px Georgia, serif; }
-        .map-points { margin: 14px auto; color: var(--green); font-size: 20px; line-height: 2.1; }
-        .panel h2 { margin: 0 0 22px; font-size: 18px; letter-spacing: .03em; text-transform: uppercase; }
-        .info-row { padding: 13px 0; border-bottom: 1px solid var(--line); font: 14px Arial, sans-serif; }
-        .info-row:last-child { border-bottom: 0; }
-        .info-label { display: block; margin-bottom: 5px; color: var(--muted); font-size: 12px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 18px; }
-        .stat-card { min-height: 125px; }
-        .stat-card h3 { margin: 0 0 19px; color: var(--muted); font: bold 11px Arial, sans-serif; letter-spacing: .09em; text-transform: uppercase; }
-        .stat-value { color: var(--green); font-size: 23px; font-weight: bold; }
-        .reason-panel { margin-top: 18px; }
-        .reasons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 0; padding: 0; list-style: none; color: var(--muted); font: 14px Arial, sans-serif; }
-        .reasons li::before { content: "✓"; display: inline-block; margin-right: 8px; color: var(--green); font-weight: bold; }
-        .action-row { display: flex; justify-content: flex-end; margin-top: 24px; }
-        .primary-button { display: inline-block; padding: 12px 16px; border-radius: 5px; background: var(--green); color: white; font: bold 13px Arial, sans-serif; text-decoration: none; }
-        .primary-button:hover { background: var(--deep-green); }
-        @media (max-width: 900px) { .top-grid { grid-template-columns: 1fr; } }
-        @media (max-width: 700px) { .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 5; transform: translateX(-100%); transition: transform .2s ease; } .sidebar.open { transform: translateX(0); } .menu-button { display: block; } .topbar { min-height: 68px; } .profile-text { display: none; } .content { padding-top: 27px; } .page-heading { display: block; } .open-badge { display: inline-block; margin-top: 13px; } .stats-grid, .reasons { grid-template-columns: 1fr; } .action-row { justify-content: stretch; } .primary-button { width: 100%; text-align: center; } }
-    </style>
-</head>
-<body>
-    <div class="app-shell">
-        <aside class="sidebar" id="sidebar">
-            <div class="brand">KisanFlow<small>Farm to fair market</small></div>
-            <div class="nav-label">Main menu</div>
-            <nav class="nav-list" aria-label="Farmer navigation">
-                <a class="nav-item" href="{% url 'farmer_dashboard' %}"><span class="nav-icon">⌂</span> Home</a>
-                <a class="nav-item" href="{% url 'produce:my_produce' %}"><span class="nav-icon">🌾</span> My Produce</a>
-                <a class="nav-item active" href="{% url 'procurement:centers' %}"><span class="nav-icon">⌖</span> Procurement Centers</a>
-                <a class="nav-item" href="#"><span class="nav-icon">▣</span> Appointments</a>
-                <a class="nav-item" href="#"><span class="nav-icon">▤</span> My Token</a>
-                <a class="nav-item" href="{% url 'procurement:status' %}"><span class="nav-icon">→</span> Procurement Status</a>
-                <a class="nav-item" href="{% url 'payments:payments' %}"><span class="nav-icon">₹</span> Payments</a>
-                <a class="nav-item" href="#"><span class="nav-icon">•</span> Notifications</a>
-            </nav>
-            <div class="sidebar-bottom nav-list">
-                <a class="nav-item" href="#"><span class="nav-icon">⚙</span> Settings</a>
-                <a class="nav-item" href="#"><span class="nav-icon">?</span> Help &amp; Support</a>
-                <a class="nav-item" href="{% url 'logout' %}"><span class="nav-icon">↪</span> Logout</a>
+{% extends 'base.html' %}
+
+{% block title %}Procurement Center Details - KisanFlow{% endblock %}
+
+{% block content %}
+<div class="space-y-8 max-w-5xl mx-auto pb-12">
+    <!-- Breadcrumb & Top Bar -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <a href="{% url 'procurement:centers' %}" class="inline-flex items-center gap-2 text-xs font-semibold text-emerald-700 hover:text-emerald-800 mb-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Back to Centers
+            </a>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">🏢 Lucknow Main Procurement Hub</h1>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Operational
+                </span>
             </div>
-        </aside>
-        <div class="main-area">
-            <header class="topbar">
-                <div style="display:flex;align-items:center;gap:13px"><button class="menu-button" type="button" aria-label="Open navigation" aria-controls="sidebar" aria-expanded="false" onclick="toggleSidebar()">☰</button><div class="crumb"><strong>Center Details</strong> &nbsp;/&nbsp; Procurement Centers</div></div>
-                <div class="profile"><span aria-label="Notifications" style="font-size:22px;color:var(--green)">♢</span><div class="profile-text"><strong>{{ request.user.get_full_name|default:request.user.username }}</strong><span class="profile-id">Farmer account</span></div><div class="avatar">{{ request.user.first_name|default:request.user.username|first|upper }}</div><span aria-hidden="true">⌄</span></div>
-            </header>
-            <main class="content">
-                <a class="back-link" href="{% url 'procurement:centers' %}">← Back to Procurement Centers</a>
-                <section class="page-heading"><h1>🏢 Lucknow Procurement Hub</h1><span class="open-badge">🟢 Open</span></section>
-                <div class="top-grid">
-                    <section class="panel map-panel" role="img" aria-label="Map placeholder showing center and farmer locations"><div><strong>MAP VIEW</strong><div class="map-points">● Center<br>&nbsp;&nbsp;│<br>● You</div><span>8.4 km away</span></div></section>
-                    <section class="panel"><h2>Center Information</h2><div class="info-row"><span class="info-label">📍 Location</span>Lucknow</div><div class="info-row"><span class="info-label">🕐 Working Hours</span>8:00 AM - 6:00 PM</div><div class="info-row"><span class="info-label">🌾 Accepted Crops</span>Wheat • Rice • Pulses</div></section>
-                </div>
-                <div class="stats-grid"><section class="panel stat-card"><h3>👥 Current Queue</h3><div class="stat-value">18 farmers</div></section><section class="panel stat-card"><h3>📦 Capacity</h3><div class="stat-value">78% occupied</div></section><section class="panel stat-card"><h3>📅 Availability</h3><div class="stat-value">12 slots available</div></section></div>
-                <section class="panel reason-panel"><h2>🎯 Why KisanFlow Recommended This Center</h2><ul class="reasons"><li>Near your location</li><li>Low queue</li><li>Accepts your crop</li><li>Sufficient capacity</li></ul><div class="action-row"><a class="primary-button" href="{% url 'procurement:confirm_center' %}">Select This Center →</a></div></section>
-            </main>
+            <p class="text-sm text-slate-500 mt-1">Government Authorized Primary Mandi &amp; Grain Storage Facility</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="{% url 'procurement:confirm_center' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-700 text-white text-sm font-semibold hover:bg-emerald-800 transition-all shadow-sm">
+                Select This Center
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
         </div>
     </div>
-    <script>function toggleSidebar() { const sidebar = document.getElementById('sidebar'); const button = document.querySelector('.menu-button'); const open = sidebar.classList.toggle('open'); button.setAttribute('aria-expanded', open); }</script>
-</body>
-</html>
+
+    <!-- Top Grid: Interactive Center Info & Map Preview -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Visual Hub Simulation / Map -->
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-xs p-6 flex flex-col justify-between relative overflow-hidden">
+            <div class="absolute -right-12 -top-12 w-64 h-64 bg-emerald-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+            
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Live Satellite &amp; Route Matrix</span>
+                    <span class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700">8.4 km away</span>
+                </div>
+                
+                <div class="h-56 rounded-xl bg-gradient-to-br from-emerald-900 via-slate-900 to-slate-950 p-6 flex flex-col justify-between text-white relative">
+                    <div class="flex justify-between items-start">
+                        <div class="space-y-1">
+                            <span class="text-[10px] font-mono tracking-widest text-emerald-400 uppercase">GPS GEO-TAGGED</span>
+                            <h3 class="font-bold text-lg">Sector 4 Mandi Complex, Lucknow</h3>
+                            <p class="text-xs text-slate-300">National Highway 24 Bypass, UP - 226010</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/10">
+                            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between border-t border-white/10 pt-4 mt-4">
+                        <div class="flex items-center gap-3">
+                            <span class="w-3 h-3 rounded-full bg-emerald-400 ring-4 ring-emerald-400/20"></span>
+                            <span class="text-xs text-slate-200">Your Farm (8.4 km) &rarr; Mandi Gate 1</span>
+                        </div>
+                        <span class="text-xs font-medium text-emerald-300 bg-emerald-950/60 px-2.5 py-1 rounded-md border border-emerald-800/40">~18 mins drive</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <span class="text-xs text-slate-400 block font-medium">Operating Hours</span>
+                    <span class="text-sm font-bold text-slate-800 mt-0.5 block">08:00 AM – 06:00 PM</span>
+                </div>
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+                    <span class="text-xs text-slate-400 block font-medium">Weighbridge Type</span>
+                    <span class="text-sm font-bold text-slate-800 mt-0.5 block">Digital 60T Platform</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center Details List -->
+        <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-xs p-6 flex flex-col justify-between">
+            <div>
+                <h2 class="text-base font-bold text-slate-900 mb-4 pb-3 border-b border-slate-100">Center Information</h2>
+                <div class="space-y-3.5 text-sm">
+                    <div class="flex justify-between py-1 border-b border-slate-100">
+                        <span class="text-slate-500">Center Head / Incharge</span>
+                        <span class="font-semibold text-slate-900">Dr. Rajesh Kumar Verma</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-slate-100">
+                        <span class="text-slate-500">Mandi License Code</span>
+                        <span class="font-semibold font-mono text-slate-900">UP-LKO-MND-4091</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-slate-100">
+                        <span class="text-slate-500">Supported Grains</span>
+                        <span class="font-semibold text-emerald-700">Wheat • Paddy • Mustard • Gram</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-b border-slate-100">
+                        <span class="text-slate-500">Quality Testing Lab</span>
+                        <span class="inline-flex items-center gap-1 font-semibold text-emerald-700">
+                            <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                            Govt NABL Accredited
+                        </span>
+                    </div>
+                    <div class="flex justify-between py-1">
+                        <span class="text-slate-500">Contact Helpline</span>
+                        <span class="font-semibold text-slate-900">+91 522 2849 100</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 p-4 rounded-xl bg-emerald-50/60 border border-emerald-100 text-xs text-emerald-900 space-y-1">
+                <span class="font-bold flex items-center gap-1.5 text-emerald-800">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Direct Payment Assurance
+                </span>
+                <p class="text-emerald-700">All procurement through this hub is disbursed via Direct Benefit Transfer (DBT) within 24-48 hours of acceptance.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Matrix -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Current Active Queue</span>
+            <div class="flex items-baseline gap-2 mt-2">
+                <span class="text-3xl font-bold text-slate-900">18</span>
+                <span class="text-xs text-emerald-600 font-semibold">Tractors / Trucks waiting</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-2">Avg wait time: ~22 mins</p>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Storage Yard Capacity</span>
+            <div class="flex items-baseline gap-2 mt-2">
+                <span class="text-3xl font-bold text-amber-600">78%</span>
+                <span class="text-xs text-slate-500 font-medium">Occupied (Optimal)</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-1.5 mt-3 overflow-hidden">
+                <div class="bg-amber-500 h-1.5 rounded-full" style="width: 78%"></div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Appointment Slots</span>
+            <div class="flex items-baseline gap-2 mt-2">
+                <span class="text-3xl font-bold text-emerald-600">12</span>
+                <span class="text-xs text-slate-500 font-medium">Slots open for tomorrow</span>
+            </div>
+            <p class="text-xs text-emerald-600 font-medium mt-2">Instant digital token allotment</p>
+        </div>
+    </div>
+
+    <!-- AI Smart Match Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                🎯
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-slate-900">Why KisanFlow Recommended This Center For You</h3>
+                <p class="text-xs text-slate-500">Automated algorithmic matching based on distance, crop type, and live queue speed.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+            <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="text-emerald-600 text-lg font-bold">✓</span>
+                <div>
+                    <span class="text-xs font-bold text-slate-800 block">Shortest Distance</span>
+                    <span class="text-[11px] text-slate-500">Only 8.4 km from your farm coordinates.</span>
+                </div>
+            </div>
+            <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="text-emerald-600 text-lg font-bold">✓</span>
+                <div>
+                    <span class="text-xs font-bold text-slate-800 block">Optimal Queue</span>
+                    <span class="text-[11px] text-slate-500">Fastest turnaround time in your tehsil.</span>
+                </div>
+            </div>
+            <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="text-emerald-600 text-lg font-bold">✓</span>
+                <div>
+                    <span class="text-xs font-bold text-slate-800 block">Crop Certified</span>
+                    <span class="text-[11px] text-slate-500">Full testing lab for Wheat &amp; Grains.</span>
+                </div>
+            </div>
+            <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="text-emerald-600 text-lg font-bold">✓</span>
+                <div>
+                    <span class="text-xs font-bold text-slate-800 block">DBT Priority Node</span>
+                    <span class="text-[11px] text-slate-500">Guaranteed 24-hr direct bank credit.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-5 border-t border-slate-100">
+            <span class="text-xs text-slate-500">Ready to proceed with this center for your produce drop-off?</span>
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <a href="{% url 'procurement:centers' %}" class="w-full sm:w-auto text-center px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-50">Back to Centers</a>
+                <a href="{% url 'procurement:confirm_center' %}" class="w-full sm:w-auto text-center px-6 py-2.5 rounded-xl bg-emerald-700 text-white text-xs font-semibold hover:bg-emerald-800 transition-colors shadow-xs">Proceed &amp; Confirm &rarr;</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

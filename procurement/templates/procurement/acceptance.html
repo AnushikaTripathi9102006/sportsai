@@ -1,173 +1,180 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Final Acceptance Overview | KisanFlow</title>
-    <style>
-        :root { --green: #1f6b45; --deep-green: #174b35; --mint: #e6f2e9; --ink: #19352a; --muted: #6b7c72; --line: #dfe9e1; --paper: #f6faf7; --white: #fff; }
-        * { box-sizing: border-box; }
-        body { margin: 0; background: var(--paper); color: var(--ink); font-family: Georgia, 'Times New Roman', serif; }
-        a { color: inherit; text-decoration: none; }
-        .app-shell { display: flex; min-height: 100vh; }
-        .sidebar { width: 260px; background: var(--deep-green); color: #eaf4ed; padding: 28px 16px 20px; display: flex; flex-direction: column; flex-shrink: 0; }
-        .brand { padding: 0 14px 25px; font-size: 24px; font-weight: bold; border-bottom: 1px solid #2e6848; margin-bottom: 20px; }
-        .brand small { display: block; margin-top: 5px; color: #a9c9b4; font: 11px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
-        .nav-label { color: #8db59c; font: 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; padding: 0 14px 9px; }
-        .nav-list { display: grid; gap: 4px; }
-        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 7px; color: #d7e9dd; font: 14px Arial, sans-serif; }
-        .nav-item:hover, .nav-item.active { background: #286c4a; color: var(--white); }
-        .sidebar-bottom { margin-top: auto; border-top: 1px solid #35664b; padding-top: 14px; }
-        .main-area { min-width: 0; flex: 1; display: flex; flex-direction: column; }
-        .topbar { min-height: 70px; background: var(--white); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; padding: 16px clamp(20px, 4vw, 50px); }
-        .crumb { color: var(--muted); font: 13px Arial, sans-serif; }
-        .crumb strong { color: var(--ink); }
-        .content { max-width: 1360px; margin: 0 auto; padding: 30px clamp(20px, 4vw, 50px) 60px; width: 100%; }
+{% extends 'base.html' %}
 
-        .grid-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; }
-        @media (max-width: 900px) { .grid-layout { grid-template-columns: 1fr; } }
+{% block title %}Final Batch Acceptance | KisanFlow{% endblock %}
+{% block breadcrumb %}Acceptance{% endblock %}
 
-        .card { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 24px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
-        .card-title { font-size: 18px; margin-top: 0; margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
-        
-        .record-list { display: grid; gap: 10px; max-height: 500px; overflow-y: auto; }
-        .record-item { padding: 14px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); transition: all 0.2s; cursor: pointer; }
-        .record-item:hover, .record-item.active { border-color: var(--green); background: var(--mint); }
+{% block extra_head %}
+<style>
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 0.625rem 0.875rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 0.75rem;
+        background-color: #f8fafc;
+        color: #0f172a;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        border-color: #10b981;
+        background-color: #ffffff;
+        outline: 2px solid rgba(16, 185, 129, 0.2);
+    }
+</style>
+{% endblock %}
 
-        .form-group { margin-bottom: 18px; }
-        .form-group label { display: block; font: 13px Arial, sans-serif; font-weight: bold; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; }
-        .form-control { width: 100%; padding: 10px 14px; border: 1px solid var(--line); border-radius: 6px; font: 14px Arial, sans-serif; background: var(--paper); color: var(--ink); }
-        .form-control:focus { border-color: var(--green); outline: none; background: var(--white); }
-        .btn { display: inline-block; width: 100%; padding: 12px; background: var(--green); color: var(--white); font: 15px Arial, sans-serif; font-weight: bold; border-radius: 6px; border: 0; cursor: pointer; text-align: center; }
-        .btn:hover { background: var(--deep-green); }
-        
-        .info-box { background: #dbeafe; border-left: 4px solid #1e40af; padding: 14px; border-radius: 6px; margin-bottom: 20px; font: 14px Arial, sans-serif; color: #1e3a8a; }
-        .summary-table { width: 100%; margin-bottom: 16px; border-collapse: collapse; font: 13px Arial, sans-serif; }
-        .summary-table td { padding: 6px 0; border-bottom: 1px dashed var(--line); }
-        .alert { padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font: 14px Arial, sans-serif; }
-        .alert-error { background: #fee2e2; color: #991b1b; }
-        .alert-success { background: #d1fae5; color: #065f46; }
-    </style>
-</head>
-<body>
-    <div class="app-shell">
-        <aside class="sidebar">
-            <div class="brand">🌾 KisanFlow<small>Officer Portal</small></div>
-            <div class="nav-label">Navigation</div>
-            <nav class="nav-list">
-                <a href="{% url 'officer_dashboard' %}" class="nav-item"><span>📊 Dashboard</span></a>
-                <a href="{% url 'procurement:officer_appointments' %}" class="nav-item"><span>📅 Appointments</span></a>
-                <a href="{% url 'procurement:officer_gate_entry' %}" class="nav-item"><span>🚪 Gate Entry</span></a>
-                <a href="{% url 'procurement:officer_queue' %}" class="nav-item"><span>🚦 Live Center Queue</span></a>
-                <a href="{% url 'procurement:officer_quality_check' %}" class="nav-item"><span>🔬 Quality Check</span></a>
-                <a href="{% url 'procurement:officer_weighing' %}" class="nav-item"><span>⚖️ Weighing Scale</span></a>
-                <a href="{% url 'procurement:officer_acceptance' %}" class="nav-item active"><span>✅ Final Acceptance</span></a>
-                <a href="{% url 'procurement:officer_bills' %}" class="nav-item"><span>📄 Billing</span></a>
-                <a href="{% url 'procurement:officer_payments' %}" class="nav-item"><span>💳 Payments</span></a>
-                <a href="{% url 'procurement:officer_history' %}" class="nav-item"><span>📜 History Audit</span></a>
-            </nav>
-            <div class="sidebar-bottom">
-                <a href="{% url 'logout' %}" class="nav-item"><span>🚪 Sign Out</span></a>
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header / Title -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+        <div class="space-y-1">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-bold uppercase tracking-wider">
+                <span>Step 4 of 6</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span>Final Acceptance</span>
             </div>
-        </aside>
+            <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
+                <span>✅ Final Batch Acceptance &amp; Silo Storage</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-500 max-w-2xl">
+                Review complete lab inspection report, net weight calibration, and authorize procurement acceptance into center inventory.
+            </p>
+        </div>
 
-        <main class="main-area">
-            <header class="topbar">
-                <div class="crumb">Officer Portal / <strong>Batch Acceptance Verification</strong></div>
-            </header>
+        <a href="{% url 'procurement:officer_queue' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors self-start sm:self-auto">
+            <span>🚦 Live Queue Desk</span>
+        </a>
+    </div>
 
-            <div class="content">
-                <h1 style="font-size: 28px; margin-bottom: 8px;">✅ Final Batch Acceptance</h1>
-                <p style="color: var(--muted); margin-bottom: 24px; font: 14px Arial, sans-serif;">Review quality inspection and weighed quantities before signing off on final grain acceptance.</p>
+    <!-- 2-Column Split Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
-                            {{ message }}
+        <!-- Column 1: Weighed Batches Queue (5 cols) -->
+        <div class="lg:col-span-5 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+                    <h2 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                        <span>1. Weighed Batches Queue</span>
+                    </h2>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                        {{ pending_records|length }} Pending Sign-Off
+                    </span>
+                </div>
+
+                <div class="space-y-3 max-h-[580px] overflow-y-auto pr-1">
+                    {% for rec in pending_records %}
+                        <a href="?record_id={{ rec.id }}" class="block p-4 rounded-2xl border transition-all {% if selected_record and selected_record.id == rec.id %}border-emerald-500 bg-emerald-50/40 ring-2 ring-emerald-500/20 shadow-xs{% else %}border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/60{% endif %}">
+                            <div class="flex justify-between items-start gap-2 mb-2">
+                                <span class="font-mono font-extrabold text-slate-900 text-sm">
+                                    #{{ rec.token_number }}
+                                </span>
+                                <span class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-blue-100 text-blue-800">
+                                    ⚖️ {{ rec.actual_quantity_quintals|default:rec.estimated_quantity_quintals }} Qtl Net
+                                </span>
+                            </div>
+
+                            <div class="text-sm font-bold text-slate-900">
+                                {{ rec.farmer.get_full_name|default:rec.farmer.username }}
+                                <span class="text-xs font-normal text-slate-500">({{ rec.farmer.profile.farmer_id|default:"FAR-N/A" }})</span>
+                            </div>
+
+                            <div class="mt-2 pt-2 border-t border-slate-100/80 flex items-center justify-between text-xs text-slate-500">
+                                <span>🌾 {{ rec.crop_name }}</span>
+                                <span class="font-semibold text-emerald-700">Grade {{ rec.quality_assessment.get_quality_grade_display|default:"A" }}</span>
+                            </div>
+                        </a>
+                    {% empty %}
+                        <div class="py-16 text-center text-slate-400">
+                            <span class="text-4xl block mb-2">✅</span>
+                            <p class="font-semibold text-slate-600">No weighed batches awaiting final acceptance</p>
+                            <p class="text-xs text-slate-400 mt-1">Weighed lots will appear here automatically.</p>
                         </div>
                     {% endfor %}
-                {% endif %}
-
-                <div class="grid-layout">
-                    <div class="card">
-                        <h2 class="card-title">1. Weighed Batches Queue</h2>
-                        <div class="record-list">
-                            {% for rec in pending_records %}
-                                <a href="?record_id={{ rec.id }}" class="record-item {% if selected_record and selected_record.id == rec.id %}active{% endif %}">
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                                        <strong>#{{ rec.token_number }}</strong>
-                                        <small style="color: var(--green); font-weight: bold;">{{ rec.crop_name }}</small>
-                                    </div>
-                                    <div style="font: 13px Arial, sans-serif; color: var(--ink);">
-                                        👤 <strong>{{ rec.farmer.get_full_name|default:rec.farmer.username }}</strong>
-                                        <span style="color: var(--muted); font-size: 11px;">(ID: {{ rec.farmer.profile.farmer_id|default:"FAR-N/A" }})</span>
-                                    </div>
-                                    <div style="font: 12px Arial, sans-serif; color: var(--muted); margin-top: 4px;">
-                                        📞 {{ rec.farmer.profile.phone|default:"N/A" }} | Net Weight: <strong>{{ rec.actual_quantity_quintals|default:rec.estimated_quantity_quintals }} Qtl</strong>
-                                    </div>
-                                </a>
-                            {% empty %}
-                                <div style="text-align: center; color: var(--muted); padding: 30px; font: 14px Arial, sans-serif;">
-                                    No weighed batches awaiting final acceptance.
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h2 class="card-title">2. Acceptance Verification Form</h2>
-                        {% if selected_record %}
-                            <div class="info-box">
-                                <strong>Procurement Batch Summary:</strong>
-                                <table class="summary-table" style="margin-top: 10px;">
-                                    <tr>
-                                        <td>Farmer Name & ID:</td>
-                                        <td><strong>{{ selected_record.farmer.get_full_name|default:selected_record.farmer.username }}</strong> (ID: {{ selected_record.farmer.profile.farmer_id|default:"FAR-N/A" }})</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Contact Phone:</td>
-                                        <td><strong>{{ selected_record.farmer.profile.phone|default:"N/A" }}</strong></td>
-                                    </tr>
-                                    <tr>
-                                        <td>Crop & Location:</td>
-                                        <td><strong>{{ selected_record.crop_name }}</strong> (📍 {{ selected_record.district }})</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Quality Grade:</td>
-                                        <td><strong>{{ selected_record.quality_assessment.get_quality_grade_display|default:"Grade A" }}</strong> (Moisture: {{ selected_record.quality_assessment.moisture_percentage }}%)</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Measured Net Weight:</td>
-                                        <td><strong style="color: #1e40af; font-size: 15px;">{{ selected_record.actual_quantity_quintals }} Quintals</strong> ({{ selected_record.weighing_record.net_weight }} Kg)</td>
-                                    </tr>
-                                </table>
-                            </div>
-
-                            <form method="POST">
-                                {% csrf_token %}
-                                <input type="hidden" name="record_id" value="{{ selected_record.id }}">
-
-                                <div class="form-group">
-                                    <label>Officer Decision</label>
-                                    {{ form.decision }}
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Acceptance Remarks / Notes</label>
-                                    {{ form.remarks }}
-                                </div>
-
-                                <button type="submit" class="btn">Confirm Acceptance & Send to Billing →</button>
-                            </form>
-                        {% else %}
-                            <div style="text-align: center; padding: 50px 20px; color: var(--muted); font: 15px Georgia, serif;">
-                                👈 Select a weighed batch from the left queue to finalize acceptance.
-                            </div>
-                        {% endif %}
-                    </div>
                 </div>
             </div>
-        </main>
+
+            <div class="pt-4 mt-4 border-t border-slate-100 text-xs text-slate-400 text-center">
+                Select a batch to review parameters and confirm final acceptance.
+            </div>
+        </div>
+
+        <!-- Column 2: Acceptance Verification Form (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs">
+            <div class="border-b border-slate-100 pb-4 mb-6">
+                <h2 class="font-bold text-slate-900 text-lg">2. Acceptance Verification &amp; Authorization</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Final officer sign-off before invoice generation and DBT payment dispatch.</p>
+            </div>
+
+            {% if selected_record %}
+                <!-- Target Details Card -->
+                <div class="p-5 rounded-2xl bg-gradient-to-br from-emerald-50/80 to-slate-50 border border-emerald-100 space-y-3 mb-6">
+                    <div class="flex justify-between items-center border-b border-emerald-200/60 pb-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-800">Procurement Summary</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-emerald-600 text-white">
+                            Token #{{ selected_record.token_number }}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-700">
+                        <div>
+                            <span class="text-slate-400 block">Farmer Name:</span>
+                            <strong class="text-slate-900 text-sm">{{ selected_record.farmer.get_full_name|default:selected_record.farmer.username }}</strong>
+                            <span class="text-slate-500 block">ID: {{ selected_record.farmer.profile.farmer_id|default:"FAR-N/A" }}</span>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block">Contact Phone:</span>
+                            <strong class="text-slate-900">{{ selected_record.farmer.profile.phone|default:"N/A" }}</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block">Quality Certification:</span>
+                            <strong class="text-green-700 font-bold">Grade {{ selected_record.quality_assessment.get_quality_grade_display|default:"A" }} (Moisture: {{ selected_record.quality_assessment.moisture_percentage }}%)</strong>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 block">Certified Net Weight:</span>
+                            <strong class="text-blue-800 font-bold text-sm">{{ selected_record.actual_quantity_quintals }} Quintals</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Acceptance Form -->
+                <form method="POST" class="space-y-5">
+                    {% csrf_token %}
+                    <input type="hidden" name="record_id" value="{{ selected_record.id }}">
+
+                    <div class="form-group space-y-1.5">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                            Officer Decision <span class="text-red-500">*</span>
+                        </label>
+                        {{ form.decision }}
+                    </div>
+
+                    <div class="form-group space-y-1.5">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                            Acceptance Remarks / Storage Silo Lot ID
+                        </label>
+                        {{ form.remarks }}
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 flex items-center gap-3">
+                        <button type="submit" class="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.01] active:scale-[0.99]">
+                            <span>Confirm Acceptance &amp; Send to Billing Desk</span>
+                            <span>&rarr;</span>
+                        </button>
+                    </div>
+                </form>
+            {% else %}
+                <div class="py-24 text-center text-slate-400 space-y-3">
+                    <span class="text-5xl block">✅</span>
+                    <h3 class="text-base font-bold text-slate-700">No Weighed Batch Selected</h3>
+                    <p class="text-xs text-slate-400 max-w-sm mx-auto">
+                        Please select a weighed batch from the left queue to verify details and sign off acceptance.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+
     </div>
-</body>
-</html>
+
+</div>
+{% endblock %}
