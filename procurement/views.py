@@ -109,8 +109,8 @@ def select_center(request):
     center = get_object_or_404(ProcurementCenter, pk=center_id, is_active=True)
 
     # Backend Validation: Ensure center handles the crop
-    crops_list = [c.strip().lower() for c in center.crops_handled.split(",")]
-    if produce.crop_name.lower() not in crops_list and not any(produce.crop_name.lower() in c for c in crops_list):
+    from .recommendation_engine import is_crop_handled
+    if not is_crop_handled(produce.crop_name, center.crops_handled):
         messages.error(request, f"Center '{center.name}' does not handle procurement for crop '{produce.crop_name}'.")
         return redirect(f"/procurement/centers/?produce_id={produce.id}")
 
@@ -544,8 +544,12 @@ def officer_gate_entry(request, pk=None):
             return redirect("procurement:officer_gate_entry")
 
     base_records = _get_officer_records(center)
-    pending_records = base_records.filter(current_stage__in=["REGISTRATION", "APPOINTMENT"])
-    selected_record = base_records.filter(pk=target_pk).first() if target_pk else pending_records.first()
+    pending_records = list(base_records.filter(current_stage__in=["REGISTRATION", "APPOINTMENT", "GATE_ENTRY"]))
+    selected_record = base_records.filter(pk=target_pk).first() if target_pk else (pending_records[0] if pending_records else None)
+
+    # Ensure selected_record is present in pending_records for selector UI
+    if selected_record and selected_record not in pending_records:
+        pending_records.insert(0, selected_record)
 
     form = GateEntryForm()
 
@@ -657,8 +661,10 @@ def officer_quality_check(request, pk=None):
             return redirect("procurement:officer_quality_check")
 
     base_records = _get_officer_records(center)
-    pending_records = base_records.filter(current_stage__in=["GATE_ENTRY", "QUALITY_CHECK"])
-    selected_record = base_records.filter(pk=target_pk).first() if target_pk else pending_records.first()
+    pending_records = list(base_records.filter(current_stage__in=["GATE_ENTRY", "QUALITY_CHECK"]))
+    selected_record = base_records.filter(pk=target_pk).first() if target_pk else (pending_records[0] if pending_records else None)
+    if selected_record and selected_record not in pending_records:
+        pending_records.insert(0, selected_record)
 
     form = QualityCheckForm()
 
@@ -701,8 +707,10 @@ def officer_weighing(request, pk=None):
             return redirect("procurement:officer_weighing")
 
     base_records = _get_officer_records(center)
-    pending_records = base_records.filter(current_stage="WEIGHING")
-    selected_record = base_records.filter(pk=target_pk).first() if target_pk else pending_records.first()
+    pending_records = list(base_records.filter(current_stage__in=["QUALITY_CHECK", "WEIGHING"]))
+    selected_record = base_records.filter(pk=target_pk).first() if target_pk else (pending_records[0] if pending_records else None)
+    if selected_record and selected_record not in pending_records:
+        pending_records.insert(0, selected_record)
 
     form = WeighingForm()
 
@@ -747,8 +755,10 @@ def officer_acceptance(request, pk=None):
             return redirect("procurement:officer_acceptance")
 
     base_records = _get_officer_records(center)
-    pending_records = base_records.filter(current_stage="ACCEPTANCE")
-    selected_record = base_records.filter(pk=target_pk).first() if target_pk else pending_records.first()
+    pending_records = list(base_records.filter(current_stage__in=["WEIGHING", "ACCEPTANCE"]))
+    selected_record = base_records.filter(pk=target_pk).first() if target_pk else (pending_records[0] if pending_records else None)
+    if selected_record and selected_record not in pending_records:
+        pending_records.insert(0, selected_record)
 
     form = AcceptanceForm()
 
@@ -791,8 +801,10 @@ def officer_bills(request, pk=None):
             return redirect("procurement:officer_bills")
 
     base_records = _get_officer_records(center)
-    pending_records = base_records.filter(current_stage="BILL_GENERATED")
-    selected_record = base_records.filter(pk=target_pk).first() if target_pk else pending_records.first()
+    pending_records = list(base_records.filter(current_stage__in=["ACCEPTANCE", "BILL_GENERATED"]))
+    selected_record = base_records.filter(pk=target_pk).first() if target_pk else (pending_records[0] if pending_records else None)
+    if selected_record and selected_record not in pending_records:
+        pending_records.insert(0, selected_record)
 
     form = BillGenerationForm(initial={"rate_per_quintal": 2275.00, "deductions": 0.00})
 
@@ -840,8 +852,10 @@ def officer_payments(request, pk=None):
             return redirect("procurement:officer_payments")
 
     base_records = _get_officer_records(center)
-    pending_records = base_records.filter(current_stage__in=["BILL_GENERATED", "PAYMENT_INITIATED"])
-    selected_record = base_records.filter(pk=target_pk).first() if target_pk else pending_records.first()
+    pending_records = list(base_records.filter(current_stage__in=["BILL_GENERATED", "PAYMENT_INITIATED"]))
+    selected_record = base_records.filter(pk=target_pk).first() if target_pk else (pending_records[0] if pending_records else None)
+    if selected_record and selected_record not in pending_records:
+        pending_records.insert(0, selected_record)
 
     initiate_form = PaymentInitiationForm()
     receive_form = PaymentReceivedForm()

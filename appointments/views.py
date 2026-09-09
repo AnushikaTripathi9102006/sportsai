@@ -83,11 +83,23 @@ def book_appointment(request):
         if not selected_center and procurement_record and procurement_record.center:
             selected_center = procurement_record.center
 
-        # If user explicitly passed center_id, sync procurement_record center
-        if selected_center and procurement_record and procurement_record.center != selected_center:
-            procurement_record.center = selected_center
-            procurement_record.center_name = selected_center.name
-            procurement_record.save()
+        # If user explicitly passed center_id, ensure procurement_record exists and has selected_center set
+        if selected_center:
+            if not procurement_record:
+                procurement_record = ProcurementRecord.objects.create(
+                    produce=selected_produce,
+                    farmer=request.user,
+                    crop_name=selected_produce.crop_name,
+                    registered_quantity=selected_produce.quantity,
+                    unit=selected_produce.get_unit_display(),
+                    center=selected_center,
+                    center_name=selected_center.name,
+                    current_stage="REGISTRATION",
+                )
+            elif procurement_record.center != selected_center:
+                procurement_record.center = selected_center
+                procurement_record.center_name = selected_center.name
+                procurement_record.save()
 
     # Generate available dates (next 7 days starting from tomorrow)
     today = date.today()

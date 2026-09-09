@@ -34,6 +34,8 @@ class Token(models.Model):
     procurement_record = models.ForeignKey(
         "procurement.ProcurementRecord",
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name="tokens",
     )
 
@@ -51,7 +53,7 @@ class Token(models.Model):
         related_name="tokens",
     )
 
-    date = models.DateField()
+    date = models.DateField(default=timezone.now)
     counter_number = models.CharField(max_length=20, default="Counter 1")
 
     status = models.CharField(

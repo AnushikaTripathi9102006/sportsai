@@ -1,14 +1,41 @@
+import re
 from datetime import date, timedelta
 from django.db import models
 from appointments.models import Appointment
 from .models import ProcurementCenter
 
 
+def is_crop_handled(crop_name, crops_handled_str):
+    """
+    Checks if a procurement center handles the given crop name.
+    Supports names like 'Paddy (Rice)', 'Paddy', 'Rice', 'Wheat (Rabi)', etc.
+    """
+    if not crop_name or not crops_handled_str:
+        return True
+
+    crops_list = [c.strip().lower() for c in crops_handled_str.split(",") if c.strip()]
+    crop_lower = crop_name.lower().strip()
+
+    # 1. Direct or bidirectional substring match
+    for c in crops_list:
+        if c in crop_lower or crop_lower in c:
+            return True
+
+    # 2. Word-based overlap match (e.g. "Paddy (Rice)" vs "Paddy")
+    crop_words = set(re.findall(r'\w+', crop_lower))
+    for c in crops_list:
+        c_words = set(re.findall(r'\w+', c))
+        if crop_words & c_words:
+            return True
+
+    return False
+
+
 def get_recommended_centers(produce=None, farmer=None, target_district=None):
     """
     Intelligent Center Recommendation Engine.
     Filters and ranks active procurement centers based on:
-    1. Crop compatibility (mandatory)
+    1. Crop compatibility (mandatory filter)
     2. Geographic proximity / district match
     3. Live Queue traffic status
     4. Real 7-day appointment slot capacity
@@ -31,11 +58,10 @@ def get_recommended_centers(produce=None, farmer=None, target_district=None):
     eligible_centers = []
     if crop_name:
         for center in active_centers:
-            crops_list = [c.strip().lower() for c in center.crops_handled.split(",")]
-            if any(crop_name.lower() in c for c in crops_list):
+            if is_crop_handled(crop_name, center.crops_handled):
                 eligible_centers.append(center)
 
-    # Fallback to all active centers if no crop-specific match
+    # Fallback to all active centers ONLY if no center in the entire system handles that crop
     if not eligible_centers:
         eligible_centers = list(active_centers)
 
@@ -50,10 +76,16 @@ def get_recommended_centers(produce=None, farmer=None, target_district=None):
         score = 0.0
         reasons = []
 
+        handles_this_crop = is_crop_handled(crop_name, center.crops_handled) if crop_name else True
+
         # Feature A: Crop Match
         if crop_name:
-            reasons.append(f"🌾 Accepts {crop_name} procurement")
-            score += 30
+            if handles_this_crop:
+                reasons.append(f"🌾 Accepts {crop_name} procurement")
+                score += 30
+            else:
+                reasons.append(f"⚠️ Does not handle {crop_name}")
+                score -= 200  # Penalize centers that don't handle the crop so they cannot be top recommendation
 
         # Feature B: District Match & Proximity
         if center.district.lower() == district.lower():
@@ -105,16 +137,20 @@ def get_recommended_centers(produce=None, farmer=None, target_district=None):
     ranked_list.sort(key=lambda c: c.recommendation_score, reverse=True)
 
     # Decorate badges
-    for idx, c in enumerate(ranked_list):
-        if idx == 0:
+    top_found = False
+    for c in ranked_list:
+        handles_this_crop = is_crop_handled(crop_name, c.crops_handled) if crop_name else True
+        if not top_found and handles_this_crop:
             c.is_top_recommendation = True
             c.recommendation_badge = "🥇 BEST MATCH"
-        elif c.recommendation_score >= 50:
+            top_found = True
+        elif c.recommendation_score >= 50 and handles_this_crop:
             c.is_top_recommendation = False
             c.recommendation_badge = "⭐ HIGH COMPATIBILITY"
         else:
             c.is_top_recommendation = False
-            c.recommendation_badge = "🟢 AVAILABLE"
+            c.recommendation_badge = "🟢 AVAILABLE" if handles_this_crop else "⚠️ NO CROP MATCH"
 
-    top_recommendation = ranked_list[0] if ranked_list else None
+    top_recommendation = next((c for c in ranked_list if (not crop_name or is_crop_handled(crop_name, c.crops_handled))), None)
     return top_recommendation, ranked_list
+

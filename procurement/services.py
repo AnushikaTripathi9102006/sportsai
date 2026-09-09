@@ -82,6 +82,10 @@ def transition_procurement_stage(actor, record, target_stage, details=""):
     """
     with transaction.atomic():
         current_stage = record.current_stage
+
+        if current_stage == target_stage:
+            return record
+
         allowed = VALID_TRANSITIONS.get(current_stage, [])
 
         if target_stage not in allowed:
@@ -347,8 +351,9 @@ def perform_acceptance(officer, record, decision, rejection_reason=""):
 def perform_bill_generation(officer, record, rate_per_quintal=2275.00, deductions=0.00):
     """Generates financial bill for accepted procurement."""
     with transaction.atomic():
-        if hasattr(record, "bill"):
-            return record.bill
+        existing_bill = ProcurementBill.objects.filter(procurement_record=record).first()
+        if existing_bill:
+            return existing_bill
 
         quantity = float(record.actual_quantity or record.registered_quantity)
         rate = float(rate_per_quintal)
@@ -381,12 +386,21 @@ def perform_bill_generation(officer, record, rate_per_quintal=2275.00, deduction
             defaults={"payment_status": "PENDING"},
         )
 
-        transition_procurement_stage(
-            actor=officer,
-            record=record,
-            target_stage="BILL_GENERATED",
-            details=f"Bill #{bill_no} generated for ₹{net_amt}",
-        )
+        if record.current_stage != "BILL_GENERATED":
+            transition_procurement_stage(
+                actor=officer,
+                record=record,
+                target_stage="BILL_GENERATED",
+                details=f"Bill #{bill_no} generated for ₹{net_amt}",
+            )
+        else:
+            create_audit_log(
+                actor=officer,
+                action="BILL_GENERATED",
+                record=record,
+                center=record.center,
+                details=f"Bill #{bill_no} generated for ₹{net_amt}",
+            )
 
         try:
             from notifications.services import notify_farmer

@@ -137,41 +137,86 @@
                     </div>
                 </div>
 
-                <!-- Billing Form -->
-                <form method="POST" class="space-y-5">
-                    {% csrf_token %}
-                    <input type="hidden" name="record_id" value="{{ selected_record.id }}">
+                {% if selected_record.bill %}
+                    <!-- Existing Bill Details Card -->
+                    <div class="p-5 rounded-2xl bg-emerald-50/90 border border-emerald-200 space-y-4 mb-6">
+                        <div class="flex justify-between items-center border-b border-emerald-200/60 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                <span class="text-xs font-bold uppercase tracking-wider text-emerald-800">Bill Already Generated</span>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-600 text-white">
+                                {{ selected_record.bill.bill_number }}
+                            </span>
+                        </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="form-group space-y-1.5">
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                                MSP Rate (₹ per Quintal) <span class="text-red-500">*</span>
-                            </label>
-                            {{ form.rate_per_quintal }}
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-slate-700">
+                            <div>
+                                <span class="text-slate-400 block">Rate / Qtl:</span>
+                                <strong class="text-slate-900 text-sm">₹{{ selected_record.bill.rate_per_quintal }}</strong>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">Billed Qty:</span>
+                                <strong class="text-slate-900 text-sm">{{ selected_record.bill.quantity_quintals }} Qtl</strong>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">Gross Amount:</span>
+                                <strong class="text-slate-900 text-sm">₹{{ selected_record.bill.gross_amount }}</strong>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">Deductions:</span>
+                                <strong class="text-slate-900 text-sm">₹{{ selected_record.bill.deductions }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="pt-3 border-t border-emerald-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <span class="text-xs text-slate-500 block">Net Payout Amount:</span>
+                                <strong class="text-emerald-900 text-xl font-black">₹{{ selected_record.bill.net_amount }}</strong>
+                            </div>
+                            <a href="/procurement/officer/payments/?record_id={{ selected_record.id }}" class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-md shadow-teal-600/20 transition-all hover:scale-[1.01]">
+                                <span>Proceed to Direct Payout Desk</span>
+                                <span>&rarr;</span>
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Billing Form -->
+                    <form method="POST" class="space-y-5">
+                        {% csrf_token %}
+                        <input type="hidden" name="record_id" value="{{ selected_record.id }}">
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="form-group space-y-1.5">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                    MSP Rate (₹ per Quintal) <span class="text-red-500">*</span>
+                                </label>
+                                {{ form.rate_per_quintal }}
+                            </div>
+
+                            <div class="form-group space-y-1.5">
+                                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                                    Deductions (₹)
+                                </label>
+                                {{ form.deductions }}
+                            </div>
                         </div>
 
                         <div class="form-group space-y-1.5">
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                                Deductions (₹)
+                                Bill Remarks / Calculation Notes
                             </label>
-                            {{ form.deductions }}
+                            {{ form.remarks }}
                         </div>
-                    </div>
 
-                    <div class="form-group space-y-1.5">
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                            Bill Remarks / Calculation Notes
-                        </label>
-                        {{ form.remarks }}
-                    </div>
-
-                    <div class="pt-4 border-t border-slate-100 flex items-center gap-3">
-                        <button type="submit" class="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md shadow-teal-600/20 transition-all hover:scale-[1.01] active:scale-[0.99]">
-                            <span>Generate Official Bill &amp; Send to Payout Desk</span>
-                            <span>&rarr;</span>
-                        </button>
-                    </div>
-                </form>
+                        <div class="pt-4 border-t border-slate-100 flex items-center gap-3">
+                            <button type="submit" class="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow-md shadow-teal-600/20 transition-all hover:scale-[1.01] active:scale-[0.99]">
+                                <span>Generate Official Bill &amp; Send to Payout Desk</span>
+                                <span>&rarr;</span>
+                            </button>
+                        </div>
+                    </form>
+                {% endif %}
             {% else %}
                 <div class="py-24 text-center text-slate-400 space-y-3">
                     <span class="text-5xl block">🧾</span>

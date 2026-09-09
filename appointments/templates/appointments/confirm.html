@@ -64,11 +64,14 @@
             {% csrf_token %}
             <input type="hidden" name="action" value="confirm">
             <input type="hidden" name="produce_id" value="{{ produce.id }}">
+            {% if center %}
+                <input type="hidden" name="center_id" value="{{ center.id }}">
+            {% endif %}
             <input type="hidden" name="appointment_date" value="{{ appointment_date|date:'Y-m-d' }}">
             <input type="hidden" name="appointment_time_slot" value="{{ appointment_time_slot }}">
 
             <div class="flex flex-col sm:flex-row items-center gap-3">
-                <a href="{% url 'appointments:book_appointment' %}?produce_id={{ produce.id }}&date={{ appointment_date|date:'Y-m-d' }}" class="w-full sm:w-auto px-5 py-3 rounded-2xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs text-center transition-colors">
+                <a href="{% url 'appointments:book_appointment' %}?produce_id={{ produce.id }}{% if center %}&center_id={{ center.id }}{% endif %}&date={{ appointment_date|date:'Y-m-d' }}" class="w-full sm:w-auto px-5 py-3 rounded-2xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-xs text-center transition-colors">
                     &larr; Change Slot
                 </a>
                 <button type="submit" class="w-full sm:w-auto flex-1 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md shadow-emerald-600/20 transition-all hover:scale-[1.01] active:scale-[0.99] text-center">

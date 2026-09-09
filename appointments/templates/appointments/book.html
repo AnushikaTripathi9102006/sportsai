@@ -50,8 +50,11 @@
             {% csrf_token %}
             <input type="hidden" name="action" value="review">
             <input type="hidden" name="produce_id" value="{{ selected_produce.id }}">
+            {% if center %}
+                <input type="hidden" name="center_id" id="selectedCenterInput" value="{{ center.id }}">
+            {% endif %}
             <input type="hidden" name="appointment_date" id="selectedDateInput" value="{{ selected_date|date:'Y-m-d' }}">
-            <input type="hidden" name="appointment_time_slot" id="selectedSlotInput" value="">
+            <input type="hidden" name="appointment_time_slot" id="selectedSlotInput" value="{{ form.appointment_time_slot.value|default:'' }}">
 
             <!-- Step 1: Select Produce -->
             <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-4">
@@ -149,7 +152,7 @@
                                 <span class="text-xs text-slate-500">Counter intake window</span>
                             </div>
                             {% if slot.is_available %}
-                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 slot-status-badge">
                                     🟢 {{ slot.remaining }} / {{ slot.capacity }} slots left
                                 </span>
                             {% else %}
@@ -181,32 +184,93 @@
     function changeProduce(produceId) {
         var url = new URL(window.location.href);
         url.searchParams.set('produce_id', produceId);
+        {% if center %}
+            url.searchParams.set('center_id', '{{ center.id }}');
+        {% endif %}
         window.location.href = url.toString();
     }
 
     function selectDate(dateStr) {
         var url = new URL(window.location.href);
         url.searchParams.set('date', dateStr);
+        {% if selected_produce %}
+            url.searchParams.set('produce_id', '{{ selected_produce.id }}');
+        {% endif %}
+        {% if center %}
+            url.searchParams.set('center_id', '{{ center.id }}');
+        {% endif %}
         window.location.href = url.toString();
     }
 
-    document.querySelectorAll('.slot-choice-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            if (btn.disabled || btn.classList.contains('opacity-50')) return;
-            
-            document.querySelectorAll('.slot-choice-btn').forEach(function (item) {
-                item.classList.remove('border-emerald-600', 'bg-emerald-50', 'ring-2', 'ring-emerald-500/20');
+    document.addEventListener('DOMContentLoaded', function () {
+        const slotBtns = document.querySelectorAll('.slot-choice-btn');
+        const selectedSlotInput = document.getElementById('selectedSlotInput');
+        const submitBtn = document.getElementById('submitBtn');
+
+        function updateSlotSelection(selectedBtn) {
+            slotBtns.forEach(function (btn) {
+                btn.classList.remove(
+                    'border-emerald-600',
+                    'bg-emerald-50',
+                    'ring-2',
+                    'ring-emerald-500/20',
+                    'shadow-md'
+                );
+                if (!btn.disabled && !btn.classList.contains('opacity-50')) {
+                    btn.classList.add('bg-slate-50/80', 'border-slate-200');
+                }
             });
-            btn.classList.add('border-emerald-600', 'bg-emerald-50', 'ring-2', 'ring-emerald-500/20');
 
-            var slotValue = btn.getAttribute('data-slot');
-            document.getElementById('selectedSlotInput').value = slotValue;
+            if (selectedBtn) {
+                selectedBtn.classList.remove('bg-slate-50/80', 'border-slate-200');
+                selectedBtn.classList.add(
+                    'border-emerald-600',
+                    'bg-emerald-50',
+                    'ring-2',
+                    'ring-emerald-500/20',
+                    'shadow-md'
+                );
 
-            var submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            submitBtn.classList.add('hover:scale-[1.01]', 'active:scale-[0.99]');
+                const slotVal = selectedBtn.getAttribute('data-slot');
+                if (selectedSlotInput) {
+                    selectedSlotInput.value = slotVal;
+                }
+
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    submitBtn.classList.add('hover:scale-[1.01]', 'active:scale-[0.99]');
+                }
+            } else {
+                if (selectedSlotInput) {
+                    selectedSlotInput.value = '';
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    submitBtn.classList.remove('hover:scale-[1.01]', 'active:scale-[0.99]');
+                }
+            }
+        }
+
+        slotBtns.forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (btn.disabled || btn.classList.contains('opacity-50')) {
+                    return;
+                }
+                updateSlotSelection(btn);
+            });
         });
+
+        // Auto-highlight if pre-selected slot value exists
+        const initialSlot = selectedSlotInput ? selectedSlotInput.value : '';
+        if (initialSlot) {
+            const matchingBtn = document.querySelector('.slot-choice-btn[data-slot="' + CSS.escape(initialSlot) + '"]');
+            if (matchingBtn && !matchingBtn.disabled) {
+                updateSlotSelection(matchingBtn);
+            }
+        }
     });
 </script>
 {% endblock %}
