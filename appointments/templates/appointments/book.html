@@ -184,21 +184,24 @@
     function changeProduce(produceId) {
         var url = new URL(window.location.href);
         url.searchParams.set('produce_id', produceId);
-        {% if center %}
-            url.searchParams.set('center_id', '{{ center.id }}');
-        {% endif %}
+        var centerId = '{{ center.id|default:"" }}';
+        if (centerId) {
+            url.searchParams.set('center_id', centerId);
+        }
         window.location.href = url.toString();
     }
 
     function selectDate(dateStr) {
         var url = new URL(window.location.href);
         url.searchParams.set('date', dateStr);
-        {% if selected_produce %}
-            url.searchParams.set('produce_id', '{{ selected_produce.id }}');
-        {% endif %}
-        {% if center %}
-            url.searchParams.set('center_id', '{{ center.id }}');
-        {% endif %}
+        var selectedProduceId = '{{ selected_produce.id|default:"" }}';
+        if (selectedProduceId) {
+            url.searchParams.set('produce_id', selectedProduceId);
+        }
+        var centerId = '{{ center.id|default:"" }}';
+        if (centerId) {
+            url.searchParams.set('center_id', centerId);
+        }
         window.location.href = url.toString();
     }
 
